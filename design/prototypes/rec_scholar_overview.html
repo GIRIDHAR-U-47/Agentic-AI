@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary-container": "#5f2781", "secondary-fixed-dim": "#e6c275", "surface-container": "#f3ebf4", "on-surface": "#1d1a20", "secondary-container": "#fed889", "inverse-primary": "#e5b4ff", "on-secondary-fixed-variant": "#5b4300", "on-secondary-container": "#785d1a", "surface-variant": "#e8e0e9", "secondary": "#755a18", "secondary-fixed": "#ffdf9d", "primary-fixed": "#f5d9ff", "surface-container-high": "#ede6ef", "on-error-container": "#93000a", "on-primary-container": "#d496f8", "surface-bright": "#fff7ff", "tertiary": "#3f1a57", "on-tertiary-container": "#ca9ee4", "error-container": "#ffdad6", "surface": "#fff7ff", "outline": "#7e7481", "error": "#ba1a1a", "on-secondary-fixed": "#251a00", "on-surface-variant": "#4d4450", "on-tertiary": "#ffffff", "inverse-surface": "#332f36", "background": "#fff7ff", "tertiary-fixed": "#f4d9ff", "on-tertiary-fixed-variant": "#5c3774", "on-secondary": "#ffffff", "tertiary-fixed-dim": "#e3b5fd", "on-primary-fixed": "#30004b", "on-tertiary-fixed": "#2d0646", "surface-tint": "#7e45a0", "on-error": "#ffffff", "tertiary-container": "#57326f", "on-primary": "#ffffff", "primary-fixed-dim": "#e5b4ff", "surface-container-low": "#f9f1fa", "surface-container-highest": "#e8e0e9", "on-background": "#1d1a20", "on-primary-fixed-variant": "#642c86", "surface-container-lowest": "#ffffff", "inverse-on-surface": "#f6eef7", "primary": "#470869", "surface-dim": "#dfd8e0", "outline-variant": "#cfc2d1" }, borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", '2xl': "1rem", full: "9999px" }, spacing: { "space-md": "0.75rem", margin: "1rem", "space-xs": "0.25rem", "gutter-desktop": "1.5rem", "margin-desktop": "2rem", "space-lg": "1rem", "space-sm": "0.5rem", "space-2xs": "0.125rem", "margin-tablet": "1.5rem", "space-2xl": "2rem", "space-3xl": "3rem", gutter: "1rem", "space-xl": "1.5rem" }, fontFamily: { "body-sm": ["Inter"], "body-lg": ["Inter"], "headline-lg": ["Geist"], "title-sm": ["Inter"], "headline-md": ["Geist"], "code-sm": ["JetBrains Mono"], "headline-xl": ["Geist"], "headline-sm": ["Geist"], "body-md": ["Inter"], "title-md": ["Inter"], "label-md": ["Inter"], "headline-xl-mobile": ["Geist"], "label-sm": ["Inter"], "headline-lg-mobile": ["Geist"] }, fontSize: { "body-sm": ["13px", { lineHeight: "18px", letterSpacing: "0.005em", fontWeight: "400" }], "body-lg": ["16px", { lineHeight: "26px", letterSpacing: "-0.005em", fontWeight: "400" }], "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }], "title-sm": ["14px", { lineHeight: "20px", letterSpacing: "0em", fontWeight: "600" }], "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.015em", fontWeight: "600" }], "code-sm": ["12px", { lineHeight: "16px", letterSpacing: "0em", fontWeight: "400" }], "headline-xl": ["36px", { lineHeight: "44px", letterSpacing: "-0.025em", fontWeight: "600" }], "headline-sm": ["18px", { lineHeight: "24px", letterSpacing: "-0.01em", fontWeight: "600" }], "body-md": ["14px", { lineHeight: "22px", letterSpacing: "0em", fontWeight: "400" }], "title-md": ["16px", { lineHeight: "22px", letterSpacing: "-0.01em", fontWeight: "600" }], "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.01em", fontWeight: "500" }], "headline-xl-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }], "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "500" }], "headline-lg-mobile": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }] } } } };</script></head><body class="bg-[#FCFBFE] font-body-md text-on-surface antialiased min-h-screen flex selection:bg-primary-fixed selection:text-primary">
+<!-- Elicit-Style Left Sidebar -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#FCFBFE] border-r border-[#EFE9F3] z-50 flex flex-col justify-between select-none"><div class="flex flex-col p-4"><div class="flex items-center justify-between mb-5"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0 shadow-xs"><svg class="w-full h-full" fill="none" viewbox="0 0 40 40"><rect fill="#5F2781" height="40" rx="10" width="40"></rect><circle cx="20" cy="20" fill="none" r="10" stroke="#FAF7FC" stroke-opacity="0.9" stroke-width="2.5"></circle><path d="M14 12V28" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2.5"></path><path d="M14 13H20.5C23.5 13 25.5 15 25.5 18C25.5 21 23.5 23 20.5 23H14" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path><path d="M19.5 22.5L25.5 28" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2.5"></path><circle cx="25.5" cy="13.5" fill="#FED889" r="2.5"></circle></svg></div><div class="flex flex-col leading-tight"><span class="font-headline-sm font-semibold tracking-tight text-[#3F1A57] text-[15px]">R-Lens</span><span class="text-[11px] text-outline font-medium">Discovery Bench</span></div></div><span class="text-[10px] font-medium text-[#5F2781] bg-[#F1E8F4] px-2 py-0.5 rounded border border-[#E5D7EC]">REC Scholar</span></div><button class="w-full flex items-center justify-center gap-1.5 bg-[#5f2781] hover:bg-[#4A176B] text-white py-2 px-3 rounded-lg text-[13.5px] font-medium shadow-sm transition-all mb-5" type="button"><span class="material-symbols-outlined text-[17px]">add</span><span>New Research</span></button><div class="mb-1 px-1"><span class="text-[10.5px] font-semibold text-outline uppercase tracking-wider">RESEARCH CORE</span></div><nav class="flex flex-col gap-0.5 font-medium text-[13px]"><a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[#5F2781] bg-[#F5ECF9] font-semibold transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-[#5F2781]">explore</span><span>Research Home</span></a><a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-outline">layers</span><span>Workspace</span></a><a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-outline">article</span><span>Paper Analysis</span></a><a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-outline">grid_view</span><span>Evidence Matrix</span></a><a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-outline">view_column</span><span>Comparison</span></a><a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-outline">menu_book</span><span>Literature Synthesis</span></a><a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-outline">assignment_turned_in</span><span>Final Report</span></a></nav><div class="mt-5 mb-1 px-1"><span class="text-[10.5px] font-semibold text-outline uppercase tracking-wider">COLLECTIONS</span></div><nav class="flex flex-col gap-0.5 font-medium text-[13px]"><a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px] text-outline">folder</span><span>My Projects</span></div><span class="text-[10.5px] font-medium text-[#5F2781] bg-[#F1E8F4] px-1.5 py-0.5 rounded">4 active</span></a><a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px] text-outline">bookmark</span><span>Saved Papers</span></div><span class="text-[10.5px] font-medium text-outline bg-[#F1E8F4] px-1.5 py-0.5 rounded">42</span></a><a class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-[#F7F2F9] transition-colors" href="#"><span class="material-symbols-outlined text-[18px] text-outline">settings</span><span>Settings</span></a></nav></div><div class="p-3 flex flex-col gap-2 border-t border-[#EFE9F3]"><div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#F7F2F9] border border-[#EFE9F3] text-[11.5px]"><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="font-medium text-[#3F1A57]">R-Lens Agent: Active</span></div><span class="text-[10.5px] text-outline font-code-sm font-medium">v2.4</span></div><div class="flex items-center gap-2.5 p-2 rounded-xl bg-[#F8F3FA] border border-[#ECD9F3] cursor-pointer hover:bg-[#F3EBF4] transition-colors"><img alt="Dr. K. Ramanathan" class="w-8 h-8 rounded-lg object-cover shrink-0 ring-1 ring-outline-variant/50" src="https://lh3.googleusercontent.com/aida/AEtjO1VUtnAIo9XZoc8N4r6oLZESky3Pbg5P8cqeFkMoEBqNkHVAyIGso6rh-Pk4bWsLpODFiQJWJUuxlPC9Qkf4a4g2iyND5s_7AGzvSRFTwSHNM62OYL5PICWDhUNm-R1GT7QvBa1y76XI_O7dHt6T8l9YlW-XoXKqExR4HHhw7XVdxIOXge74dX4UjhdQGSR-Eiqqj5gPSsvv58zEVQP9kNkRWypLhf9P_MPbLM7AFtRsNkh4Glnsr96xdhc"/><div class="flex flex-col min-w-0 leading-tight"><span class="text-[12.5px] font-semibold text-[#1D1A20] truncate">Dr. K. Ramanathan</span><span class="text-[10.5px] text-on-surface-variant truncate">Faculty / Lead Researcher</span><span class="text-[10.5px] font-medium text-[#7E45A0] truncate">Rajalakshmi Eng. College</span></div></div></div></aside>
+<!-- Main Academic Canvas Area (Elicit Minimal Style) -->
+<div class="pl-64 flex-1 flex flex-col min-h-screen bg-[#FCFBFE]"><header class="h-14 border-b border-[#EFE9F3] bg-white/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40 gap-4 shrink-0"><div class="flex items-center gap-3 min-w-0"><div class="flex items-center gap-1.5 text-[13px] text-on-surface-variant font-medium"><span class="text-outline hover:text-on-surface cursor-pointer transition-colors">Projects</span><span class="material-symbols-outlined text-[15px] text-outline">chevron_right</span><div class="flex items-center gap-1 text-[#3F1A57] font-semibold hover:text-[#5F2781] cursor-pointer"><span class="truncate max-w-[200px]">Multi-Horizon Electricity Forecasting</span><span class="material-symbols-outlined text-[16px]">expand_more</span></div></div><div class="h-4 w-[1px] bg-[#EFE9F3] mx-1"></div><div class="inline-flex items-center p-0.5 rounded-lg bg-[#F5EBF9] border border-[#ECD9F3] text-[11.5px] font-medium select-none"><button class="px-2.5 py-1 rounded-md bg-white text-[#3F1A57] font-semibold shadow-xs flex items-center gap-1.5" type="button"><span class="w-1.5 h-1.5 rounded-full bg-[#7E45A0]"></span><span>Agentic Auto-Pilot</span></button><button class="px-2.5 py-1 rounded-md text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1.5" type="button"><span>Human-in-the-Loop</span></button></div></div><div class="flex items-center gap-3"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-2.5 text-[16px] text-outline pointer-events-none">search</span><input class="w-64 pl-8 pr-12 py-1.5 text-[12.5px] bg-[#F7F2F9] border border-[#E5DDE9] rounded-lg text-on-surface placeholder-[#8F8495] focus:outline-none focus:border-[#9C68BC] focus:bg-white transition-all" placeholder="Search papers, authors, DOIs..." type="text"/><kbd class="absolute right-2 px-1.5 py-0.5 text-[10px] font-code-sm font-medium text-outline bg-white border border-[#E3D9E8] rounded shadow-xs select-none pointer-events-none">⌘K</kbd></div><button class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#FED889]/30 border border-[#FED889] text-[#785D1A] text-[12px] font-semibold hover:bg-[#FED889]/50 transition-colors" type="button"><span class="material-symbols-outlined text-[15px]">verified</span><span>18 Evidences</span></button><button class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#E5DDE9] hover:bg-[#F7F2F9] text-on-surface-variant hover:text-on-surface text-[12.5px] font-medium transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">download</span><span>Export</span></button><div class="relative"><button class="relative p-1.5 text-outline hover:text-on-surface hover:bg-[#F3EBF4] rounded-lg transition-colors" title="Notifications" type="button"><span class="material-symbols-outlined text-[19px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error ring-2 ring-white"></span></button></div><div class="h-4 w-[1px] bg-[#EFE9F3]"></div><div class="flex items-center gap-2 pl-1 cursor-pointer select-none"><img alt="Dr. K. Ramanathan" class="w-7 h-7 rounded-full object-cover ring-1 ring-outline-variant/50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuqjCfFpG5palBP8wL_X-Lz24KfCBoi--6H8Lz6NPSww1Oi5M9f88UiqizUrSg3Dm-QqEGVZYchDFjBFyaHIvA_sXXFciwCmZAHeX-inv5306O8nRTTVa1rOoVSQinsAfYMCgjhMbQAf_rGgLFKxeoXqcb4jCi7Ooq5GoXJK4eA2Lz5Rw_evBcWXIgS5Cjlx1L3caYYtDmyBvbEtJk27mgKHos_pF_SoIDIWXF_pKCnxsSHuYBkj6GHQ"/><span class="material-symbols-outlined text-[16px] text-outline">expand_more</span></div></div></header>
+<!-- Center Workspace Content -->
+<main class="flex-1 flex flex-col items-center justify-center px-6 py-12 w-full max-w-5xl mx-auto">
+<!-- Center Search Container matching reference Image 2 -->
+<div class="w-full max-w-3xl flex flex-col">
+<!-- Research Agent Differentiating Header Tab (Docked directly atop the card) -->
+<div class="w-full bg-[#3F1A57] text-white rounded-t-2xl px-5 py-2.5 flex items-center justify-between shadow-sm">
+<div class="inline-flex items-center gap-2 text-[13.5px] font-medium cursor-pointer select-none">
+<span class="material-symbols-outlined text-[17px] text-[#E5B4FF]">hub</span>
+<span>Research agent</span>
+<span class="material-symbols-outlined text-[16px] text-slate-300">expand_more</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[11px] uppercase tracking-wider text-[#E5B4FF]/80 font-code-sm font-medium">REC Scholar v2.4</span>
+</div>
+</div>
+<!-- Main Input Box with Rounded Bottom and Clean Border -->
+<div class="w-full bg-white border-x border-b border-[#E3D9E8] rounded-b-2xl shadow-[0_4px_24px_rgba(63,26,87,0.06)] flex flex-col transition-all focus-within:border-[#9C68BC] focus-within:shadow-[0_8px_30px_rgba(63,26,87,0.1)]">
+<!-- Textarea -->
+<div class="p-5">
+<textarea class="w-full bg-transparent border-0 resize-none font-body-lg text-[15px] text-[#1D1A20] placeholder-[#8F8495] focus:outline-none leading-relaxed h-32" id="academic-prompt-input" placeholder="What are you researching? (e.g. Comprehensive review of multi-horizon electricity forecasting with attention networks...)">Comprehensive review of expl</textarea>
+</div>
+<!-- Inside Card Footer Controls -->
+<div class="px-4 pb-4 pt-1 flex items-center justify-between border-t border-[#F5EDFA]/80">
+<!-- Left '+' button to add filters/upload papers -->
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-[#5F2781] hover:bg-[#F6EEF9] border border-[#EBDFF1] transition-colors" title="Attach file or add filter" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+<!-- Right Submit Arrow Button -->
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-[#78A8AC] hover:bg-[#5E9498] text-white transition-colors shadow-sm" title="Search" type="button">
+<span class="material-symbols-outlined text-[19px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Action Chips (direct horizontal pill row below card) -->
+<div class="w-full max-w-3xl flex flex-wrap items-center justify-center gap-2.5 mt-5">
+<button class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E5DDE9] hover:border-[#C4B2CC] hover:bg-[#FAF7FC] text-[#4D4450] text-[13px] font-medium transition-colors shadow-xs" type="button">
+<span class="material-symbols-outlined text-[16px] text-[#6E577A]">description</span>
+<span>Draft report</span>
+</button>
+<button class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E5DDE9] hover:border-[#C4B2CC] hover:bg-[#FAF7FC] text-[#4D4450] text-[13px] font-medium transition-colors shadow-xs" type="button">
+<span class="material-symbols-outlined text-[16px] text-[#6E577A]">slideshow</span>
+<span>Build deck</span>
+</button>
+<button class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E5DDE9] hover:border-[#C4B2CC] hover:bg-[#FAF7FC] text-[#4D4450] text-[13px] font-medium transition-colors shadow-xs" type="button">
+<span class="material-symbols-outlined text-[16px] text-[#6E577A]">trending_up</span>
+<span>Strategy</span>
+</button>
+<button class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E5DDE9] hover:border-[#C4B2CC] hover:bg-[#FAF7FC] text-[#4D4450] text-[13px] font-medium transition-colors shadow-xs" type="button">
+<span class="material-symbols-outlined text-[16px] text-[#6E577A]">map</span>
+<span>Landscapes</span>
+</button>
+</div>
+<!-- 3 Prompt & Resume Cards Grid -->
+<div class="w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-3.5 mt-8">
+<!-- Card 1: Resume Previous Topic -->
+<div class="bg-white border border-[#E5DDE9] hover:border-[#9C68BC] rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all hover:shadow-md group">
+<div>
+<div class="flex items-center gap-1.5 mb-2.5">
+<span class="material-symbols-outlined text-[14px] text-outline">history</span>
+<span class="text-[12px] font-medium text-outline">Resume</span>
+</div>
+<h3 class="text-[13.5px] font-medium text-[#1D1A20] group-hover:text-[#5F2781] leading-snug line-clamp-3 transition-colors">
+            Explainable deep learning for data-center power forecasting
+          </h3>
+</div>
+<div class="pt-4 flex items-center gap-1.5 text-[12px] text-outline">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>Find papers · 7 hours ago</span>
+</div>
+</div>
+<!-- Card 2: Suggested Topic 1 -->
+<div class="bg-white border border-[#E5DDE9] hover:border-[#9C68BC] rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all hover:shadow-md group">
+<div>
+<div class="flex items-center gap-1.5 mb-2.5">
+<span class="material-symbols-outlined text-[14px] text-[#8D702C]">lightbulb</span>
+<span class="text-[12px] font-medium text-outline">Suggested</span>
+</div>
+<h3 class="text-[13.5px] font-medium text-[#1D1A20] group-hover:text-[#5F2781] leading-snug line-clamp-3 transition-colors">
+            Interpretable models for energy consumption prediction in data centers
+          </h3>
+</div>
+<div class="pt-4 flex items-center gap-1.5 text-[12px] text-outline">
+<span>• Systematic review · 18 papers</span>
+</div>
+</div>
+<!-- Card 3: Suggested Topic 2 -->
+<div class="bg-white border border-[#E5DDE9] hover:border-[#9C68BC] rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all hover:shadow-md group">
+<div>
+<div class="flex items-center gap-1.5 mb-2.5">
+<span class="material-symbols-outlined text-[14px] text-[#8D702C]">lightbulb</span>
+<span class="text-[12px] font-medium text-outline">Suggested</span>
+</div>
+<h3 class="text-[13.5px] font-medium text-[#1D1A20] group-hover:text-[#5F2781] leading-snug line-clamp-3 transition-colors">
+            Comparison of deep learning architectures for power forecasting accuracy
+          </h3>
+</div>
+<div class="pt-4 flex items-center gap-1.5 text-[12px] text-outline">
+<span>• Benchmark matrix · 12 sources</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

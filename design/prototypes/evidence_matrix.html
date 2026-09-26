@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary-container": "#5f2781", "secondary-fixed-dim": "#e6c275", "surface-container": "#f3ebf4", "on-surface": "#1d1a20", "secondary-container": "#fed889", "inverse-primary": "#e5b4ff", "on-secondary-fixed-variant": "#5b4300", "on-secondary-container": "#785d1a", "surface-variant": "#e8e0e9", "secondary": "#755a18", "secondary-fixed": "#ffdf9d", "primary-fixed": "#f5d9ff", "surface-container-high": "#ede6ef", "on-error-container": "#93000a", "on-primary-container": "#d496f8", "surface-bright": "#fff7ff", "tertiary": "#3f1a57", "on-tertiary-container": "#ca9ee4", "error-container": "#ffdad6", "surface": "#fff7ff", "outline": "#7e7481", "error": "#ba1a1a", "on-secondary-fixed": "#251a00", "on-surface-variant": "#4d4450", "on-tertiary": "#ffffff", "inverse-surface": "#332f36", "background": "#fff7ff", "tertiary-fixed": "#f4d9ff", "on-tertiary-fixed-variant": "#5c3774", "on-secondary": "#ffffff", "tertiary-fixed-dim": "#e3b5fd", "on-primary-fixed": "#30004b", "on-tertiary-fixed": "#2d0646", "surface-tint": "#7e45a0", "on-error": "#ffffff", "tertiary-container": "#57326f", "on-primary": "#ffffff", "primary-fixed-dim": "#e5b4ff", "surface-container-low": "#f9f1fa", "surface-container-highest": "#e8e0e9", "on-background": "#1d1a20", "on-primary-fixed-variant": "#642c86", "surface-container-lowest": "#ffffff", "inverse-on-surface": "#f6eef7", "primary": "#470869", "surface-dim": "#dfd8e0", "outline-variant": "#cfc2d1" }, borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" }, spacing: { "space-md": "0.75rem", margin: "1rem", "space-xs": "0.25rem", "gutter-desktop": "1.5rem", "margin-desktop": "2rem", "space-lg": "1rem", "space-sm": "0.5rem", "space-2xs": "0.125rem", "margin-tablet": "1.5rem", "space-2xl": "2rem", "space-3xl": "3rem", gutter: "1rem", "space-xl": "1.5rem" }, fontFamily: { "body-sm": ["Inter"], "body-lg": ["Inter"], "headline-lg": ["Geist"], "title-sm": ["Inter"], "headline-md": ["Geist"], "code-sm": ["JetBrains Mono"], "headline-xl": ["Geist"], "headline-sm": ["Geist"], "body-md": ["Inter"], "title-md": ["Inter"], "label-md": ["Inter"], "headline-xl-mobile": ["Geist"], "label-sm": ["Inter"], "headline-lg-mobile": ["Geist"] }, fontSize: { "body-sm": ["13px", { lineHeight: "18px", letterSpacing: "0.005em", fontWeight: "400" }], "body-lg": ["16px", { lineHeight: "26px", letterSpacing: "-0.005em", fontWeight: "400" }], "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }], "title-sm": ["14px", { lineHeight: "20px", letterSpacing: "0em", fontWeight: "600" }], "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.015em", fontWeight: "600" }], "code-sm": ["12px", { lineHeight: "16px", letterSpacing: "0em", fontWeight: "400" }], "headline-xl": ["36px", { lineHeight: "44px", letterSpacing: "-0.025em", fontWeight: "600" }], "headline-sm": ["18px", { lineHeight: "24px", letterSpacing: "-0.01em", fontWeight: "600" }], "body-md": ["14px", { lineHeight: "22px", letterSpacing: "0em", fontWeight: "400" }], "title-md": ["16px", { lineHeight: "22px", letterSpacing: "-0.01em", fontWeight: "600" }], "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.01em", fontWeight: "500" }], "headline-xl-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }], "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "500" }], "headline-lg-mobile": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }] } } } };</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-screen w-72 bg-surface-container-lowest border-r border-outline-variant/50 z-50 flex flex-col justify-between overflow-y-auto"><div class="flex flex-col"><div class="h-16 px-space-xl flex items-center justify-between border-b border-outline-variant/30"><div class="flex items-center gap-space-sm"><img alt="R-Lens Minimal Academic Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VZmMAxHBMGKfC3qWGutIzQfVDu3FYcdRBvun8g2T5y8_GdZ7mOhmdNOehRYrTPx-oaJtPodjpw3Di6X7bFZmmyZl34iA_ILjMuFDThdA_tPIv3V9LGGMFXqMdljk0gboqPsJzef7QqEhc5H_1-H3Ec2G_PTC6tKg7lUHGKGLtWXBt6_NPB-QiSnz7qAyUQsfU7z1HeZKTjSnSE0TqGfurVBq8E-9eKsS5T2CZ45yxoBaoQK1MS8PhZYPuq"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-semibold">R-Lens</span><span class="font-label-sm text-label-sm text-on-surface-variant font-medium -mt-space-2xs">Discovery Bench</span></div></div><span class="inline-flex items-center px-space-xs py-space-2xs rounded bg-surface-container text-primary text-label-sm font-label-sm font-medium border border-outline-variant/40">REC Scholar</span></div><div class="p-space-lg"><button class="w-full flex items-center justify-center gap-space-sm bg-primary-container text-on-primary rounded-lg py-space-sm px-space-lg font-title-sm text-title-sm shadow-[0_2px_8px_rgba(95,39,129,0.25)] hover:bg-tertiary transition-all" type="button"><span class="material-symbols-outlined text-[18px]">add</span><span>New Research</span></button></div><div class="px-space-md mb-space-sm"><span class="px-space-md font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Research Core</span></div><nav class="flex flex-col gap-space-2xs px-space-md" data-active-classes="bg-surface-container text-primary font-semibold"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="research-home" href="#"><span class="material-symbols-outlined text-[20px]">explore</span><span>Research Home</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="workspace" href="#"><span class="material-symbols-outlined text-[20px]">layers</span><span>Workspace</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="paper-analysis" href="#"><span class="material-symbols-outlined text-[20px]">article</span><span>Paper Analysis</span></a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg transition-colors bg-surface-container text-primary font-semibold" data-path="evidence-matrix" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Evidence Matrix</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="comparison" href="#"><span class="material-symbols-outlined text-[20px]">view_column</span><span>Comparison</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="literature-synthesis" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span>Literature Synthesis</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="final-report" href="#"><span class="material-symbols-outlined text-[20px]">assignment_turned_in</span><span>Final Report</span></a></nav><div class="my-space-md mx-space-lg border-t border-outline-variant/40"></div><div class="px-space-md mb-space-sm"><span class="px-space-md font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Collections</span></div><div class="flex flex-col gap-space-2xs px-space-md"><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="my-projects" href="#"><span class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">folder_open</span><span>My Projects</span></span><span class="px-space-xs py-space-2xs rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm font-medium">4 active</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="saved-papers" href="#"><span class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">bookmarks</span><span>Saved Papers</span></span><span class="px-space-xs py-space-2xs rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm font-medium">42</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Settings</span></a></div></div><div class="p-space-md flex flex-col gap-space-sm border-t border-outline-variant/30 bg-surface-container-lowest"><div class="p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/30 flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span></span><span class="font-label-md text-label-md text-on-surface font-medium">R-Lens Agent: Active</span></div><span class="font-code-sm text-code-sm text-on-surface-variant">v2.4</span></div><div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/30"><img alt="Profile" class="w-8 h-8 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuqjCfFpG5palBP8wL_X-Lz24KfCBoi--6H8Lz6NPSww1Oi5M9f88UiqizUrSg3Dm-QqEGVZYchDFjBFyaHIvA_sXXFciwCmZAHeX-inv5306O8nRTTVa1rOoVSQinsAfYMCgjhMbQAf_rGgLFKxeoXqcb4jCi7Ooq5GoXJK4eA2Lz5Rw_evBcWXIgS5Cjlx1L3caYYtDmyBvbEtJk27mgKHos_pF_SoIDIWXF_pKCnxsSHuYBkj6GHQ"/><div class="flex flex-col min-w-0 flex-1"><span class="font-title-sm text-title-sm text-on-surface truncate font-semibold leading-tight">Dr. K. Ramanathan</span><span class="font-label-sm text-label-sm text-on-surface-variant truncate">Faculty / Lead Researcher</span><span class="font-label-sm text-label-sm text-primary truncate font-medium">Rajalakshmi Eng. College</span></div></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur border-b border-outline-variant/50 z-40 px-gutter-desktop flex items-center justify-between"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs text-on-surface-variant font-title-sm text-title-sm"><span class="hover:text-on-surface cursor-pointer">Projects</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span><span class="font-semibold text-on-surface max-w-xs truncate">Multi-Horizon Electricity Forecasting</span></div><div class="hidden xl:flex items-center bg-surface-container-low rounded-lg p-space-2xs border border-outline-variant/40"><button class="px-space-sm py-space-2xs rounded text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors" type="button">Agentic Auto-Pilot</button><button class="px-space-sm py-space-2xs rounded bg-surface-container-lowest text-primary font-semibold text-label-md font-label-md shadow-sm border border-outline-variant/30 flex items-center gap-space-2xs" type="button"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span><span>Human-in-the-Loop</span></button></div></div><div class="flex items-center gap-space-md"><div class="relative w-64 lg:w-80"><span class="material-symbols-outlined absolute left-space-sm top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input class="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-8 pr-12 py-space-xs text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary" placeholder="Search papers, authors, DOIs..." type="text"/><kbd class="absolute right-space-sm top-1/2 -translate-y-1/2 font-code-sm text-code-sm bg-surface-container-lowest border border-outline-variant/50 text-outline px-space-2xs py-space-2xs rounded">⌘K</kbd></div><div class="flex items-center gap-space-xs"><button class="relative p-space-sm rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><button class="inline-flex items-center gap-space-xs px-space-sm py-space-xs rounded-lg bg-secondary-fixed text-on-secondary-fixed border border-secondary-fixed-dim/30 hover:bg-secondary-container transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">verified</span><span class="font-label-md text-label-md font-semibold">18 Evidences</span></button><button class="inline-flex items-center gap-space-xs px-space-md py-space-xs rounded-lg border border-outline-variant/50 text-on-surface hover:bg-surface-container transition-colors font-title-sm text-title-sm" type="button"><span class="material-symbols-outlined text-[18px]">download</span><span>Export</span></button><div class="flex items-center pl-space-xs border-l border-outline-variant/40"><img alt="Profile" class="w-8 h-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuqjCfFpG5palBP8wL_X-Lz24KfCBoi--6H8Lz6NPSww1Oi5M9f88UiqizUrSg3Dm-QqEGVZYchDFjBFyaHIvA_sXXFciwCmZAHeX-inv5306O8nRTTVa1rOoVSQinsAfYMCgjhMbQAf_rGgLFKxeoXqcb4jCi7Ooq5GoXJK4eA2Lz5Rw_evBcWXIgS5Cjlx1L3caYYtDmyBvbEtJk27mgKHos_pF_SoIDIWXF_pKCnxsSHuYBkj6GHQ"/></div></div></div></header><main class="w-full pt-16 bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full">
+<!-- Interactive View Switcher & Global Context Strip -->
+<div class="px-gutter-desktop py-space-md bg-surface-container-low flex flex-col md:flex-row md:items-center md:justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="inline-flex p-space-2xs rounded-lg bg-surface-container-highest">
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-lowest text-primary font-title-sm text-title-sm shadow-sm transition-all" id="btn-tab-matrix" onclick="switchView('matrix')" type="button">
+<span class="material-symbols-outlined text-[18px]">table_chart</span>
+<span>Evidence Matrix</span>
+<span class="px-space-xs py-space-2xs rounded-full bg-primary/10 text-primary font-code-sm text-code-sm font-medium ml-space-2xs">6 Papers</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg text-on-surface-variant hover:text-on-surface font-title-sm text-title-sm transition-all" id="btn-tab-compare" onclick="switchView('compare')" type="button">
+<span class="material-symbols-outlined text-[18px]">compare</span>
+<span>Side-by-Side Comparison</span>
+</button>
+</div>
+<div class="hidden sm:flex items-center gap-space-2xs px-space-sm py-space-2xs rounded bg-surface-container text-on-surface-variant font-code-sm text-code-sm">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>Deterministic vs Probabilistic Models</span>
+</div>
+</div>
+<!-- Live Quick Utilities -->
+<div class="flex items-center gap-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Last Agent Pass: <strong class="text-on-surface">3 mins ago</strong> (REC-Core v2.4)</span>
+<button class="p-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Reload citations" type="button">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+</button>
+<button class="p-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Settings" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+</div>
+</div>
+<!-- Header & Research Question Banner -->
+<div class="px-gutter-desktop pt-space-xl pb-space-lg bg-surface-container-lowest">
+<div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-space-lg">
+<div class="flex flex-col max-w-4xl min-w-0">
+<div class="flex items-center gap-space-xs mb-space-2xs">
+<span class="px-space-xs py-space-2xs rounded bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold uppercase tracking-wider">REC Discovery Matrix</span>
+<span class="text-outline font-label-sm text-label-sm">•</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">PID: EXP-2025-ELEC-409</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight font-semibold">Evidence Matrix &amp; Cross-Paper Synthesis</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-2xs">Citation-grounded multi-paper matrix mapping claims, empirical metrics, datasets, limitations, and identified research gaps.</p>
+<!-- Active Research Inquiry Card -->
+<div class="mt-space-md p-space-sm bg-surface-container-low rounded-xl flex items-start gap-space-sm">
+<div class="p-space-2xs bg-primary-container text-on-primary rounded-lg shrink-0 mt-space-2xs">
+<span class="material-symbols-outlined text-[18px]">psychology_alt</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Grounded Research Target</span>
+<span class="font-title-md text-title-md text-on-surface font-semibold truncate">Deep Learning Approaches for Multi-Horizon Electricity Forecasting</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-space-2xs">Evaluating long-sequence transformer architectures vs linear trend decomposition on transmission-level load profiles under intermittent renewable penetration.</span>
+</div>
+</div>
+</div>
+<!-- Action Cluster -->
+<div class="flex flex-wrap items-center gap-space-sm xl:flex-col xl:items-end justify-start">
+<div class="flex items-center gap-space-sm flex-wrap">
+<button class="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-title-sm text-title-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary">add_box</span>
+<span>Add Dimension</span>
+</button>
+<div class="relative">
+<button class="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-title-sm text-title-sm transition-all" id="filter-dropdown-btn" onclick="toggleMethodFilter()" type="button">
+<span class="material-symbols-outlined text-[18px] text-outline">filter_list</span>
+<span>Filter by Method</span>
+<span class="material-symbols-outlined text-[16px] text-outline">expand_more</span>
+</button>
+<div class="hidden absolute right-0 mt-space-xs w-56 bg-surface-container-lowest rounded-xl shadow-xl p-space-sm z-30 flex flex-col gap-space-xs" id="filter-popover">
+<span class="font-label-sm text-label-sm text-outline px-space-xs uppercase font-semibold">Architectures</span>
+<label class="flex items-center gap-space-sm px-space-xs py-space-2xs hover:bg-surface-container rounded cursor-pointer font-body-sm text-body-sm">
+<input checked="" class="accent-primary" type="checkbox"/> Transformers (Patch/ProbSparse)
+              </label>
+<label class="flex items-center gap-space-sm px-space-xs py-space-2xs hover:bg-surface-container rounded cursor-pointer font-body-sm text-body-sm">
+<input checked="" class="accent-primary" type="checkbox"/> Linear Decomposition
+              </label>
+<label class="flex items-center gap-space-sm px-space-xs py-space-2xs hover:bg-surface-container rounded cursor-pointer font-body-sm text-body-sm">
+<input checked="" class="accent-primary" type="checkbox"/> Convolutional (TCN)
+              </label>
+<label class="flex items-center gap-space-sm px-space-xs py-space-2xs hover:bg-surface-container rounded cursor-pointer font-body-sm text-body-sm">
+<input checked="" class="accent-primary" type="checkbox"/> Probabilistic Diffusion
+              </label>
+<label class="flex items-center gap-space-sm px-space-xs py-space-2xs hover:bg-surface-container rounded cursor-pointer font-body-sm text-body-sm">
+<input checked="" class="accent-primary" type="checkbox"/> Spatio-Temporal GNNs
+              </label>
+</div>
+</div>
+<button class="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-title-sm text-title-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span>Export (CSV/BibTeX)</span>
+</button>
+</div>
+<button class="w-full xl:w-auto inline-flex items-center justify-center gap-space-sm px-space-lg py-space-sm rounded-lg bg-primary-container hover:bg-tertiary text-on-primary font-title-sm text-title-sm shadow-md transition-all" type="button">
+<span>Proceed to Literature Synthesis</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Quantitative Metrics Bar -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-md mt-space-lg pt-space-md">
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Corpus Filtered</span>
+<span class="font-headline-md text-headline-md text-on-surface font-bold mt-space-2xs">12 Papers</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">Peer-reviewed 2021–2025</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">menu_book</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Evidence Grounded</span>
+<span class="font-headline-md text-headline-md text-on-surface font-bold mt-space-2xs">84 Snippets</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">Direct excerpt anchors</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">fact_check</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Citation Coverage</span>
+<div class="flex items-baseline gap-space-xs mt-space-2xs">
+<span class="font-headline-md text-headline-md text-primary font-bold">94%</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed-dim">High Confidence</span>
+</div>
+<div class="w-28 bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-space-xs">
+<div class="bg-primary-container h-full rounded-full" style="width: 94%"></div>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">verified</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Claims Integrity</span>
+<div class="flex items-baseline gap-space-2xs mt-space-2xs">
+<span class="font-headline-md text-headline-md text-on-surface font-bold">47</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ 50 Fully Supported</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-error-container bg-error-container/40 px-space-xs py-space-2xs rounded w-fit mt-space-2xs">3 Under REC Review</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[24px]">flaky</span>
+</div>
+</div>
+</div>
+</div>
+<!-- VIEW 1: EVIDENCE MATRIX (PRIMARY) -->
+<div class="px-gutter-desktop py-space-lg flex flex-col gap-space-md" id="view-matrix">
+<!-- Matrix Control Bar -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-sm bg-surface-container-low p-space-sm rounded-xl">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline px-space-xs">Active Sort:</span>
+<button class="px-space-sm py-space-2xs rounded bg-surface-container-lowest text-primary font-label-md text-label-md font-semibold shadow-sm" type="button">Recency (Desc)</button>
+<button class="px-space-sm py-space-2xs rounded text-on-surface-variant hover:bg-surface-container font-label-md text-label-md" type="button">Error Metric (Lowest MSE)</button>
+<button class="px-space-sm py-space-2xs rounded text-on-surface-variant hover:bg-surface-container font-label-md text-label-md" type="button">Verification State</button>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-code-sm text-code-sm">
+<span class="material-symbols-outlined text-[16px] text-outline">swap_horiz</span>
+<span>Hold Shift + Scroll to inspect full matrix dimensions</span>
+</div>
+</div>
+<!-- Dense High-Precision Matrix Table Container -->
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-md overflow-hidden">
+<div class="overflow-x-auto max-w-full">
+<table class="w-full text-left text-body-sm font-body-sm border-collapse min-w-[1520px]">
+<!-- Table Header -->
+<thead>
+<tr class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm tracking-wider uppercase">
+<th class="sticky left-0 bg-surface-container z-20 py-space-md px-space-md w-60 shadow-[2px_0_5px_rgba(0,0,0,0.04)]" scope="col">Paper &amp; Year</th>
+<th class="py-space-md px-space-md w-44" scope="col">Primary Method</th>
+<th class="py-space-md px-space-md w-48" scope="col">Dataset Tested</th>
+<th class="py-space-md px-space-md w-36" scope="col">Forecast Horizon</th>
+<th class="py-space-md px-space-md w-48" scope="col">Empirical Result</th>
+<th class="py-space-md px-space-md w-72" scope="col">Supported Claim</th>
+<th class="py-space-md px-space-md w-44 text-center" scope="col">Status</th>
+<th class="py-space-md px-space-md w-64" scope="col">Identified Limitation</th>
+<th class="py-space-md px-space-md w-64" scope="col">Research Gap</th>
+<th class="py-space-md px-space-md w-40" scope="col">Grounded Citation</th>
+</tr>
+</thead>
+<!-- Table Body with Alternating Academic Rows -->
+<tbody class="divide-y divide-surface-container-highest/60 text-on-surface">
+<!-- Row 1: PatchTST -->
+<tr class="hover:bg-surface-container-low/70 transition-colors group">
+<td class="sticky left-0 bg-surface-container-lowest group-hover:bg-surface-container-low/90 z-10 py-space-md px-space-md shadow-[2px_0_5px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm font-semibold text-primary">Nie et al. (2024)</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">PatchTST / Supervised</span>
+<div class="mt-space-2xs flex items-center gap-space-2xs">
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-primary font-label-sm text-label-sm font-medium">IEEE TSG</span>
+<span class="text-outline font-label-sm text-label-sm">412 Cites</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-space-2xs rounded-md bg-surface-container font-title-sm text-title-sm text-tertiary font-semibold">Patch Transformer</span>
+<span class="block font-code-sm text-code-sm text-on-surface-variant mt-space-2xs">Channel-independent</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Electricity (ECL)</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">321 residential users</span>
+</td>
+<td class="py-space-md px-space-md font-code-sm text-code-sm text-on-surface font-medium">
+<div class="flex flex-wrap gap-space-2xs">
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">96h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">192h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">336h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">720h</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-space-2xs font-code-sm text-code-sm">
+<span class="font-semibold text-primary">MSE: 0.129</span>
+<span class="text-on-surface-variant">MAE: 0.222</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed">Patching retains local semantic continuity without quadratic attention cost, preventing sequence token divergence.</p>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-xs rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Supported</span>
+</span>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">
+<span class="text-error font-medium">Ignores inter-series correlations</span> via strict channel-independence assumption.
+              </td>
+<td class="py-space-md px-space-md text-on-surface">
+<span class="font-medium text-primary">Cross-sensor spatial covariance</span> unmodeled for transmission-level distribution lines.
+              </td>
+<td class="py-space-md px-space-md">
+<button class="inline-flex items-center gap-space-2xs text-primary font-code-sm text-code-sm hover:underline" onclick="openCitationInspector('Nie24')" type="button">
+<span class="material-symbols-outlined text-[14px]">link</span>
+<span>[Nie24, TSG]</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: Informer -->
+<tr class="hover:bg-surface-container-low/70 transition-colors group">
+<td class="sticky left-0 bg-surface-container-lowest group-hover:bg-surface-container-low/90 z-10 py-space-md px-space-md shadow-[2px_0_5px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm font-semibold text-primary">Zhou et al. (2021)</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">Informer / Long-Horizon</span>
+<div class="mt-space-2xs flex items-center gap-space-2xs">
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-primary font-label-sm text-label-sm font-medium">AAAI Oral</span>
+<span class="text-outline font-label-sm text-label-sm">3.4k Cites</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-space-2xs rounded-md bg-surface-container font-title-sm text-title-sm text-tertiary font-semibold">ProbSparse Attention</span>
+<span class="block font-code-sm text-code-sm text-on-surface-variant mt-space-2xs">Distillation Layer</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">ECL &amp; ETT Benchmarks</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Electricity &amp; Transformer temp</span>
+</td>
+<td class="py-space-md px-space-md font-code-sm text-code-sm text-on-surface font-medium">
+<div class="flex flex-wrap gap-space-2xs">
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">24h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">48h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">168h</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-space-2xs font-code-sm text-code-sm">
+<span class="font-semibold text-on-surface">MSE: 0.198</span>
+<span class="text-on-surface-variant">MAE: 0.294</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed"><code class="bg-surface-container px-space-2xs py-space-2xs rounded font-code-sm text-code-sm text-primary">O(L log L)</code> self-attention mechanism significantly speeds up long-horizon electricity forecasts with lower VRAM overhead.</p>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-xs rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Supported</span>
+</span>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">
+<span class="text-error font-medium">Loss of point-wise temporal features</span> due to random sampling in extreme spike transitions.
+              </td>
+<td class="py-space-md px-space-md text-on-surface">
+<span class="font-medium text-primary">Fragile on non-periodic industrial spikes</span> and high heat-pump demand surges.
+              </td>
+<td class="py-space-md px-space-md">
+<button class="inline-flex items-center gap-space-2xs text-primary font-code-sm text-code-sm hover:underline" onclick="openCitationInspector('Zhou21')" type="button">
+<span class="material-symbols-outlined text-[14px]">link</span>
+<span>[Zhou21, AAAI]</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: DLinear -->
+<tr class="hover:bg-surface-container-low/70 transition-colors group">
+<td class="sticky left-0 bg-surface-container-lowest group-hover:bg-surface-container-low/90 z-10 py-space-md px-space-md shadow-[2px_0_5px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm font-semibold text-primary">Zeng et al. (2023)</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">DLinear / Baselines</span>
+<div class="mt-space-2xs flex items-center gap-space-2xs">
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-primary font-label-sm text-label-sm font-medium">AAAI</span>
+<span class="text-outline font-label-sm text-label-sm">890 Cites</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-space-2xs rounded-md bg-surface-container font-title-sm text-title-sm text-tertiary font-semibold">Linear Trend Decomp.</span>
+<span class="block font-code-sm text-code-sm text-on-surface-variant mt-space-2xs">Moving-average split</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Weather &amp; Electricity</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Multi-year meteorological</span>
+</td>
+<td class="py-space-md px-space-md font-code-sm text-code-sm text-on-surface font-medium">
+<div class="flex flex-wrap gap-space-2xs">
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">96h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">336h</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-space-2xs font-code-sm text-code-sm">
+<span class="font-semibold text-primary">MSE: 0.141</span>
+<span class="text-on-surface-variant">MAE: 0.237</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed">A simple one-layer linear network over decomposed trend/seasonal components outperforms complex vanilla transformers.</p>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-xs rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Supported</span>
+</span>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">
+<span class="text-error font-medium">Cannot capture non-linear</span> complex meteorological-load coupling mechanisms.
+              </td>
+<td class="py-space-md px-space-md text-on-surface">
+<span class="font-medium text-primary">Inadequate under extreme climatic fluctuations</span> (e.g. cold-snap heating peaks).
+              </td>
+<td class="py-space-md px-space-md">
+<button class="inline-flex items-center gap-space-2xs text-primary font-code-sm text-code-sm hover:underline" onclick="openCitationInspector('Zeng23')" type="button">
+<span class="material-symbols-outlined text-[14px]">link</span>
+<span>[Zeng23, AAAI]</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: TCN-Grid -->
+<tr class="hover:bg-surface-container-low/70 transition-colors group">
+<td class="sticky left-0 bg-surface-container-lowest group-hover:bg-surface-container-low/90 z-10 py-space-md px-space-md shadow-[2px_0_5px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm font-semibold text-primary">Martinez &amp; Zhao (2024)</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">TCN-Grid / Temporal Conv</span>
+<div class="mt-space-2xs flex items-center gap-space-2xs">
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-primary font-label-sm text-label-sm font-medium">Appl. Energy</span>
+<span class="text-outline font-label-sm text-label-sm">118 Cites</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-space-2xs rounded-md bg-surface-container font-title-sm text-title-sm text-tertiary font-semibold">Dilated Causal ConvNet</span>
+<span class="block font-code-sm text-code-sm text-on-surface-variant mt-space-2xs">Gated Linear Units</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Spain National Grid REE</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Hourly aggregate 2018-2023</span>
+</td>
+<td class="py-space-md px-space-md font-code-sm text-code-sm text-on-surface font-medium">
+<div class="flex flex-wrap gap-space-2xs">
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">24h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">72h</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-space-2xs font-code-sm text-code-sm">
+<span class="font-semibold text-primary">MAE: 0.182</span>
+<span class="text-on-surface-variant">RMSE: 0.245</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed">Exponential dilation factors establish receptive fields large enough to capture daily and weekly periodicity with zero recurrent latency.</p>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-xs rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Supported</span>
+</span>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">
+<span class="text-error font-medium">Performance degrades rapidly beyond 72h</span> due to accumulated dilation blur.
+              </td>
+<td class="py-space-md px-space-md text-on-surface">
+<span class="font-medium text-primary">Poor ultra-long horizon scaling (&gt;168h)</span> when seasonal shifts outgrow fixed dilation.
+              </td>
+<td class="py-space-md px-space-md">
+<button class="inline-flex items-center gap-space-2xs text-primary font-code-sm text-code-sm hover:underline" onclick="openCitationInspector('Mar24')" type="button">
+<span class="material-symbols-outlined text-[14px]">link</span>
+<span>[Mar24, Appl. Energy]</span>
+</button>
+</td>
+</tr>
+<!-- Row 5: DiffLoad (Partially Supported) -->
+<tr class="hover:bg-surface-container-low/70 transition-colors group bg-surface-container-lowest">
+<td class="sticky left-0 bg-surface-container-lowest group-hover:bg-surface-container-low/90 z-10 py-space-md px-space-md shadow-[2px_0_5px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm font-semibold text-primary">Chen &amp; Kumar (2025)</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">DiffLoad / Generative</span>
+<div class="mt-space-2xs flex items-center gap-space-2xs">
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-primary font-label-sm text-label-sm font-medium">IEEE TPWRS</span>
+<span class="text-outline font-label-sm text-label-sm">In Press</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-space-2xs rounded-md bg-surface-container font-title-sm text-title-sm text-tertiary font-semibold">Diffusion Probabilistic</span>
+<span class="block font-code-sm text-code-sm text-on-surface-variant mt-space-2xs">DDPM conditioned on solar</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">ISO-NE &amp; Tamil Nadu Grid</span>
+<span class="block font-label-sm text-label-sm text-primary font-medium">REC Campus Substation Data</span>
+</td>
+<td class="py-space-md px-space-md font-code-sm text-code-sm text-on-surface font-medium">
+<div class="flex flex-wrap gap-space-2xs">
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">24h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">168h</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-space-2xs font-code-sm text-code-sm">
+<span class="font-semibold text-secondary">CRPS: 0.084</span>
+<span class="text-on-surface">RMSE: 0.118</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed">Probabilistic bounds realistically capture distributed rooftop solar volatility compared to Gaussian assumptions.</p>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-xs rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>Partially Supported</span>
+</span>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">
+<span class="text-secondary font-medium">High sampling latency</span>: 50-step reverse diffusion takes 1.4s per sample.
+              </td>
+<td class="py-space-md px-space-md text-on-surface">
+<span class="font-medium text-primary">Inference latency too slow</span> for 5-minute automated SCADA dispatch loops.
+              </td>
+<td class="py-space-md px-space-md">
+<button class="inline-flex items-center gap-space-2xs text-primary font-code-sm text-code-sm hover:underline" onclick="openCitationInspector('Chen25')" type="button">
+<span class="material-symbols-outlined text-[14px]">link</span>
+<span>[Chen25, TPWRS]</span>
+</button>
+</td>
+</tr>
+<!-- Row 6: ST-GNN (Needs Review) -->
+<tr class="hover:bg-surface-container-low/70 transition-colors group bg-surface-container-lowest">
+<td class="sticky left-0 bg-surface-container-lowest group-hover:bg-surface-container-low/90 z-10 py-space-md px-space-md shadow-[2px_0_5px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm font-semibold text-primary">Sundaram &amp; Iyer (2024)</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">ST-GNN / Topology</span>
+<div class="mt-space-2xs flex items-center gap-space-2xs">
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-primary font-label-sm text-label-sm font-medium">J. Mod. Power</span>
+<span class="text-outline font-label-sm text-label-sm">45 Cites</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-space-2xs rounded-md bg-surface-container font-title-sm text-title-sm text-tertiary font-semibold">Spatio-Temporal Graph</span>
+<span class="block font-code-sm text-code-sm text-on-surface-variant mt-space-2xs">Graph Attention (GAT)</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-md text-body-md text-on-surface font-medium">Substation Feeders</span>
+<span class="block font-label-sm text-label-sm text-primary font-medium">REC Campus 11kV Grid</span>
+</td>
+<td class="py-space-md px-space-md font-code-sm text-code-sm text-on-surface font-medium">
+<div class="flex flex-wrap gap-space-2xs">
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">24h</span>
+<span class="px-space-xs py-space-2xs bg-surface-container-low rounded">48h</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-space-2xs font-code-sm text-code-sm">
+<span class="font-semibold text-primary">MAPE: 2.14%</span>
+<span class="text-on-surface-variant">RMSE: 0.162</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed">Graph adjacency operators capture physical topological power flow constraints better than euclidean-distance matrices.</p>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-xs rounded-full bg-surface-container-high text-tertiary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">flag</span>
+<span>Needs Review</span>
+</span>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">
+<span class="text-tertiary font-medium">Relies on fixed known admittance matrix</span>; fails if breaker status changes mid-horizon.
+              </td>
+<td class="py-space-md px-space-md text-on-surface">
+<span class="font-medium text-primary">Dynamic topological reconfiguration</span> not modeled during line switching faults.
+              </td>
+<td class="py-space-md px-space-md">
+<button class="inline-flex items-center gap-space-2xs text-primary font-code-sm text-code-sm hover:underline" onclick="openCitationInspector('Sun24')" type="button">
+<span class="material-symbols-outlined text-[14px]">link</span>
+<span>[Sun24, J. Mod]</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- VIEW 2: SIDE-BY-SIDE COMPARISON (Initially Hidden, Toggled via JS) -->
+<div class="hidden px-gutter-desktop py-space-lg flex flex-col gap-space-lg" id="view-compare">
+<!-- Comparison Selector & Setup Strip -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<span class="font-title-sm text-title-sm font-semibold text-on-surface">Comparing 3 Selected Approaches:</span>
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="px-space-sm py-space-xs rounded-lg bg-surface-container-lowest text-primary font-title-sm text-title-sm font-medium shadow-sm flex items-center gap-space-xs">
+<span>PatchTST (Nie et al.)</span>
+<span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</span>
+<span class="px-space-sm py-space-xs rounded-lg bg-surface-container-lowest text-primary font-title-sm text-title-sm font-medium shadow-sm flex items-center gap-space-xs">
+<span>DLinear (Zeng et al.)</span>
+<span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</span>
+<span class="px-space-sm py-space-xs rounded-lg bg-surface-container-lowest text-primary font-title-sm text-title-sm font-medium shadow-sm flex items-center gap-space-xs">
+<span>DiffLoad (Chen &amp; Kumar)</span>
+<span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</span>
+<button class="text-primary hover:underline font-label-md text-label-md px-space-xs" type="button">+ Select 4th Paper</button>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-md py-space-xs rounded-lg bg-surface-container-lowest text-on-surface font-title-sm text-title-sm shadow-sm hover:bg-surface-container" type="button">Highlight Discrepancies</button>
+<button class="px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary font-title-sm text-title-sm shadow-sm hover:bg-tertiary" type="button">Synthesize Triangulation</button>
+</div>
+</div>
+<!-- 3-Column Comparative Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Col 1: PatchTST -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-md flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-primary-container"></div>
+<div class="flex flex-col">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-code-sm text-code-sm text-on-surface-variant">IEEE TSG 2024</span>
+<span class="px-space-xs py-space-2xs rounded bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">State of Art (MSE)</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary font-semibold">PatchTST</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">Nie, Nguyen, Sinthong, Kalagnanam</span>
+<!-- Architecture Visual Badge -->
+<div class="p-space-sm rounded-lg bg-surface-container-low mb-space-md">
+<div class="flex justify-between items-center mb-space-2xs">
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Compute Complexity</span>
+<span class="font-code-sm text-code-sm font-bold text-primary">O(P²)</span>
+</div>
+<!-- Lightweight Mini Sparkline / Metric Bar -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-2/5 rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-space-2xs">Patch size P=16, stride=8. 21x faster than vanilla Transformer.</span>
+</div>
+<div class="space-y-space-md">
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Empirical Horizon 720h MSE</span>
+<p class="font-headline-md text-headline-md font-bold text-primary">0.129</p>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Core Hypothesis</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-space-2xs">Channel-independence treats each load sensor as an isolated univariate series, avoiding cross-channel noise fitting.</p>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">REC Scholar Audit</span>
+<p class="font-body-sm text-body-sm text-error mt-space-2xs">Violates electrical bus reality where substation transformers share synchronous physical load transfers.</p>
+</div>
+</div>
+</div>
+<div class="pt-space-md mt-space-lg bg-surface-container-low/50 -mx-space-lg -mb-space-lg p-space-md rounded-b-xl flex items-center justify-between">
+<span class="font-code-sm text-code-sm text-on-surface-variant">Evidence Snippets: 18</span>
+<button class="text-primary font-title-sm text-title-sm hover:underline flex items-center gap-space-2xs" type="button">
+<span>Inspect PDF Extracted Data</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Col 2: DLinear -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-md flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-secondary"></div>
+<div class="flex flex-col">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-code-sm text-code-sm text-on-surface-variant">AAAI 2023</span>
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-tertiary font-label-sm text-label-sm font-semibold">Parsimony Benchmark</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">DLinear</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">Zeng, Chen, Zhang, Xu</span>
+<!-- Architecture Visual Badge -->
+<div class="p-space-sm rounded-lg bg-surface-container-low mb-space-md">
+<div class="flex justify-between items-center mb-space-2xs">
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Compute Complexity</span>
+<span class="font-code-sm text-code-sm font-bold text-secondary">O(L)</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-1/12 rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-space-2xs">Single linear weight per horizon. Negligible GPU training footprint.</span>
+</div>
+<div class="space-y-space-md">
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Empirical Horizon 720h MSE</span>
+<p class="font-headline-md text-headline-md font-bold text-on-surface">0.141</p>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Core Hypothesis</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-space-2xs">Temporal order and linear autoregression contain sufficient inductive bias for electricity, rendering attention superfluous.</p>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">REC Scholar Audit</span>
+<p class="font-body-sm text-body-sm text-error mt-space-2xs">Catastrophic error during unexpected meteorological swings (solar cloud coverage drops).</p>
+</div>
+</div>
+</div>
+<div class="pt-space-md mt-space-lg bg-surface-container-low/50 -mx-space-lg -mb-space-lg p-space-md rounded-b-xl flex items-center justify-between">
+<span class="font-code-sm text-code-sm text-on-surface-variant">Evidence Snippets: 14</span>
+<button class="text-primary font-title-sm text-title-sm hover:underline flex items-center gap-space-2xs" type="button">
+<span>Inspect PDF Extracted Data</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Col 3: DiffLoad -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-md flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
+<div class="flex flex-col">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-code-sm text-code-sm text-on-surface-variant">IEEE TPWRS 2025</span>
+<span class="px-space-xs py-space-2xs rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">Probabilistic Bound</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary font-semibold">DiffLoad</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">Chen &amp; Kumar (REC Lab Affiliated)</span>
+<!-- Architecture Visual Badge -->
+<div class="p-space-sm rounded-lg bg-surface-container-low mb-space-md">
+<div class="flex justify-between items-center mb-space-2xs">
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Compute Complexity</span>
+<span class="font-code-sm text-code-sm font-bold text-error">O(N × T × d)</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-error h-full w-4/5 rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-space-2xs">Iterative reverse Langevin dynamics. High sampling latency.</span>
+</div>
+<div class="space-y-space-md">
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Continuous Ranked Probability Score (CRPS)</span>
+<p class="font-headline-md text-headline-md font-bold text-secondary">0.084</p>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Core Hypothesis</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-space-2xs">Stochastic diffusion paths quantify extreme tails of rooftop PV generation uncertainty much better than point forecasts.</p>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">REC Scholar Audit</span>
+<p class="font-body-sm text-body-sm text-secondary font-medium">Verified empirical accuracy, but 1.4s inference requires distillation for 5-min dispatch.</p>
+</div>
+</div>
+</div>
+<div class="pt-space-md mt-space-lg bg-surface-container-low/50 -mx-space-lg -mb-space-lg p-space-md rounded-b-xl flex items-center justify-between">
+<span class="font-code-sm text-code-sm text-on-surface-variant">Evidence Snippets: 22</span>
+<button class="text-primary font-title-sm text-title-sm hover:underline flex items-center gap-space-2xs" type="button">
+<span>Inspect PDF Extracted Data</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Deep Grounding Inspector Flyout (Modal Drawer Simulation) -->
+<div class="hidden fixed inset-y-0 right-0 w-full max-w-lg bg-surface-container-lowest shadow-2xl z-50 p-space-xl overflow-y-auto flex flex-col justify-between" id="citation-flyout">
+<div class="flex flex-col">
+<div class="flex items-center justify-between pb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-primary">verified_user</span>
+<span class="font-title-md text-title-md text-on-surface font-semibold">Grounded Evidence Inspector</span>
+</div>
+<button class="p-space-xs rounded-lg hover:bg-surface-container text-on-surface-variant" onclick="closeCitationInspector()" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="mt-space-md p-space-md bg-surface-container-low rounded-xl">
+<span class="font-label-sm text-label-sm uppercase font-semibold text-outline">Extracted Claim Source</span>
+<h4 class="font-title-sm text-title-sm text-primary font-bold mt-space-2xs" id="flyout-paper-title">Nie et al., IEEE TSG 2024</h4>
+<span class="font-code-sm text-code-sm text-on-surface-variant">Section 4.3 (Ablation Table 3, p. 11)</span>
+</div>
+<div class="mt-space-lg">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Exact PDF OCR Excerpt</span>
+<blockquote class="mt-space-xs p-space-md rounded-lg bg-surface-container-lowest shadow-sm italic text-on-surface font-body-sm text-body-sm leading-relaxed">
+          "By segmenting the raw 1D sequence into continuous non-overlapping tokens (patches of length P=16), we preserve the local neighborhood structure while reducing the effective sequence length from L to L/P. Consequently, attention memory consumption scales as O((L/P)²), which prevents memory exhaustion on 720h horizons while lowering MSE from 0.198 to 0.129 on ECL."
+        </blockquote>
+</div>
+<div class="mt-space-lg space-y-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Agent Provenance &amp; Verification</span>
+<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface">Statistical Metric Cross-Check</span>
+<span class="text-primary font-semibold font-code-sm text-code-sm">Validated ✓</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface">Dataset Splitting Integrity (60/20/20)</span>
+<span class="text-primary font-semibold font-code-sm text-code-sm">Compliant ✓</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface">Code Repository Reproducibility</span>
+<span class="text-secondary font-semibold font-code-sm text-code-sm">PyTorch 2.1 Available</span>
+</div>
+</div>
+</div>
+<div class="pt-space-lg mt-space-xl flex items-center gap-space-sm">
+<button class="w-full py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-title-sm text-title-sm font-semibold" type="button">Flag for Manual Audit</button>
+<button class="w-full py-space-sm rounded-lg bg-primary-container hover:bg-tertiary text-on-primary font-title-sm text-title-sm font-semibold" onclick="closeCitationInspector()" type="button">Close Inspector</button>
+</div>
+</div>
+<!-- Persistent Bottom Synthesis Readiness Dock -->
+<div class="sticky bottom-0 left-0 right-0 p-gutter-desktop bg-surface-container-lowest/95 backdrop-blur shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-30">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-space-md p-space-md rounded-xl bg-surface-container-low">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[26px]">auto_stories</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-sm text-title-sm text-on-surface font-semibold">Agentic Synthesis Check: 5 Core Research Themes Detected</span>
+<span class="inline-flex items-center px-space-xs py-space-2xs rounded bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">Ready to Draft</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-2xs">
+            Ready to compile comprehensive literature review draft with <strong class="text-primary font-semibold">94% citation grounding</strong>, cross-paradigm matrix comparison, and identified REC campus gaps.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm w-full md:w-auto shrink-0">
+<button class="px-space-md py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-title-sm text-title-sm transition-all" type="button">
+          Preview Thesis Structure
+        </button>
+<button class="flex-1 md:flex-none inline-flex items-center justify-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-primary-container hover:bg-tertiary text-on-primary font-title-sm text-title-sm shadow-md transition-all" type="button">
+<span>Compile Literature Review Draft</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Inline Micro-Interactions Script -->
+<script>
+    function switchView(mode) {
+      const vMatrix = document.getElementById('view-matrix');
+      const vCompare = document.getElementById('view-compare');
+      const btnMatrix = document.getElementById('btn-tab-matrix');
+      const btnCompare = document.getElementById('btn-tab-compare');
+
+      if (mode === 'matrix') {
+        vMatrix.classList.remove('hidden');
+        vCompare.classList.add('hidden');
+        btnMatrix.className = "flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-lowest text-primary font-title-sm text-title-sm shadow-sm transition-all";
+        btnCompare.className = "flex items-center gap-space-xs px-space-md py-space-xs rounded-lg text-on-surface-variant hover:text-on-surface font-title-sm text-title-sm transition-all";
+      } else {
+        vMatrix.classList.add('hidden');
+        vCompare.classList.remove('hidden');
+        btnCompare.className = "flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-lowest text-primary font-title-sm text-title-sm shadow-sm transition-all";
+        btnMatrix.className = "flex items-center gap-space-xs px-space-md py-space-xs rounded-lg text-on-surface-variant hover:text-on-surface font-title-sm text-title-sm transition-all";
+      }
+    }
+
+    function toggleMethodFilter() {
+      const pop = document.getElementById('filter-popover');
+      pop.classList.toggle('hidden');
+    }
+
+    function openCitationInspector(paperKey) {
+      const flyout = document.getElementById('citation-flyout');
+      const title = document.getElementById('flyout-paper-title');
+      
+      const mapping = {
+        'Nie24': 'Nie et al. (2024) [PatchTST]',
+        'Zhou21': 'Zhou et al. (2021) [Informer]',
+        'Zeng23': 'Zeng et al. (2023) [DLinear]',
+        'Mar24': 'Martinez & Zhao (2024) [TCN-Grid]',
+        'Chen25': 'Chen & Kumar (2025) [DiffLoad]',
+        'Sun24': 'Sundaram & Iyer (2024) [ST-GNN]'
+      };
+
+      title.textContent = mapping[paperKey] || 'Paper Citation Details';
+      flyout.classList.remove('hidden');
+    }
+
+    function closeCitationInspector() {
+      document.getElementById('citation-flyout').classList.add('hidden');
+    }
+
+    // Close popovers if clicking outside
+    document.addEventListener('click', function(e) {
+      const popover = document.getElementById('filter-popover');
+      const filterBtn = document.getElementById('filter-dropdown-btn');
+      if (popover && filterBtn && !filterBtn.contains(e.target) && !popover.contains(e.target)) {
+        popover.classList.add('hidden');
+      }
+    });
+  </script>
+</div></main></div></body></html>

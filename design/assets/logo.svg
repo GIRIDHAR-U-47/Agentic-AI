@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" fill="none">
+  <rect width="40" height="40" rx="10" fill="#5F2781"/>
+  <!-- Modern geometric R combined with optical research lens ring -->
+  <circle cx="21" cy="19" r="11" stroke="#FAF7FC" stroke-width="2.5" stroke-opacity="0.9" fill="none"/>
+  <!-- Minimalist R geometry -->
+  <path d="M14 11V29" stroke="#FFFFFF" stroke-width="2.75" stroke-linecap="round"/>
+  <path d="M14 12H21C24.3137 12 27 14.6863 27 18C27 21.3137 24.3137 24 21 24H14" stroke="#FFFFFF" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20 23L27.5 29" stroke="#FFFFFF" stroke-width="2.75" stroke-linecap="round"/>
+  <!-- Optical lens focal dot in warm gold accent -->
+  <circle cx="27.5" cy="12.5" r="3" fill="#8D702C" stroke="#FFFFFF" stroke-width="1.2"/>
+</svg>

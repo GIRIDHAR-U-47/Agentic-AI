@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary-container": "#5f2781", "secondary-fixed-dim": "#e6c275", "surface-container": "#f3ebf4", "on-surface": "#1d1a20", "secondary-container": "#fed889", "inverse-primary": "#e5b4ff", "on-secondary-fixed-variant": "#5b4300", "on-secondary-container": "#785d1a", "surface-variant": "#e8e0e9", "secondary": "#755a18", "secondary-fixed": "#ffdf9d", "primary-fixed": "#f5d9ff", "surface-container-high": "#ede6ef", "on-error-container": "#93000a", "on-primary-container": "#d496f8", "surface-bright": "#fff7ff", "tertiary": "#3f1a57", "on-tertiary-container": "#ca9ee4", "error-container": "#ffdad6", "surface": "#fff7ff", "outline": "#7e7481", "error": "#ba1a1a", "on-secondary-fixed": "#251a00", "on-surface-variant": "#4d4450", "on-tertiary": "#ffffff", "inverse-surface": "#332f36", "background": "#fff7ff", "tertiary-fixed": "#f4d9ff", "on-tertiary-fixed-variant": "#5c3774", "on-secondary": "#ffffff", "tertiary-fixed-dim": "#e3b5fd", "on-primary-fixed": "#30004b", "on-tertiary-fixed": "#2d0646", "surface-tint": "#7e45a0", "on-error": "#ffffff", "tertiary-container": "#57326f", "on-primary": "#ffffff", "primary-fixed-dim": "#e5b4ff", "surface-container-low": "#f9f1fa", "surface-container-highest": "#e8e0e9", "on-background": "#1d1a20", "on-primary-fixed-variant": "#642c86", "surface-container-lowest": "#ffffff", "inverse-on-surface": "#f6eef7", "primary": "#470869", "surface-dim": "#dfd8e0", "outline-variant": "#cfc2d1" }, borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" }, spacing: { "space-md": "0.75rem", margin: "1rem", "space-xs": "0.25rem", "gutter-desktop": "1.5rem", "margin-desktop": "2rem", "space-lg": "1rem", "space-sm": "0.5rem", "space-2xs": "0.125rem", "margin-tablet": "1.5rem", "space-2xl": "2rem", "space-3xl": "3rem", gutter: "1rem", "space-xl": "1.5rem" }, fontFamily: { "body-sm": ["Inter"], "body-lg": ["Inter"], "headline-lg": ["Geist"], "title-sm": ["Inter"], "headline-md": ["Geist"], "code-sm": ["JetBrains Mono"], "headline-xl": ["Geist"], "headline-sm": ["Geist"], "body-md": ["Inter"], "title-md": ["Inter"], "label-md": ["Inter"], "headline-xl-mobile": ["Geist"], "label-sm": ["Inter"], "headline-lg-mobile": ["Geist"] }, fontSize: { "body-sm": ["13px", { lineHeight: "18px", letterSpacing: "0.005em", fontWeight: "400" }], "body-lg": ["16px", { lineHeight: "26px", letterSpacing: "-0.005em", fontWeight: "400" }], "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }], "title-sm": ["14px", { lineHeight: "20px", letterSpacing: "0em", fontWeight: "600" }], "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.015em", fontWeight: "600" }], "code-sm": ["12px", { lineHeight: "16px", letterSpacing: "0em", fontWeight: "400" }], "headline-xl": ["36px", { lineHeight: "44px", letterSpacing: "-0.025em", fontWeight: "600" }], "headline-sm": ["18px", { lineHeight: "24px", letterSpacing: "-0.01em", fontWeight: "600" }], "body-md": ["14px", { lineHeight: "22px", letterSpacing: "0em", fontWeight: "400" }], "title-md": ["16px", { lineHeight: "22px", letterSpacing: "-0.01em", fontWeight: "600" }], "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.01em", fontWeight: "500" }], "headline-xl-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }], "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "500" }], "headline-lg-mobile": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }] } } } };</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-screen w-72 bg-surface-container-lowest border-r border-outline-variant/50 z-50 flex flex-col justify-between overflow-y-auto"><div class="flex flex-col"><div class="h-16 px-space-xl flex items-center justify-between border-b border-outline-variant/30"><div class="flex items-center gap-space-sm"><img alt="R-Lens Minimal Academic Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VZmMAxHBMGKfC3qWGutIzQfVDu3FYcdRBvun8g2T5y8_GdZ7mOhmdNOehRYrTPx-oaJtPodjpw3Di6X7bFZmmyZl34iA_ILjMuFDThdA_tPIv3V9LGGMFXqMdljk0gboqPsJzef7QqEhc5H_1-H3Ec2G_PTC6tKg7lUHGKGLtWXBt6_NPB-QiSnz7qAyUQsfU7z1HeZKTjSnSE0TqGfurVBq8E-9eKsS5T2CZ45yxoBaoQK1MS8PhZYPuq"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-semibold">R-Lens</span><span class="font-label-sm text-label-sm text-on-surface-variant font-medium -mt-space-2xs">Discovery Bench</span></div></div><span class="inline-flex items-center px-space-xs py-space-2xs rounded bg-surface-container text-primary text-label-sm font-label-sm font-medium border border-outline-variant/40">REC Scholar</span></div><div class="p-space-lg"><button class="w-full flex items-center justify-center gap-space-sm bg-primary-container text-on-primary rounded-lg py-space-sm px-space-lg font-title-sm text-title-sm shadow-[0_2px_8px_rgba(95,39,129,0.25)] hover:bg-tertiary transition-all" type="button"><span class="material-symbols-outlined text-[18px]">add</span><span>New Research</span></button></div><div class="px-space-md mb-space-sm"><span class="px-space-md font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Research Core</span></div><nav class="flex flex-col gap-space-2xs px-space-md" data-active-classes="bg-surface-container text-primary font-semibold"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="research-home" href="#"><span class="material-symbols-outlined text-[20px]">explore</span><span>Research Home</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="workspace" href="#"><span class="material-symbols-outlined text-[20px]">layers</span><span>Workspace</span></a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg transition-colors bg-surface-container text-primary font-semibold" data-path="paper-analysis" href="#"><span class="material-symbols-outlined text-[20px]">article</span><span>Paper Analysis</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="evidence-matrix" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Evidence Matrix</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="comparison" href="#"><span class="material-symbols-outlined text-[20px]">view_column</span><span>Comparison</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="literature-synthesis" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span>Literature Synthesis</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="final-report" href="#"><span class="material-symbols-outlined text-[20px]">assignment_turned_in</span><span>Final Report</span></a></nav><div class="my-space-md mx-space-lg border-t border-outline-variant/40"></div><div class="px-space-md mb-space-sm"><span class="px-space-md font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Collections</span></div><div class="flex flex-col gap-space-2xs px-space-md"><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="my-projects" href="#"><span class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">folder_open</span><span>My Projects</span></span><span class="px-space-xs py-space-2xs rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm font-medium">4 active</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="saved-papers" href="#"><span class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">bookmarks</span><span>Saved Papers</span></span><span class="px-space-xs py-space-2xs rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm font-medium">42</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-title-sm text-title-sm transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Settings</span></a></div></div><div class="p-space-md flex flex-col gap-space-sm border-t border-outline-variant/30 bg-surface-container-lowest"><div class="p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/30 flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span></span><span class="font-label-md text-label-md text-on-surface font-medium">R-Lens Agent: Active</span></div><span class="font-code-sm text-code-sm text-on-surface-variant">v2.4</span></div><div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/30"><img alt="Profile" class="w-8 h-8 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuqjCfFpG5palBP8wL_X-Lz24KfCBoi--6H8Lz6NPSww1Oi5M9f88UiqizUrSg3Dm-QqEGVZYchDFjBFyaHIvA_sXXFciwCmZAHeX-inv5306O8nRTTVa1rOoVSQinsAfYMCgjhMbQAf_rGgLFKxeoXqcb4jCi7Ooq5GoXJK4eA2Lz5Rw_evBcWXIgS5Cjlx1L3caYYtDmyBvbEtJk27mgKHos_pF_SoIDIWXF_pKCnxsSHuYBkj6GHQ"/><div class="flex flex-col min-w-0 flex-1"><span class="font-title-sm text-title-sm text-on-surface truncate font-semibold leading-tight">Dr. K. Ramanathan</span><span class="font-label-sm text-label-sm text-on-surface-variant truncate">Faculty / Lead Researcher</span><span class="font-label-sm text-label-sm text-primary truncate font-medium">Rajalakshmi Eng. College</span></div></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur border-b border-outline-variant/50 z-40 px-gutter-desktop flex items-center justify-between"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs text-on-surface-variant font-title-sm text-title-sm"><span class="hover:text-on-surface cursor-pointer">Projects</span><span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span><span class="font-semibold text-on-surface max-w-xs truncate">Multi-Horizon Electricity Forecasting</span></div><div class="hidden xl:flex items-center bg-surface-container-low rounded-lg p-space-2xs border border-outline-variant/40"><button class="px-space-sm py-space-2xs rounded text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors" type="button">Agentic Auto-Pilot</button><button class="px-space-sm py-space-2xs rounded bg-surface-container-lowest text-primary font-semibold text-label-md font-label-md shadow-sm border border-outline-variant/30 flex items-center gap-space-2xs" type="button"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span><span>Human-in-the-Loop</span></button></div></div><div class="flex items-center gap-space-md"><div class="relative w-64 lg:w-80"><span class="material-symbols-outlined absolute left-space-sm top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input class="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg pl-8 pr-12 py-space-xs text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary" placeholder="Search papers, authors, DOIs..." type="text"/><kbd class="absolute right-space-sm top-1/2 -translate-y-1/2 font-code-sm text-code-sm bg-surface-container-lowest border border-outline-variant/50 text-outline px-space-2xs py-space-2xs rounded">⌘K</kbd></div><div class="flex items-center gap-space-xs"><button class="relative p-space-sm rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><button class="inline-flex items-center gap-space-xs px-space-sm py-space-xs rounded-lg bg-secondary-fixed text-on-secondary-fixed border border-secondary-fixed-dim/30 hover:bg-secondary-container transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">verified</span><span class="font-label-md text-label-md font-semibold">18 Evidences</span></button><button class="inline-flex items-center gap-space-xs px-space-md py-space-xs rounded-lg border border-outline-variant/50 text-on-surface hover:bg-surface-container transition-colors font-title-sm text-title-sm" type="button"><span class="material-symbols-outlined text-[18px]">download</span><span>Export</span></button><div class="flex items-center pl-space-xs border-l border-outline-variant/40"><img alt="Profile" class="w-8 h-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuqjCfFpG5palBP8wL_X-Lz24KfCBoi--6H8Lz6NPSww1Oi5M9f88UiqizUrSg3Dm-QqEGVZYchDFjBFyaHIvA_sXXFciwCmZAHeX-inv5306O8nRTTVa1rOoVSQinsAfYMCgjhMbQAf_rGgLFKxeoXqcb4jCi7Ooq5GoXJK4eA2Lz5Rw_evBcWXIgS5Cjlx1L3caYYtDmyBvbEtJk27mgKHos_pF_SoIDIWXF_pKCnxsSHuYBkj6GHQ"/></div></div></div></header><main class="w-full pt-16 bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full">
+<!-- Top Utility Sub-Header for Active Paper Inspection -->
+<div class="w-full bg-surface-container-low px-gutter-desktop py-space-sm flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md min-w-0">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-2xs rounded-lg bg-surface-container-lowest text-primary font-label-md text-label-md shadow-sm">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span class="font-semibold tracking-wide">REC-ANALYSIS #842</span>
+</span>
+<span class="hidden sm:inline text-outline text-label-sm font-label-sm">•</span>
+<span class="truncate font-body-sm text-body-sm text-on-surface-variant font-medium">Domain: Computational Power Systems &amp; Deep Sequence Models</span>
+<span class="hidden md:inline-flex items-center gap-space-2xs text-secondary font-label-sm text-label-sm bg-secondary-fixed px-space-xs py-space-2xs rounded">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Peer-Reviewed Q1</span>
+</span>
+</div>
+<!-- Reader Configuration Micro-Bar -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center bg-surface-container-lowest rounded-lg p-space-2xs shadow-sm">
+<button class="px-space-sm py-space-2xs rounded font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-space-2xs" id="fontToggle" title="Toggle Sans/Serif View" type="button">
+<span class="material-symbols-outlined text-[16px]">font_download</span>
+<span id="fontModeLabel">Serif Text</span>
+</button>
+<button class="p-space-2xs text-on-surface-variant hover:text-primary transition-colors" id="zoomOut" title="Zoom Out" type="button">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<span class="font-code-sm text-code-sm text-on-surface px-space-xs" id="zoomPercent">100%</span>
+<button class="p-space-2xs text-on-surface-variant hover:text-primary transition-colors" id="zoomIn" title="Zoom In" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+<div class="hidden lg:flex items-center gap-space-xs">
+<button class="px-space-sm py-space-xs rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors shadow-sm font-label-md text-label-md flex items-center gap-space-2xs" type="button">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+<span>IEEE Xplore</span>
+</button>
+<button class="px-space-sm py-space-xs rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors shadow-sm font-label-md text-label-md flex items-center gap-space-2xs" type="button">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>PDF (3.8MB)</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Three-Column Workspace Layout -->
+<div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-0 bg-surface-container-lowest">
+<!-- COLUMN 1: Paper Metadata & Section Navigation (Approx 20% -> lg:col-span-3 xl:col-span-2) -->
+<aside class="lg:col-span-3 xl:col-span-2 bg-surface-container-low p-space-lg flex flex-col justify-between overflow-y-auto max-h-[calc(100vh-64px-45px)] sticky top-16">
+<div class="flex flex-col gap-space-md">
+<!-- Paper Meta Header -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-primary font-label-sm text-label-sm font-semibold">IEEE TSG 2024</span>
+<span class="text-secondary font-label-sm text-label-sm font-medium">OA Verified</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm text-on-surface leading-tight font-bold mb-space-sm">
+            PatchTST for Long-Horizon Electricity Load and Price Forecasting
+          </h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-sm">
+            Yuqi Nie, Nam H. Nguyen, Phaniteja S. et al.
+          </p>
+<div class="space-y-space-xs pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[14px] text-outline">calendar_today</span>
+<span>Vol 15, Iss 2, pp. 1104–1118</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[14px] text-outline">fingerprint</span>
+<span class="font-code-sm text-code-sm truncate">10.1109/TSG.2024.3389102</span>
+</div>
+<div class="flex items-center gap-space-xs text-primary font-medium">
+<span class="material-symbols-outlined text-[14px]">fact_check</span>
+<span>REC Institutional Repository sync</span>
+</div>
+</div>
+</div>
+<!-- Citation & Impact Micro-Grid -->
+<div class="grid grid-cols-2 gap-space-xs">
+<div class="bg-surface-container-lowest p-space-sm rounded-lg shadow-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider">Citations</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">142</span>
+<span class="font-label-sm text-label-sm text-secondary block font-medium">+18 this mo.</span>
+</div>
+<div class="bg-surface-container-lowest p-space-sm rounded-lg shadow-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider">Altmetric</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">94%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Top percentile</span>
+</div>
+</div>
+<!-- Interactive Section Navigator -->
+<div class="flex flex-col gap-space-xs mt-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold px-space-xs">Table of Contents</span>
+<nav class="flex flex-col gap-space-2xs text-title-sm text-title-sm">
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg bg-surface-container text-primary font-semibold transition-all" href="#sec-overview">
+<span class="flex items-center gap-space-xs truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="truncate">1. Overview &amp; Setup</span>
+</span>
+<span class="font-code-sm text-code-sm opacity-60">p.1</span>
+</a>
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface transition-all" href="#sec-abstract">
+<span class="truncate">2. Abstract</span>
+<span class="font-code-sm text-code-sm opacity-60">p.1</span>
+</a>
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface transition-all" href="#sec-methodology">
+<span class="truncate">3. Methodology (Patching)</span>
+<span class="font-code-sm text-code-sm opacity-60">p.3</span>
+</a>
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface transition-all" href="#sec-datasets">
+<span class="truncate">4. Dataset &amp; Benchmarks</span>
+<span class="font-code-sm text-code-sm opacity-60">p.6</span>
+</a>
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface transition-all" href="#sec-results">
+<span class="truncate">5. Experimental Results</span>
+<span class="font-code-sm text-code-sm opacity-60">p.8</span>
+</a>
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface transition-all" href="#sec-complexity">
+<span class="truncate">6. Complexity &amp; Memory</span>
+<span class="font-code-sm text-code-sm opacity-60">p.11</span>
+</a>
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface transition-all" href="#sec-limitations">
+<span class="truncate">7. Limitations &amp; Edge Cases</span>
+<span class="font-code-sm text-code-sm opacity-60">p.13</span>
+</a>
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface transition-all" href="#sec-gap">
+<span class="truncate">8. Research Gap Analysis</span>
+<span class="font-code-sm text-code-sm opacity-60">p.14</span>
+</a>
+<a class="section-nav-link flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface transition-all" href="#sec-references">
+<span class="truncate">9. References</span>
+<span class="font-code-sm text-code-sm opacity-60">p.15</span>
+</a>
+</nav>
+</div>
+</div>
+<!-- Left Bottom Provenance Indicator -->
+<div class="mt-space-lg pt-space-md bg-surface-container-lowest p-space-sm rounded-lg shadow-sm flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">smart_toy</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">REC Parsing Model</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">OcrLayout-v4.1 • Clean</span>
+</div>
+</div>
+</aside>
+<!-- COLUMN 2: Extracted Paper Full-Text Reading View (Approx 52% -> lg:col-span-6 xl:col-span-6) -->
+<main class="lg:col-span-6 xl:col-span-6 px-gutter-desktop py-space-xl bg-surface-container-lowest overflow-y-auto max-h-[calc(100vh-64px-45px)]" id="paperReadingPane">
+<!-- Reading Mode Banner / Metadata Stamp -->
+<div class="mb-space-2xl bg-surface-container-low p-space-lg rounded-2xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="space-y-space-2xs">
+<div class="flex items-center gap-space-xs text-primary font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>Canonical Extraction Stream (High-Precision Markdown)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Document parsed with mathematical LaTeX preserves and token-level ground truth markers.
+          </p>
+</div>
+<div class="flex items-center gap-space-2xs bg-surface-container-lowest px-space-sm py-space-2xs rounded-lg shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium">3 Grounded Highlights</span>
+</div>
+</div>
+<!-- Article Scholarly Content Container -->
+<article class="font-body-lg text-body-lg text-on-surface space-y-space-xl leading-loose max-w-3xl mx-auto" id="paperArticle">
+<!-- Section 1: Overview -->
+<section class="space-y-space-md pt-space-sm" id="sec-overview">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-widest block">Section 1</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
+            1. Overview &amp; Problem Formulation
+          </h2>
+<p>
+            Modern power system operations, real-time demand-response programs, and locational marginal pricing mechanisms depend critically on high-fidelity long-horizon forecasts. While traditional autoregressive and state-space architectures have dominated power dispatch centers, recent surges in distributed renewable sources introduce non-stationary variances that degrade classical linear models.
+          </p>
+<p>
+            Despite the general adoption of Transformer variants in sequence prediction, Vanilla Attention mechanisms often exhibit severe computational bottlenecks when extended to extended lookback horizons (e.g., $L &gt; 512$). Furthermore, pointwise attention fails to capture broader semantic patterns within individual time intervals, often resulting in overfitting to point anomalies rather than fundamental load periodicity.
+          </p>
+</section>
+<!-- Section 2: Abstract -->
+<section class="space-y-space-md pt-space-lg" id="sec-abstract">
+<div class="bg-surface-container-low p-space-lg rounded-2xl shadow-sm space-y-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase font-bold tracking-widest block">Executive Abstract</span>
+<p class="font-body-md text-body-md text-on-surface italic leading-relaxed">
+              “We propose an effective design of Transformer-based models for multi-variate time series forecasting by introducing two essential primitives: sub-series level patching and channel independence. By fragmenting time-series sequences into compact patch intervals, our framework extracts local spatial-temporal dynamics while mitigating attention quadratic load. We benchmark our method on real-world electricity grids across North America and Europe, establishing benchmark state-of-the-art results.”
+            </p>
+</div>
+</section>
+<!-- Section 3: Methodology with Evidence Highlight #1 -->
+<section class="space-y-space-md pt-space-lg" id="sec-methodology">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-widest block">Section 3</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
+            3. Methodology: Patching &amp; Channel-Independence
+          </h2>
+<p>
+            The canonical representation decomposes each univariate sequence $x_i = (x_1^{(i)}, \dots, x_L^{(i)})$ independently. Instead of feeding point scalar values into the multi-head self-attention module, we segment each channel into overlapping or non-overlapping contiguous patches of stride $S$ and patch length $P$.
+          </p>
+<!-- Evidence Highlight #1 (Target Anchor) -->
+<div class="my-space-lg p-space-lg rounded-xl bg-surface-container shadow-sm relative transition-all duration-300" id="evidence-1">
+<div class="flex items-center justify-between gap-space-sm mb-space-xs">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-2xs rounded-lg bg-primary text-on-primary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                Evidence #1 — Core Claim
+              </span>
+<span class="font-code-sm text-code-sm text-primary font-medium">Equation 4 • Page 4</span>
+</div>
+<blockquote class="font-title-md text-title-md text-on-surface font-semibold leading-relaxed my-space-xs pl-space-sm">
+              “By segmenting time-series into sub-series-level patches which serve as input tokens to Transformer, we retain local semantic information while drastically reducing attention computation from quadratic $\mathcal{O}(L^2)$ to $\mathcal{O}((L/P)^2)$.”
+            </blockquote>
+<div class="mt-space-sm flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Verified in Model Definition Theorem 3.1</span>
+<span class="text-primary font-medium">Mapped to AI Synthesis Card 2</span>
+</div>
+</div>
+<p>
+            The channel-independent schema implies that each sensor channel shares the exact same Transformer weights across the backbone, effectively multiplying the training sample count by $M$ where $M$ is the number of monitoring nodes. This regularization prevents intra-channel noise from contaminating feature representations during low-amplitude hours.
+          </p>
+</section>
+<!-- Visual Architecture Figure Embedded in Flow -->
+<figure class="my-space-xl bg-surface-container-low p-space-lg rounded-2xl shadow-sm flex flex-col items-center">
+<div class="w-full h-56 rounded-xl overflow-hidden relative flex items-center justify-center bg-surface-container">
+<!-- Informative Schematic Representation -->
+<div class="flex flex-col items-center gap-space-sm text-center p-space-md">
+<div class="flex items-center gap-space-md">
+<div class="p-space-sm rounded-lg bg-primary text-on-primary font-code-sm text-code-sm">Raw Time Series [L]</div>
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest text-primary font-code-sm text-code-sm shadow-sm">Patches [L/P, P]</div>
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+<div class="p-space-sm rounded-lg bg-primary text-on-primary font-code-sm text-code-sm">Shared Transformer Block</div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant max-w-md mt-space-sm">
+                Figure 2: Architecture schematic showing decomposition of continuous electricity load curves into tokenized patches with linear projection heads.
+              </p>
+</div>
+</div>
+<figcaption class="mt-space-sm text-center font-label-md text-label-md text-on-surface-variant">
+            Fig. 2. Pipeline of PatchTST: Independent tokenization before Transformer encoder projection.
+          </figcaption>
+</figure>
+<!-- Section 4 & 5: Benchmarks with Evidence Highlight #2 -->
+<section class="space-y-space-md pt-space-lg" id="sec-datasets">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-widest block">Section 4 &amp; 5</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
+            4. Experimental Results &amp; ECL Benchmark
+          </h2>
+<p>
+            Experiments were rigorously conducted over extensive empirical datasets: Electricity (ECL consisting of 321 client load profiles over 2 years), Electricity Transformer Temperature (ETTh1, ETTh2), and multi-variate Weather readings. We test forecasting horizons $H \in \{96, 192, 336, 720\}$ steps ahead.
+          </p>
+<!-- Evidence Highlight #2 (Target Anchor) -->
+<div class="my-space-lg p-space-lg rounded-xl bg-surface-container shadow-sm relative transition-all duration-300" id="evidence-2">
+<div class="flex items-center justify-between gap-space-sm mb-space-xs">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-2xs rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[14px]">insights</span>
+                Evidence #2 — Benchmark Result
+              </span>
+<span class="font-code-sm text-code-sm text-secondary font-medium">Table 2 • Page 9</span>
+</div>
+<blockquote class="font-title-md text-title-md text-on-surface font-semibold leading-relaxed my-space-xs pl-space-sm">
+              “On the national Electricity benchmark (ECL), PatchTST achieves an MSE of 0.129 for 96-step horizon and 0.152 for 336-step horizon, outperforming DLinear by 8.4% and Informer by 21.3%.”
+            </blockquote>
+<div class="mt-space-sm flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Metric validation on 321 smart-meter clusters</span>
+<span class="text-secondary font-medium">Mapped to AI Synthesis Card 4</span>
+</div>
+</div>
+<!-- Mini Numerical Comparative Matrix -->
+<div class="bg-surface-container-low p-space-md rounded-xl shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-xs px-space-sm">Method</th>
+<th class="py-space-xs px-space-sm">MSE (96h)</th>
+<th class="py-space-xs px-space-sm">MAE (96h)</th>
+<th class="py-space-xs px-space-sm">MSE (336h)</th>
+<th class="py-space-xs px-space-sm">MAE (336h)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-transparent">
+<tr class="bg-surface-container-lowest font-semibold text-primary">
+<td class="py-space-xs px-space-sm rounded-l-lg">PatchTST (Proposed)</td>
+<td class="py-space-xs px-space-sm">0.129</td>
+<td class="py-space-xs px-space-sm">0.222</td>
+<td class="py-space-xs px-space-sm">0.152</td>
+<td class="py-space-xs px-space-sm rounded-r-lg">0.250</td>
+</tr>
+<tr class="text-on-surface">
+<td class="py-space-xs px-space-sm">DLinear (Zheng et al.)</td>
+<td class="py-space-xs px-space-sm">0.140</td>
+<td class="py-space-xs px-space-sm">0.237</td>
+<td class="py-space-xs px-space-sm">0.165</td>
+<td class="py-space-xs px-space-sm">0.262</td>
+</tr>
+<tr class="text-on-surface">
+<td class="py-space-xs px-space-sm">Informer (Zhou et al.)</td>
+<td class="py-space-xs px-space-sm">0.193</td>
+<td class="py-space-xs px-space-sm">0.312</td>
+<td class="py-space-xs px-space-sm">0.218</td>
+<td class="py-space-xs px-space-sm">0.341</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Section 6: Complexity & Section 7: Limitations with Evidence Highlight #3 -->
+<section class="space-y-space-md pt-space-lg" id="sec-limitations">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-widest block">Section 7</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
+            7. Limitations &amp; Edge Cases
+          </h2>
+<p>
+            While empirical forecasting performance excels on macro-benchmarks, several theoretical edge cases must be articulated when deploying to distributed utility grids with severe topology fluctuations.
+          </p>
+<!-- Evidence Highlight #3 (Target Anchor) -->
+<div class="my-space-lg p-space-lg rounded-xl bg-error-container text-on-error-container shadow-sm relative transition-all duration-300" id="evidence-3">
+<div class="flex items-center justify-between gap-space-sm mb-space-xs">
+<span class="inline-flex items-center gap-space-2xs px-space-sm py-space-2xs rounded-lg bg-error text-on-error font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                Evidence #3 — Limitation &amp; Gap
+              </span>
+<span class="font-code-sm text-code-sm text-on-error-container font-medium">Discussion • Page 13</span>
+</div>
+<blockquote class="font-title-md text-title-md text-on-error-container font-semibold leading-relaxed my-space-xs pl-space-sm">
+              “However, the channel-independent assumption ignores inter-variable cross-correlations when extreme grid volatility occurs (e.g. sudden substation tripping or renewable drop).”
+            </blockquote>
+<div class="mt-space-sm flex items-center justify-between font-label-sm text-label-sm opacity-90">
+<span>Identified constraint for transmission networks</span>
+<span class="font-medium underline">Mapped to AI Synthesis Card 5 &amp; 6</span>
+</div>
+</div>
+<p>
+            In synchronous microgrids or dynamic distribution feeders, localized power-flow Kirchhoff equations impose rigid cross-variable dependencies. Disregarding cross-attention over simultaneous node feeds sacrifices situational awareness during rapid transient contingencies.
+          </p>
+</section>
+<!-- Section 8: Gap Analysis -->
+<section class="space-y-space-md pt-space-lg pb-space-2xl" id="sec-gap">
+<span class="font-label-sm text-label-sm text-secondary uppercase font-bold tracking-widest block">Section 8</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
+            8. Conclusion &amp; Outlook
+          </h2>
+<p>
+            The patching strategy establishes an indispensable milestone in time-series Transformer design by unifying sequence compression with token semantics. Future works are invited to bridge the channel-isolation barrier through graph-inductive priors without sacrificing computational lightness.
+          </p>
+</section>
+</article>
+</main>
+<!-- COLUMN 3: R-Lens AI Research Extraction Panel (Approx 28% -> lg:col-span-3 xl:col-span-4) -->
+<aside class="lg:col-span-3 xl:col-span-4 bg-surface-container-low p-space-lg flex flex-col justify-between overflow-y-auto max-h-[calc(100vh-64px-45px)] sticky top-16">
+<div class="flex flex-col gap-space-md">
+<!-- AI Panel Header & Grounding Assurance -->
+<div class="bg-primary text-on-primary p-space-md rounded-2xl shadow-sm relative overflow-hidden">
+<div class="relative z-10 flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-[24px] text-primary-fixed mt-0.5">neurology</span>
+<div class="space-y-space-2xs">
+<span class="font-headline-sm text-headline-sm font-semibold tracking-tight">R-Lens AI Extraction</span>
+<p class="font-body-sm text-body-sm text-primary-fixed leading-normal">
+                All AI interpretations are grounded in extracted paper text. Click <span class="font-semibold text-surface">“Source Evidence →”</span> to jump to verified source.
+              </p>
+</div>
+</div>
+<!-- Background decorative radial glow -->
+<div class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-primary-container opacity-40 blur-xl pointer-events-none"></div>
+</div>
+<!-- Extraction Cards Container -->
+<div class="space-y-space-md">
+<!-- Card 1: Executive Summary -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-xs transition-all hover:shadow-md">
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-space-2xs text-primary font-title-sm text-title-sm">
+<span class="material-symbols-outlined text-[18px]">summarize</span>
+                Executive Summary
+              </span>
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-primary font-code-sm text-code-sm">Synthesis</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              PatchTST introduces temporal patching to map contiguous time chunks into Transformer tokens rather than single scalar points. It relies on a channel-independent backbone that eliminates cross-variate contamination while cutting computational load. The framework outperforms existing linear and attention architectures on complex multi-client electricity benchmarks.
+            </p>
+<div class="pt-space-xs flex justify-end">
+<a class="inline-flex items-center gap-space-2xs text-primary hover:text-tertiary font-label-md text-label-md font-semibold transition-colors" href="#sec-overview">
+<span>Source Evidence</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Card 2: Methodology Architecture -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-xs transition-all hover:shadow-md">
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-space-2xs text-on-surface font-title-sm text-title-sm">
+<span class="material-symbols-outlined text-[18px] text-primary">account_tree</span>
+                Methodology Architecture
+              </span>
+<span class="px-space-xs py-space-2xs rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-medium">Core Model</span>
+</div>
+<div class="space-y-space-2xs font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-start gap-space-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></span>
+<span><strong class="text-on-surface">Sub-Series Patching:</strong> Contiguous length $P$, stride $S$, reducing complexity from $\mathcal{O}(L^2)$ to $\mathcal{O}((L/P)^2)$.</span>
+</div>
+<div class="flex items-start gap-space-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></span>
+<span><strong class="text-on-surface">Channel Independence:</strong> Each channel projected independently through a shared Transformer backbone.</span>
+</div>
+<div class="flex items-start gap-space-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></span>
+<span><strong class="text-on-surface">Vanilla Linear Head:</strong> Flattening layer maps extracted tokens directly to prediction horizon $H$.</span>
+</div>
+</div>
+<div class="pt-space-xs flex justify-end">
+<a class="inline-flex items-center gap-space-2xs text-primary hover:text-tertiary font-label-md text-label-md font-semibold transition-colors" href="#evidence-1" onclick="highlightEvidence('evidence-1')">
+<span>Source Evidence →</span>
+</a>
+</div>
+</div>
+<!-- Card 3: Datasets Evaluated -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-xs transition-all hover:shadow-md">
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-space-2xs text-on-surface font-title-sm text-title-sm">
+<span class="material-symbols-outlined text-[18px] text-outline">dataset</span>
+                Datasets Evaluated
+              </span>
+<span class="font-code-sm text-code-sm text-on-surface-variant">N=4 Benchmarks</span>
+</div>
+<div class="flex flex-wrap gap-space-xs mt-space-2xs">
+<span class="px-space-sm py-space-2xs rounded-lg bg-surface-container font-label-sm text-label-sm text-primary font-medium">Electricity ECL (321 clients)</span>
+<span class="px-space-sm py-space-2xs rounded-lg bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">ETTh1 &amp; ETTh2 (2-year hourly)</span>
+<span class="px-space-sm py-space-2xs rounded-lg bg-surface-container font-label-sm text-label-sm text-on-surface font-medium">Weather (21 continuous indicators)</span>
+</div>
+<div class="pt-space-xs flex justify-end">
+<a class="inline-flex items-center gap-space-2xs text-primary hover:text-tertiary font-label-md text-label-md font-semibold transition-colors" href="#sec-datasets">
+<span>Source Evidence →</span>
+</a>
+</div>
+</div>
+<!-- Card 4: Key Empirical Findings -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-xs transition-all hover:shadow-md">
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-space-2xs text-secondary font-title-sm text-title-sm">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+                Key Empirical Findings
+              </span>
+<span class="px-space-xs py-space-2xs rounded bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">Statistically Sig.</span>
+</div>
+<div class="grid grid-cols-2 gap-space-xs pt-space-xs">
+<div class="p-space-xs rounded-lg bg-surface-container-low">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">MSE (96h Horizon)</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">0.129</span>
+<span class="font-label-sm text-label-sm text-primary block font-medium">−8.4% vs DLinear</span>
+</div>
+<div class="p-space-xs rounded-lg bg-surface-container-low">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Memory Footprint</span>
+<span class="font-title-md text-title-md text-on-surface font-bold">−80%</span>
+<span class="font-label-sm text-label-sm text-secondary block font-medium">vs Informer Transformer</span>
+</div>
+</div>
+<div class="pt-space-xs flex justify-end">
+<a class="inline-flex items-center gap-space-2xs text-secondary hover:text-on-secondary-container font-label-md text-label-md font-semibold transition-colors" href="#evidence-2" onclick="highlightEvidence('evidence-2')">
+<span>Source Evidence →</span>
+</a>
+</div>
+</div>
+<!-- Card 5: Identified Limitations -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-xs transition-all hover:shadow-md">
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-space-2xs text-error font-title-sm text-title-sm">
+<span class="material-symbols-outlined text-[18px]">report_problem</span>
+                Identified Limitations
+              </span>
+<span class="px-space-xs py-space-2xs rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-medium">Theoretical Gap</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Channel-independence deliberately discards cross-sensor covariance. In utility scenarios undergoing transmission line trips or localized sudden renewable curtailments, inter-nodal correlation is critical.
+            </p>
+<div class="pt-space-xs flex justify-end">
+<a class="inline-flex items-center gap-space-2xs text-error hover:text-on-error-container font-label-md text-label-md font-semibold transition-colors" href="#evidence-3" onclick="highlightEvidence('evidence-3')">
+<span>Source Evidence →</span>
+</a>
+</div>
+</div>
+<!-- Card 6: Research Gap for Our Study (Highlighted institutional recommendation) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-md flex flex-col gap-space-xs bg-gradient-to-br from-surface-container-lowest via-surface-container to-surface-container-low">
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-space-2xs text-secondary font-title-sm text-title-sm">
+<span class="material-symbols-outlined text-[18px]">lightbulb</span>
+                REC Research Gap Alignment
+              </span>
+<span class="px-space-xs py-space-2xs rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">Actionable Focus</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed font-medium">
+              High potential for our project: Formulate a hybrid architecture integrating PatchTST temporal tokenization with a Spatial Graph Neural Network (GNN) to explicitly capture transmission topology and feeder impedance across the Tamil Nadu state grid.
+            </p>
+<div class="pt-space-xs flex justify-end">
+<a class="inline-flex items-center gap-space-2xs text-secondary hover:text-on-secondary-container font-label-md text-label-md font-bold transition-colors" href="#sec-limitations">
+<span>Source Evidence →</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Human Validation Action at Bottom (Sticky Scholar Decision Block) -->
+<div class="mt-space-lg pt-space-md bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">rule</span>
+<span class="font-title-sm text-title-sm text-on-surface font-semibold">Scholar Validation Gate</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Step 3 of 4</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Commit extracted parameters to the Multi-Horizon Electricity Review matrix?
+        </p>
+<!-- Tri-state Decision Buttons -->
+<div class="grid grid-cols-3 gap-space-xs pt-space-2xs">
+<button class="flex items-center justify-center gap-space-2xs px-space-xs py-space-sm rounded-lg bg-primary text-on-primary hover:bg-tertiary font-title-sm text-title-sm font-semibold transition-all shadow-sm active:scale-95" id="acceptBtn" type="button">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Accept</span>
+</button>
+<button class="flex items-center justify-center gap-space-2xs px-space-xs py-space-sm rounded-lg bg-surface-container text-error hover:bg-error-container hover:text-on-error-container font-title-sm text-title-sm font-medium transition-all active:scale-95" id="rejectBtn" type="button">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+<span>Reject</span>
+</button>
+<button class="flex items-center justify-center gap-space-2xs px-space-xs py-space-sm rounded-lg bg-surface-container text-secondary hover:bg-secondary-container hover:text-on-secondary-container font-title-sm text-title-sm font-medium transition-all active:scale-95" id="flagBtn" type="button">
+<span class="material-symbols-outlined text-[16px]">flag</span>
+<span>Flag</span>
+</button>
+</div>
+<div class="hidden text-center py-space-2xs font-label-md text-label-md font-semibold text-primary" id="decisionStatus">
+          Paper successfully appended to Project Evidence Matrix.
+        </div>
+</div>
+</aside>
+</div>
+</div>
+<script>
+  // Simple reader font toggle micro-interaction
+  const fontToggle = document.getElementById('fontToggle');
+  const paperArticle = document.getElementById('paperArticle');
+  const fontModeLabel = document.getElementById('fontModeLabel');
+
+  let isSerif = false;
+  if (fontToggle && paperArticle && fontModeLabel) {
+    fontToggle.addEventListener('click', () => {
+      isSerif = !isSerif;
+      if (isSerif) {
+        paperArticle.style.fontFamily = 'Georgia, Cambria, serif';
+        fontModeLabel.textContent = 'Sans Text';
+      } else {
+        paperArticle.style.fontFamily = '';
+        fontModeLabel.textContent = 'Serif Text';
+      }
+    });
+  }
+
+  // Zoom in / Zoom out reader micro-interaction
+  const zoomIn = document.getElementById('zoomIn');
+  const zoomOut = document.getElementById('zoomOut');
+  const zoomPercent = document.getElementById('zoomPercent');
+  let currentZoom = 100;
+
+  if (zoomIn && zoomOut && zoomPercent && paperArticle) {
+    zoomIn.addEventListener('click', () => {
+      if (currentZoom < 140) {
+        currentZoom += 10;
+        zoomPercent.textContent = currentZoom + '%';
+        paperArticle.style.fontSize = (16 * (currentZoom / 100)) + 'px';
+      }
+    });
+    zoomOut.addEventListener('click', () => {
+      if (currentZoom > 80) {
+        currentZoom -= 10;
+        zoomPercent.textContent = currentZoom + '%';
+        paperArticle.style.fontSize = (16 * (currentZoom / 100)) + 'px';
+      }
+    });
+  }
+
+  // Highlight scroll animation when jumping to evidence
+  window.highlightEvidence = function(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    
+    // Add pulsing micro-state
+    el.classList.add('ring-2', 'ring-primary', 'scale-[1.01]');
+    setTimeout(() => {
+      el.classList.remove('ring-2', 'ring-primary', 'scale-[1.01]');
+    }, 2000);
+  };
+
+  // Human validation tri-state button behavior
+  const acceptBtn = document.getElementById('acceptBtn');
+  const rejectBtn = document.getElementById('rejectBtn');
+  const flagBtn = document.getElementById('flagBtn');
+  const statusBanner = document.getElementById('decisionStatus');
+
+  if (acceptBtn && statusBanner) {
+    acceptBtn.addEventListener('click', () => {
+      statusBanner.textContent = '✓ Paper accepted & committed to Literature Synthesis Bench.';
+      statusBanner.className = 'text-center py-space-2xs font-label-md text-label-md font-semibold text-primary block';
+      acceptBtn.classList.add('opacity-50', 'pointer-events-none');
+    });
+  }
+
+  if (rejectBtn && statusBanner) {
+    rejectBtn.addEventListener('click', () => {
+      statusBanner.textContent = '✕ Paper rejected from primary review corpus.';
+      statusBanner.className = 'text-center py-space-2xs font-label-md text-label-md font-semibold text-error block';
+    });
+  }
+
+  if (flagBtn && statusBanner) {
+    flagBtn.addEventListener('click', () => {
+      statusBanner.textContent = '⚑ Paper queued for secondary re-analysis by R-Lens Agent.';
+      statusBanner.className = 'text-center py-space-2xs font-label-md text-label-md font-semibold text-secondary block';
+    });
+  }
+</script></main></div></body></html>
