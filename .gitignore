@@ -44,3 +44,11 @@ wheels/
 *.swo
 .DS_Store
 Thumbs.db
+
+# --- R-Lens corpus (large, re-fetchable) -----------------------------------
+# PDF binaries are re-downloaded by `backend/scripts/fetch_corpus.py`; only the
+# SHA-256 manifest (which pins versions) is committed.
+backend/data/corpus/*.pdf
+backend/data/rlens.sqlite3
+backend/data/rlens.sqlite3-*
+backend/eval/results/

@@ -1,0 +1,2021 @@
+{
+  "generated_at": "2026-09-28T10:56:32",
+  "corpus_docs": 10,
+  "providers": [
+    {
+      "name": "offline",
+      "model": "extractive-v1",
+      "available": true,
+      "pending_reason": null
+    },
+    {
+      "name": "openrouter",
+      "model": "openai/gpt-4o-mini",
+      "available": false,
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "name": "openrouter-strong",
+      "model": "anthropic/claude-3.5-sonnet",
+      "available": false,
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    }
+  ],
+  "questions": 7,
+  "modes": [
+    "no_rag",
+    "basic_rag",
+    "agentic_rag"
+  ],
+  "rows": [
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "no_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 4,
+        "recall": 0.0,
+        "missed": [
+          "PatchTST segments each series into subseries-level patches used as input tokens.",
+          "Channel independence means each channel holds a single univariate series sharing the same embedding and Transformer weights across all series.",
+          "Patching quadratically reduces computation and memory of attention maps and lets the model attend longer history.",
+          "PatchTST significantly improves long-term forecasting accuracy over SOTA Transformer-based models."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "run cited nothing but gold papers exist"
+      },
+      "latency_s": 0.0,
+      "token_usage": {
+        "prompt": 21,
+        "completion": 22,
+        "total": 43,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "Insufficient evidence. No supporting passage was retrieved for this question, so I will not answer it rather than risk inventing a finding.",
+      "wall_s": 0.001,
+      "tool_calls": 0,
+      "events": 3,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "limit",
+          "name": "Verification",
+          "detail": "No passages exist, so zero claims can be verified. This is the expected failure mode of this baseline.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573188.155871
+        }
+      ]
+    },
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "no_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "no_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "basic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 4,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 4,
+        "recall": 0.0,
+        "missed": [
+          "PatchTST segments each series into subseries-level patches used as input tokens.",
+          "Channel independence means each channel holds a single univariate series sharing the same embedding and Transformer weights across all series.",
+          "Patching quadratically reduces computation and memory of attention maps and lets the model attend longer history.",
+          "PatchTST significantly improves long-term forecasting accuracy over SOTA Transformer-based models."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6667,
+        "cited": [
+          "arxiv_2211_14730",
+          "arxiv_2310_06625"
+        ],
+        "gold": [
+          "arxiv_2211_14730"
+        ]
+      },
+      "latency_s": 0.053,
+      "token_usage": {
+        "prompt": 935,
+        "completion": 258,
+        "total": 1193,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S1 p.9] Conclusion 7: Ablation study of patching and channel-independence in PatchTST.\n\n- [S1 p.20] In Section A.7.1 we will provide an in-depth analysis on why channel-independence has better fore- casting performance than channel mixing, and in Section A.7.2 we show that channel-independence is a g",
+      "wall_s": 0.054,
+      "tool_calls": 0,
+      "events": 4,
+      "activity_notes": [
+        {
+          "seq": 4,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "6/6 claims supported (rate 1.00); baseline does not self-correct.",
+          "status": "done",
+          "data": {
+            "verified": true
+          },
+          "latency_ms": null,
+          "at": 1790573188.2095716
+        }
+      ]
+    },
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "basic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "basic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "agentic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 2,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 4,
+        "recall": 0.0,
+        "missed": [
+          "PatchTST segments each series into subseries-level patches used as input tokens.",
+          "Channel independence means each channel holds a single univariate series sharing the same embedding and Transformer weights across all series.",
+          "Patching quadratically reduces computation and memory of attention maps and lets the model attend longer history.",
+          "PatchTST significantly improves long-term forecasting accuracy over SOTA Transformer-based models."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "cited": [
+          "arxiv_2211_14730"
+        ],
+        "gold": [
+          "arxiv_2211_14730"
+        ]
+      },
+      "latency_s": 0.794,
+      "token_usage": {
+        "prompt": 3923,
+        "completion": 391,
+        "total": 4314,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S1 p.9] Conclusion 7: Ablation study of patching and channel-independence in PatchTST.\n\n- [S1 p.9] We use supervised PatchTST/42 and other open-source Transformer-based baselines for this experiment.\n\n- [S1 p.9] 4 cases are included: (a) both patching and channel-independence are included in model (P",
+      "wall_s": 1.987,
+      "tool_calls": 3,
+      "events": 13,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have not searched the approved collection yet, so I have no evidence.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have not searched the approved collection yet, so I have no evidence.\nAction: search_papers\nAction Input: channel independence patchtst buy patching sub-series tokenization look-back window"
+          },
+          "latency_ms": null,
+          "at": 1790573190.1368778
+        },
+        {
+          "seq": 6,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.\nAction: read_passage\nAction Input: S1"
+          },
+          "latency_ms": null,
+          "at": 1790573190.1885386
+        },
+        {
+          "seq": 9,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have 5 passage(s) across 3 paper(s) and have read the strongest one, so I can answer with verbatim citations.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have 5 passage(s) across 3 paper(s) and have read the strongest one, so I can answer with verbatim citations.\nAction: finalize\nAction Input: **Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S1 p.9] Conclusion 7: Ablation study of patching and channel-independence in PatchTST.\n\n- [S1 p.9] We use supervised PatchTST/42 and other open-sourc"
+          },
+          "latency_ms": null,
+          "at": 1790573190.1932135
+        },
+        {
+          "seq": 12,
+          "kind": "decision",
+          "name": "Agent produced final answer",
+          "detail": "Reasoning loop complete",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573190.196254
+        },
+        {
+          "seq": 13,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "Checked 5 claim(s): 5 fully supported, support rate 1.00.",
+          "status": "done",
+          "data": {
+            "verified": true,
+            "support_rate": 1.0,
+            "issues": 0
+          },
+          "latency_ms": null,
+          "at": 1790573190.1972654
+        }
+      ],
+      "consistency": 1.0
+    },
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "agentic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "patchtst_channel_independence",
+      "mode": "agentic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "no_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "The permutation-invariant self-attention mechanism inevitably results in temporal information loss.",
+          "A set of simple one-layer linear models named LTSF-Linear outperformed existing Transformer-based LTSF models in all cases on nine datasets.",
+          "The experiments used nine real-life datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "run cited nothing but gold papers exist"
+      },
+      "latency_s": 0.0,
+      "token_usage": {
+        "prompt": 26,
+        "completion": 22,
+        "total": 48,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "Insufficient evidence. No supporting passage was retrieved for this question, so I will not answer it rather than risk inventing a finding.",
+      "wall_s": 0.0,
+      "tool_calls": 0,
+      "events": 3,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "limit",
+          "name": "Verification",
+          "detail": "No passages exist, so zero claims can be verified. This is the expected failure mode of this baseline.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573190.2664075
+        }
+      ]
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "no_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "no_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "basic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 5,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "The permutation-invariant self-attention mechanism inevitably results in temporal information loss.",
+          "A set of simple one-layer linear models named LTSF-Linear outperformed existing Transformer-based LTSF models in all cases on nine datasets.",
+          "The experiments used nine real-life datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "cited": [
+          "arxiv_2106_13008",
+          "arxiv_2211_14730",
+          "arxiv_2310_06625"
+        ],
+        "gold": [
+          "arxiv_2205_13504"
+        ]
+      },
+      "latency_s": 0.053,
+      "token_usage": {
+        "prompt": 1051,
+        "completion": 172,
+        "total": 1223,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S3 p.2] Based on the above motivations, we believe it is not that Transformer is ineffective for time series forecasting, but rather it is improperly used.\n\n- [S1 p.3] Related Work considers subword-based tokenization (Schuster & Nakajima, 2012) instead of performing character-based tokenization.\n\n- ",
+      "wall_s": 0.053,
+      "tool_calls": 0,
+      "events": 4,
+      "activity_notes": [
+        {
+          "seq": 4,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "6/6 claims supported (rate 1.00); baseline does not self-correct.",
+          "status": "done",
+          "data": {
+            "verified": true
+          },
+          "latency_ms": null,
+          "at": 1790573190.318506
+        }
+      ]
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "basic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "basic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "agentic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 3,
+      "support_rate": 0.75,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "The permutation-invariant self-attention mechanism inevitably results in temporal information loss.",
+          "A set of simple one-layer linear models named LTSF-Linear outperformed existing Transformer-based LTSF models in all cases on nine datasets.",
+          "The experiments used nine real-life datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "cited": [
+          "arxiv_2211_14730",
+          "arxiv_2310_06625"
+        ],
+        "gold": [
+          "arxiv_2205_13504"
+        ]
+      },
+      "latency_s": 0.07,
+      "token_usage": {
+        "prompt": 3836,
+        "completion": 375,
+        "total": 4211,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "- [S1 p.3] Related Work considers subword-based tokenization (Schuster & Nakajima, 2012) instead of performing character-based tokenization.\n- [S3 p.11] A time series is worth 64 words: Long-term forecasting with transformers.\n- [S1 p.1] Nguyen2 ∗, Phanwadee Sinthong2, Jayant Kalagnanam2 1Princeton University 2IBM Research ynie@princeton.edu, nnguyen@us.ibm.com, Gift.Sinthong@ibm.com, jayant@us.ib",
+      "wall_s": 0.07,
+      "tool_calls": 3,
+      "events": 13,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have not searched the approved collection yet, so I have no evidence.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have not searched the approved collection yet, so I have no evidence.\nAction: search_papers\nAction Input: transformers ineffective long term time series forecasting authors instead"
+          },
+          "latency_ms": null,
+          "at": 1790573190.3255842
+        },
+        {
+          "seq": 6,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.\nAction: read_passage\nAction Input: S1"
+          },
+          "latency_ms": null,
+          "at": 1790573190.380046
+        },
+        {
+          "seq": 9,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have 5 passage(s) across 3 paper(s) and have read the strongest one, so I can answer with verbatim citations.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have 5 passage(s) across 3 paper(s) and have read the strongest one, so I can answer with verbatim citations.\nAction: finalize\nAction Input: **Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S1 p.3] Related Work considers subword-based tokenization (Schuster & Nakajima, 2012) instead of performing character-based tokenization.\n\n- [S3 p.11"
+          },
+          "latency_ms": null,
+          "at": 1790573190.3848588
+        },
+        {
+          "seq": 12,
+          "kind": "decision",
+          "name": "Agent produced final answer",
+          "detail": "Reasoning loop complete",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573190.389063
+        },
+        {
+          "seq": 13,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "Checked 4 claim(s): 3 fully supported, support rate 0.75. Withdrew 1 unsupported claim(s).",
+          "status": "done",
+          "data": {
+            "verified": false,
+            "support_rate": 0.75,
+            "issues": 2
+          },
+          "latency_ms": null,
+          "at": 1790573190.389063
+        }
+      ],
+      "consistency": 1.0
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "agentic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "transformer_limits_ltsf",
+      "mode": "agentic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "no_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "Autoformer is a novel decomposition architecture with an Auto-Correlation mechanism.",
+          "Auto-Correlation discovers dependencies at the sub-series level based on series periodicity.",
+          "Autoformer yields state-of-the-art accuracy with a 38% relative improvement on six benchmarks."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "run cited nothing but gold papers exist"
+      },
+      "latency_s": 0.0,
+      "token_usage": {
+        "prompt": 23,
+        "completion": 22,
+        "total": 45,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "Insufficient evidence. No supporting passage was retrieved for this question, so I will not answer it rather than risk inventing a finding.",
+      "wall_s": 0.0,
+      "tool_calls": 0,
+      "events": 3,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "limit",
+          "name": "Verification",
+          "detail": "No passages exist, so zero claims can be verified. This is the expected failure mode of this baseline.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573190.45981
+        }
+      ]
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "no_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "no_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "basic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 4,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "Autoformer is a novel decomposition architecture with an Auto-Correlation mechanism.",
+          "Auto-Correlation discovers dependencies at the sub-series level based on series periodicity.",
+          "Autoformer yields state-of-the-art accuracy with a 38% relative improvement on six benchmarks."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.3333,
+        "recall": 1.0,
+        "f1": 0.5,
+        "cited": [
+          "arxiv_1706_03762",
+          "arxiv_2106_13008",
+          "arxiv_2205_13504"
+        ],
+        "gold": [
+          "arxiv_2106_13008"
+        ]
+      },
+      "latency_s": 0.113,
+      "token_usage": {
+        "prompt": 1103,
+        "completion": 205,
+        "total": 1308,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S3 p.2] Our mechanism is beyond previous self-attention family and can simultaneously beneﬁt the computation efﬁciency and information utilization. • Autoformer achieves a 38% relative improvement under the long-term setting on six bench- marks, covering ﬁve real-world applications: energy, trafﬁc, e",
+      "wall_s": 0.114,
+      "tool_calls": 0,
+      "events": 4,
+      "activity_notes": [
+        {
+          "seq": 4,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "6/6 claims supported (rate 1.00); baseline does not self-correct.",
+          "status": "done",
+          "data": {
+            "verified": true
+          },
+          "latency_ms": null,
+          "at": 1790573190.5724149
+        }
+      ]
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "basic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "basic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "agentic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 3,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "Autoformer is a novel decomposition architecture with an Auto-Correlation mechanism.",
+          "Auto-Correlation discovers dependencies at the sub-series level based on series periodicity.",
+          "Autoformer yields state-of-the-art accuracy with a 38% relative improvement on six benchmarks."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "cited": [
+          "arxiv_1706_03762",
+          "arxiv_2012_07436",
+          "arxiv_2205_13504"
+        ],
+        "gold": [
+          "arxiv_2106_13008"
+        ]
+      },
+      "latency_s": 0.071,
+      "token_usage": {
+        "prompt": 3951,
+        "completion": 435,
+        "total": 4386,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S2 p.3] Lastly, Autoformer designs a series-wise auto-correlation mechanism to replace the original self-attention layer.\n\n- [S1 p.2] In this work we propose the Transformer, a model architecture eschewing recurrence and instead relying entirely on an attention mechanism to draw global dependencies b",
+      "wall_s": 0.071,
+      "tool_calls": 3,
+      "events": 13,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have not searched the approved collection yet, so I have no evidence.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have not searched the approved collection yet, so I have no evidence.\nAction: search_papers\nAction Input: mechanism autoformer instead self attention improvement report self-attention attention mechanism complexity"
+          },
+          "latency_ms": null,
+          "at": 1790573190.5803545
+        },
+        {
+          "seq": 6,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.\nAction: read_passage\nAction Input: S1"
+          },
+          "latency_ms": null,
+          "at": 1790573190.637169
+        },
+        {
+          "seq": 9,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have 5 passage(s) across 3 paper(s) and have read the strongest one, so I can answer with verbatim citations.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have 5 passage(s) across 3 paper(s) and have read the strongest one, so I can answer with verbatim citations.\nAction: finalize\nAction Input: **Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S2 p.3] Lastly, Autoformer designs a series-wise auto-correlation mechanism to replace the original self-attention layer.\n\n- [S1 p.2] In this work we"
+          },
+          "latency_ms": null,
+          "at": 1790573190.641278
+        },
+        {
+          "seq": 12,
+          "kind": "decision",
+          "name": "Agent produced final answer",
+          "detail": "Reasoning loop complete",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573190.6444726
+        },
+        {
+          "seq": 13,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "Checked 6 claim(s): 6 fully supported, support rate 1.00.",
+          "status": "done",
+          "data": {
+            "verified": true,
+            "support_rate": 1.0,
+            "issues": 0
+          },
+          "latency_ms": null,
+          "at": 1790573190.6444726
+        }
+      ],
+      "consistency": 1.0
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "agentic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "autoformer_decomposition",
+      "mode": "agentic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "no_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "Informer has a ProbSparse self-attention mechanism achieving O(L log L) time and memory.",
+          "A generative style decoder predicts long sequences in one forward operation.",
+          "Informer significantly outperforms existing methods on four large-scale datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "run cited nothing but gold papers exist"
+      },
+      "latency_s": 0.0,
+      "token_usage": {
+        "prompt": 24,
+        "completion": 22,
+        "total": 46,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "Insufficient evidence. No supporting passage was retrieved for this question, so I will not answer it rather than risk inventing a finding.",
+      "wall_s": 0.0,
+      "tool_calls": 0,
+      "events": 3,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "limit",
+          "name": "Verification",
+          "detail": "No passages exist, so zero claims can be verified. This is the expected failure mode of this baseline.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573190.71573
+        }
+      ]
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "no_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "no_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "basic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 5,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 1,
+        "total": 3,
+        "recall": 0.3333,
+        "missed": [
+          "A generative style decoder predicts long sequences in one forward operation.",
+          "Informer significantly outperforms existing methods on four large-scale datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1": 0.4,
+        "cited": [
+          "arxiv_1706_03762",
+          "arxiv_2012_07436",
+          "arxiv_2106_13008",
+          "arxiv_2205_13504"
+        ],
+        "gold": [
+          "arxiv_2012_07436"
+        ]
+      },
+      "latency_s": 0.054,
+      "token_usage": {
+        "prompt": 1012,
+        "completion": 184,
+        "total": 1196,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S2 p.1] To ad- dress these issues, we design an efﬁcient transformer-based model for LSTF, named Informer, with three distinctive char- acteristics: (i) a ProbSparse self-attention mechanism, which achieves O(L log L) in time complexity and memory usage, and has comparable performance on sequences’ d",
+      "wall_s": 0.055,
+      "tool_calls": 0,
+      "events": 4,
+      "activity_notes": [
+        {
+          "seq": 4,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "6/6 claims supported (rate 1.00); baseline does not self-correct.",
+          "status": "done",
+          "data": {
+            "verified": true
+          },
+          "latency_ms": null,
+          "at": 1790573190.7695358
+        }
+      ]
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "basic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "basic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "agentic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 5,
+      "support_rate": 0.8333,
+      "factual_accuracy": {
+        "hits": 1,
+        "total": 3,
+        "recall": 0.3333,
+        "missed": [
+          "A generative style decoder predicts long sequences in one forward operation.",
+          "Informer significantly outperforms existing methods on four large-scale datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1": 0.4,
+        "cited": [
+          "arxiv_1706_03762",
+          "arxiv_2012_07436",
+          "arxiv_2106_13008",
+          "arxiv_2205_13504"
+        ],
+        "gold": [
+          "arxiv_2012_07436"
+        ]
+      },
+      "latency_s": 0.073,
+      "token_usage": {
+        "prompt": 3927,
+        "completion": 433,
+        "total": 4360,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "- [S1 p.1] To ad- dress these issues, we design an efﬁcient transformer-based model for LSTF, named Informer, with three distinctive char- acteristics: (i) a ProbSparse self-attention mechanism, which achieves O(L log L) in time complexity and memory usage, and has comparable performance on sequences’ dependency alignment.\n- [S4 p.10] Autoformer can naturally achieve O(L log L) complexity and yiel",
+      "wall_s": 0.074,
+      "tool_calls": 3,
+      "events": 13,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have not searched the approved collection yet, so I have no evidence.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have not searched the approved collection yet, so I have no evidence.\nAction: search_papers\nAction Input: three distinctive characteristics informer complexity probsparse attention achieve self-attention attention mechanism"
+          },
+          "latency_ms": null,
+          "at": 1790573190.7772417
+        },
+        {
+          "seq": 6,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.\nAction: read_passage\nAction Input: S1"
+          },
+          "latency_ms": null,
+          "at": 1790573190.8346372
+        },
+        {
+          "seq": 9,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have 5 passage(s) across 4 paper(s) and have read the strongest one, so I can answer with verbatim citations.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have 5 passage(s) across 4 paper(s) and have read the strongest one, so I can answer with verbatim citations.\nAction: finalize\nAction Input: **Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S1 p.1] To ad- dress these issues, we design an efﬁcient transformer-based model for LSTF, named Informer, with three distinctive char- acteristics: "
+          },
+          "latency_ms": null,
+          "at": 1790573190.838667
+        },
+        {
+          "seq": 12,
+          "kind": "decision",
+          "name": "Agent produced final answer",
+          "detail": "Reasoning loop complete",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573190.8432717
+        },
+        {
+          "seq": 13,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "Checked 6 claim(s): 5 fully supported, support rate 0.83. Withdrew 1 unsupported claim(s).",
+          "status": "done",
+          "data": {
+            "verified": false,
+            "support_rate": 0.8333333333333334,
+            "issues": 1
+          },
+          "latency_ms": null,
+          "at": 1790573190.843775
+        }
+      ],
+      "consistency": 1.0
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "agentic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "informer_efficiency",
+      "mode": "agentic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "no_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "iTransformer applies attention and feed-forward networks on the inverted dimensions.",
+          "Time points of individual series are embedded into variate tokens used by the attention mechanism to capture multivariate correlations.",
+          "iTransformer achieves state-of-the-art on challenging real-world datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "run cited nothing but gold papers exist"
+      },
+      "latency_s": 0.0,
+      "token_usage": {
+        "prompt": 24,
+        "completion": 22,
+        "total": 46,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "Insufficient evidence. No supporting passage was retrieved for this question, so I will not answer it rather than risk inventing a finding.",
+      "wall_s": 0.0,
+      "tool_calls": 0,
+      "events": 3,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "limit",
+          "name": "Verification",
+          "detail": "No passages exist, so zero claims can be verified. This is the expected failure mode of this baseline.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573190.9136448
+        }
+      ]
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "no_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "no_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "basic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 4,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "iTransformer applies attention and feed-forward networks on the inverted dimensions.",
+          "Time points of individual series are embedded into variate tokens used by the attention mechanism to capture multivariate correlations.",
+          "iTransformer achieves state-of-the-art on challenging real-world datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6667,
+        "cited": [
+          "arxiv_1706_03762",
+          "arxiv_2310_06625"
+        ],
+        "gold": [
+          "arxiv_2310_06625"
+        ]
+      },
+      "latency_s": 0.076,
+      "token_usage": {
+        "prompt": 975,
+        "completion": 250,
+        "total": 1225,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S1 p.20] Besides, we observe the significantly declined performance on the second and third designs of Traffic in Table 6, which apply attention to temporal tokens.\n\n- [S1 p.17] Based on the complexity of O(N 2) of the attention module, where N is the number of tokens, Transformer surpasses iTransfor",
+      "wall_s": 0.077,
+      "tool_calls": 0,
+      "events": 4,
+      "activity_notes": [
+        {
+          "seq": 4,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "6/6 claims supported (rate 1.00); baseline does not self-correct.",
+          "status": "done",
+          "data": {
+            "verified": true
+          },
+          "latency_ms": null,
+          "at": 1790573190.9901235
+        }
+      ]
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "basic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "basic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "agentic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 2,
+      "support_rate": 0.8,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "iTransformer applies attention and feed-forward networks on the inverted dimensions.",
+          "Time points of individual series are embedded into variate tokens used by the attention mechanism to capture multivariate correlations.",
+          "iTransformer achieves state-of-the-art on challenging real-world datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6667,
+        "cited": [
+          "arxiv_2205_13504",
+          "arxiv_2310_06625"
+        ],
+        "gold": [
+          "arxiv_2310_06625"
+        ]
+      },
+      "latency_s": 0.123,
+      "token_usage": {
+        "prompt": 3986,
+        "completion": 467,
+        "total": 4453,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "- [S3 p.17] Based on the complexity of O(N 2) of the attention module, where N is the number of tokens, Transformer surpasses iTransformer on efficiency in this case because of N = 96 for the temporal token and N = 862 for the variate token.\n- [S3 p.17] Experiments & Setup the memory footprints are basically the same as Transformers variates, but iTransformer can be trained faster.\n- [S3 p.17] By ",
+      "wall_s": 0.124,
+      "tool_calls": 3,
+      "events": 13,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have not searched the approved collection yet, so I have no evidence.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have not searched the approved collection yet, so I have no evidence.\nAction: search_papers\nAction Input: itransformer apply attention instead temporal tokens achieve self-attention attention mechanism complexity"
+          },
+          "latency_ms": null,
+          "at": 1790573191.0018117
+        },
+        {
+          "seq": 6,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.\nAction: read_passage\nAction Input: S1"
+          },
+          "latency_ms": null,
+          "at": 1790573191.0992434
+        },
+        {
+          "seq": 9,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have 5 passage(s) across 3 paper(s) and have read the strongest one, so I can answer with verbatim citations.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have 5 passage(s) across 3 paper(s) and have read the strongest one, so I can answer with verbatim citations.\nAction: finalize\nAction Input: **Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S3 p.17] Based on the complexity of O(N 2) of the attention module, where N is the number of tokens, Transformer surpasses iTransformer on efficiency"
+          },
+          "latency_ms": null,
+          "at": 1790573191.1074631
+        },
+        {
+          "seq": 12,
+          "kind": "decision",
+          "name": "Agent produced final answer",
+          "detail": "Reasoning loop complete",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.113027
+        },
+        {
+          "seq": 13,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "Checked 5 claim(s): 4 fully supported, support rate 0.80. Withdrew 1 unsupported claim(s).",
+          "status": "done",
+          "data": {
+            "verified": false,
+            "support_rate": 0.8,
+            "issues": 1
+          },
+          "latency_ms": null,
+          "at": 1790573191.1140459
+        }
+      ],
+      "consistency": 1.0
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "agentic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "itransformer_inversion",
+      "mode": "agentic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "no_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "PatchTST claims significant accuracy improvement over SOTA Transformer-based models.",
+          "Autoformer reports a 38% relative improvement on six benchmarks.",
+          "iTransformer achieves state-of-the-art on challenging real-world datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "run cited nothing but gold papers exist"
+      },
+      "latency_s": 0.0,
+      "token_usage": {
+        "prompt": 27,
+        "completion": 22,
+        "total": 49,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "Insufficient evidence. No supporting passage was retrieved for this question, so I will not answer it rather than risk inventing a finding.",
+      "wall_s": 0.0,
+      "tool_calls": 0,
+      "events": 3,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "limit",
+          "name": "Verification",
+          "detail": "No passages exist, so zero claims can be verified. This is the expected failure mode of this baseline.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.2329211
+        }
+      ]
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "no_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "no_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "basic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 5,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "PatchTST claims significant accuracy improvement over SOTA Transformer-based models.",
+          "Autoformer reports a 38% relative improvement on six benchmarks.",
+          "iTransformer achieves state-of-the-art on challenging real-world datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.5,
+        "recall": 0.6667,
+        "f1": 0.5714,
+        "cited": [
+          "arxiv_2012_07436",
+          "arxiv_2106_13008",
+          "arxiv_2210_02186",
+          "arxiv_2310_06625"
+        ],
+        "gold": [
+          "arxiv_2106_13008",
+          "arxiv_2211_14730",
+          "arxiv_2310_06625"
+        ]
+      },
+      "latency_s": 0.093,
+      "token_usage": {
+        "prompt": 896,
+        "completion": 162,
+        "total": 1058,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S3 p.23] We report the classiﬁcation accuracy (%) as the result.\n\n- [S1 p.2] 2020) claims a linear complexity O(L), but the project matrix can not be ﬁxed for real-world long sequence in- put, which may have the risk of degradation to O(L2).\n\n- [S2 p.7] We report the average performance and the relat",
+      "wall_s": 0.094,
+      "tool_calls": 0,
+      "events": 4,
+      "activity_notes": [
+        {
+          "seq": 4,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "6/6 claims supported (rate 1.00); baseline does not self-correct.",
+          "status": "done",
+          "data": {
+            "verified": true
+          },
+          "latency_ms": null,
+          "at": 1790573191.3266127
+        }
+      ]
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "basic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "basic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "agentic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": true,
+      "insufficient_evidence": false,
+      "expected_insufficient_evidence": false,
+      "claims": null,
+      "citations": 5,
+      "support_rate": 1.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 3,
+        "recall": 0.0,
+        "missed": [
+          "PatchTST claims significant accuracy improvement over SOTA Transformer-based models.",
+          "Autoformer reports a 38% relative improvement on six benchmarks.",
+          "iTransformer achieves state-of-the-art on challenging real-world datasets."
+        ]
+      },
+      "retrieval_relevance": {
+        "precision": 0.5,
+        "recall": 0.6667,
+        "f1": 0.5714,
+        "cited": [
+          "arxiv_2012_07436",
+          "arxiv_2106_13008",
+          "arxiv_2210_02186",
+          "arxiv_2310_06625"
+        ],
+        "gold": [
+          "arxiv_2106_13008",
+          "arxiv_2211_14730",
+          "arxiv_2310_06625"
+        ]
+      },
+      "latency_s": 0.116,
+      "token_usage": {
+        "prompt": 4013,
+        "completion": 444,
+        "total": 4457,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "**Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S3 p.23] We report the classiﬁcation accuracy (%) as the result.\n\n- [S1 p.2] 2020) claims a linear complexity O(L), but the project matrix can not be ﬁxed for real-world long sequence in- put, which may have the risk of degradation to O(L2).\n\n- [S4 p.18] Besides, all these models adopt the embedding ",
+      "wall_s": 0.117,
+      "tool_calls": 3,
+      "events": 13,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have not searched the approved collection yet, so I have no evidence.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have not searched the approved collection yet, so I have no evidence.\nAction: search_papers\nAction Input: surveyed report real world datasets one claims strongest accuracy gain"
+          },
+          "latency_ms": null,
+          "at": 1790573191.3374076
+        },
+        {
+          "seq": 6,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: Before citing, I will read the top passage in full so the quote I use is exact.\nAction: read_passage\nAction Input: S1"
+          },
+          "latency_ms": null,
+          "at": 1790573191.429261
+        },
+        {
+          "seq": 9,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have 5 passage(s) across 4 paper(s) and have read the strongest one, so I can answer with verbatim citations.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have 5 passage(s) across 4 paper(s) and have read the strongest one, so I can answer with verbatim citations.\nAction: finalize\nAction Input: **Evidence-grounded answer (extractive mode - verbatim source sentences, no LLM generation).**\n\n- [S3 p.23] We report the classiﬁcation accuracy (%) as the result.\n\n- [S1 p.2] 2020) claims a linear complexity O(L), but the project matrix can not be"
+          },
+          "latency_ms": null,
+          "at": 1790573191.4377651
+        },
+        {
+          "seq": 12,
+          "kind": "decision",
+          "name": "Agent produced final answer",
+          "detail": "Reasoning loop complete",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.4429681
+        },
+        {
+          "seq": 13,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "Checked 6 claim(s): 6 fully supported, support rate 1.00.",
+          "status": "done",
+          "data": {
+            "verified": true,
+            "support_rate": 1.0,
+            "issues": 0
+          },
+          "latency_ms": null,
+          "at": 1790573191.4439738
+        }
+      ],
+      "consistency": 1.0
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "agentic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "cross_model_forecasting",
+      "mode": "agentic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "no_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": true,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 0,
+        "recall": null,
+        "missed": []
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "no citations expected"
+      },
+      "latency_s": 0.0,
+      "token_usage": {
+        "prompt": 18,
+        "completion": 22,
+        "total": 40,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "Insufficient evidence. No supporting passage was retrieved for this question, so I will not answer it rather than risk inventing a finding.",
+      "wall_s": 0.0,
+      "tool_calls": 0,
+      "events": 3,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "limit",
+          "name": "Verification",
+          "detail": "No passages exist, so zero claims can be verified. This is the expected failure mode of this baseline.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.5631907
+        }
+      ],
+      "handled_out_of_scope_well": true
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "no_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "no_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "basic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "complete",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": true,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 0,
+        "recall": null,
+        "missed": []
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "no citations expected"
+      },
+      "latency_s": 0.087,
+      "token_usage": {
+        "prompt": null,
+        "completion": null,
+        "total": null,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "Insufficient evidence: no passage in the approved collection matches the question.",
+      "wall_s": 0.088,
+      "tool_calls": 0,
+      "events": 3,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "limit",
+          "name": "Retrieval",
+          "detail": "No passages matched or topic uncovered; declining to answer.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.6506097
+        }
+      ],
+      "handled_out_of_scope_well": true
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "basic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "basic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "agentic_rag",
+      "provider": "offline",
+      "status": "ran",
+      "model": "extractive-v1",
+      "state": "awaiting_user",
+      "verified": false,
+      "insufficient_evidence": true,
+      "expected_insufficient_evidence": true,
+      "claims": null,
+      "citations": 0,
+      "support_rate": 0.0,
+      "factual_accuracy": {
+        "hits": 0,
+        "total": 0,
+        "recall": null,
+        "missed": []
+      },
+      "retrieval_relevance": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "note": "no citations expected"
+      },
+      "latency_s": 0.281,
+      "token_usage": {
+        "prompt": 2146,
+        "completion": 125,
+        "total": 2271,
+        "usage_known": true,
+        "cost_usd": null,
+        "cost_known": false
+      },
+      "answer_excerpt": "I paused to ask a clarifying question before answering.",
+      "wall_s": 0.281,
+      "tool_calls": 4,
+      "events": 20,
+      "activity_notes": [
+        {
+          "seq": 3,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I have not searched the approved collection yet, so I have no evidence.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I have not searched the approved collection yet, so I have no evidence.\nAction: search_papers\nAction Input: asymptotic freedom scale quantum chromodynamics"
+          },
+          "latency_ms": null,
+          "at": 1790573191.6613886
+        },
+        {
+          "seq": 5,
+          "kind": "limit",
+          "name": "Coverage check",
+          "detail": "Top passages matched 1/5 query terms; the approved collection does not cover this topic.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.744284
+        },
+        {
+          "seq": 7,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: The query 'asymptotic freedom scale quantum chromodynamics' returned no passages, so I will broaden the vocabulary and search again.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: The query 'asymptotic freedom scale quantum chromodynamics' returned no passages, so I will broaden the vocabulary and search again.\nAction: search_papers\nAction Input: asymptotic freedom scale quantum chromodynamics"
+          },
+          "latency_ms": null,
+          "at": 1790573191.7500117
+        },
+        {
+          "seq": 9,
+          "kind": "limit",
+          "name": "Coverage check",
+          "detail": "Top passages matched 1/5 query terms; the approved collection does not cover this topic.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.8359766
+        },
+        {
+          "seq": 11,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: The query 'asymptotic freedom scale quantum chromodynamics' returned no passages, so I will broaden the vocabulary and search again.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: The query 'asymptotic freedom scale quantum chromodynamics' returned no passages, so I will broaden the vocabulary and search again.\nAction: search_papers\nAction Input: asymptotic freedom scale quantum chromodynamics"
+          },
+          "latency_ms": null,
+          "at": 1790573191.8411653
+        },
+        {
+          "seq": 13,
+          "kind": "limit",
+          "name": "Coverage check",
+          "detail": "Top passages matched 1/5 query terms; the approved collection does not cover this topic.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.9257243
+        },
+        {
+          "seq": 15,
+          "kind": "decision",
+          "name": "Agent chose next action",
+          "detail": "Thought: I refined the query 3 time(s) and still retrieved nothing, so the approved collection does not cover this.",
+          "status": "done",
+          "data": {
+            "raw": "Thought: I refined the query 3 time(s) and still retrieved nothing, so the approved collection does not cover this.\nAction: request_user_clarification\nAction Input: The approved papers do not appear to cover this question. Should I broaden the topic, or should you add more papers?"
+          },
+          "latency_ms": null,
+          "at": 1790573191.9308398
+        },
+        {
+          "seq": 17,
+          "kind": "error",
+          "name": "Tool call failed",
+          "detail": "The approved papers do not appear to cover this question. Should I broaden the topic, or should you add more papers?",
+          "status": "failed",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.9323535
+        },
+        {
+          "seq": 18,
+          "kind": "limit",
+          "name": "Paused for human input",
+          "detail": "The approved papers do not appear to cover this question. Should I broaden the topic, or should you add more papers?",
+          "status": "done",
+          "data": {
+            "reason": "agent_request"
+          },
+          "latency_ms": null,
+          "at": 1790573191.9323535
+        },
+        {
+          "seq": 19,
+          "kind": "decision",
+          "name": "Verification",
+          "detail": "Checked 1 claim(s): 0 fully supported, support rate 0.00.",
+          "status": "done",
+          "data": {
+            "verified": false,
+            "support_rate": 0.0,
+            "issues": 1
+          },
+          "latency_ms": null,
+          "at": 1790573191.9323535
+        },
+        {
+          "seq": 20,
+          "kind": "limit",
+          "name": "No citable source",
+          "detail": "No claim survived verification, so no citation can be offered.",
+          "status": "done",
+          "data": {},
+          "latency_ms": null,
+          "at": 1790573191.9323535
+        }
+      ],
+      "consistency": 1.0,
+      "handled_out_of_scope_well": true
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "agentic_rag",
+      "provider": "openrouter",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "agentic_rag",
+      "provider": "openrouter-strong",
+      "status": "pending",
+      "pending_reason": "no OPENROUTER_API_KEY set; cell marked PENDING, not scored"
+    }
+  ],
+  "cross_llm_consistency": {
+    "status": "pending",
+    "providers": [],
+    "reason": "need >= 2 keyed providers; only offline present"
+  },
+  "deterministic_inconsistencies": [],
+  "out_of_scope_handling": [
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "no_rag",
+      "provider": "offline",
+      "handled": true,
+      "citations": 0
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "basic_rag",
+      "provider": "offline",
+      "handled": true,
+      "citations": 0
+    },
+    {
+      "question": "out_of_scope_qcd",
+      "mode": "agentic_rag",
+      "provider": "offline",
+      "handled": true,
+      "citations": 0
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "_comment": "Gold facts are quoted verbatim from the extracted text stored by the ingest pipeline (see backend/eval/README). Nothing here was written from memory of the papers; every `source_quote` is a substring of the abstract the pipeline extracted from the pinned arXiv PDF, so factual accuracy is a mechanical containment check rather than a style judgement.",
+  "providers": ["offline", "gemini", "openai", "openrouter", "openrouter-strong"],
+  "questions": [
+    {
+      "id": "patchtst_channel_independence",
+      "question": "How does channel independence work in PatchTST, and what does it buy?",
+      "gold_papers": ["arxiv_2211_14730"],
+      "gold_facts": [
+        {
+          "fact": "PatchTST segments each series into subseries-level patches used as input tokens.",
+          "source_quote": "segmentation of time series into subseries-level patches which are served as input tokens to Transformer",
+          "source_paper": "arxiv_2211_14730"
+        },
+        {
+          "fact": "Channel independence means each channel holds a single univariate series sharing the same embedding and Transformer weights across all series.",
+          "source_quote": "channel-independence where each channel contains a single univariate time series that shares the same embedding and Transformer weights across all the series",
+          "source_paper": "arxiv_2211_14730"
+        },
+        {
+          "fact": "Patching quadratically reduces computation and memory of attention maps and lets the model attend longer history.",
+          "source_quote": "computation and memory usage of the attention maps are quadratically reduced given the same look-back window; and the model can attend longer history",
+          "source_paper": "arxiv_2211_14730"
+        },
+        {
+          "fact": "PatchTST significantly improves long-term forecasting accuracy over SOTA Transformer-based models.",
+          "source_quote": "can improve the long-term forecasting accuracy significantly when compared with that of SOTA Transformer-based models",
+          "source_paper": "arxiv_2211_14730"
+        }
+      ]
+    },
+    {
+      "id": "transformer_limits_ltsf",
+      "question": "Why might Transformers be ineffective for long-term time series forecasting, and what did the authors show instead?",
+      "gold_papers": ["arxiv_2205_13504"],
+      "gold_facts": [
+        {
+          "fact": "The permutation-invariant self-attention mechanism inevitably results in temporal information loss.",
+          "source_quote": "the nature of the permutation-invariant self-attention mechanism inevitably results in temporal information loss",
+          "source_paper": "arxiv_2205_13504"
+        },
+        {
+          "fact": "A set of simple one-layer linear models named LTSF-Linear outperformed existing Transformer-based LTSF models in all cases on nine datasets.",
+          "source_quote": "LTSF-Linear surprisingly outperforms existing sophisticated Transformer-based LTSF models in all cases",
+          "source_paper": "arxiv_2205_13504"
+        },
+        {
+          "fact": "The experiments used nine real-life datasets.",
+          "source_quote": "Experimental results on nine real-life datasets",
+          "source_paper": "arxiv_2205_13504"
+        }
+      ]
+    },
+    {
+      "id": "autoformer_decomposition",
+      "question": "What mechanism does Autoformer use instead of self-attention, and what improvement does it report?",
+      "gold_papers": ["arxiv_2106_13008"],
+      "gold_facts": [
+        {
+          "fact": "Autoformer is a novel decomposition architecture with an Auto-Correlation mechanism.",
+          "source_quote": "we design Autoformer as a novel decomposition architecture with an Auto-Correlation mechanism",
+          "source_paper": "arxiv_2106_13008"
+        },
+        {
+          "fact": "Auto-Correlation discovers dependencies at the sub-series level based on series periodicity.",
+          "source_quote": "we design the Auto-Correlation mechanism based on the series periodicity, which conducts the dependencies discovery and representation aggregation at the sub-series level",
+          "source_paper": "arxiv_2106_13008"
+        },
+        {
+          "fact": "Autoformer yields state-of-the-art accuracy with a 38% relative improvement on six benchmarks.",
+          "source_quote": "Autoformer yields state-of-the-art accuracy, with a 38% relative improvement on six benchmarks",
+          "source_paper": "arxiv_2106_13008"
+        }
+      ]
+    },
+    {
+      "id": "informer_efficiency",
+      "question": "What are the three distinctive characteristics of Informer, and what complexity does ProbSparse attention achieve?",
+      "gold_papers": ["arxiv_2012_07436"],
+      "gold_facts": [
+        {
+          "fact": "Informer has a ProbSparse self-attention mechanism achieving O(L log L) time and memory.",
+          "source_quote": "a $ProbSparse$ self-attention mechanism, which achieves $O(L \\log L)$ in time complexity and memory usage",
+          "keywords": ["ProbSparse", "L log L"],
+          "source_paper": "arxiv_2012_07436"
+        },
+        {
+          "fact": "A generative style decoder predicts long sequences in one forward operation.",
+          "source_quote": "the generative style decoder, while conceptually simple, predicts the long time-series sequences at one forward operation",
+          "source_paper": "arxiv_2012_07436"
+        },
+        {
+          "fact": "Informer significantly outperforms existing methods on four large-scale datasets.",
+          "source_quote": "Extensive experiments on four large-scale datasets demonstrate that Informer significantly outperforms existing methods",
+          "source_paper": "arxiv_2012_07436"
+        }
+      ]
+    },
+    {
+      "id": "itransformer_inversion",
+      "question": "What does iTransformer apply attention to instead of temporal tokens, and what does it achieve?",
+      "gold_papers": ["arxiv_2310_06625"],
+      "gold_facts": [
+        {
+          "fact": "iTransformer applies attention and feed-forward networks on the inverted dimensions.",
+          "source_quote": "iTransformer that simply applies the attention and feed-forward network on the inverted dimensions",
+          "source_paper": "arxiv_2310_06625"
+        },
+        {
+          "fact": "Time points of individual series are embedded into variate tokens used by the attention mechanism to capture multivariate correlations.",
+          "source_quote": "the time points of individual series are embedded into variate tokens which are utilized by the attention mechanism to capture multivariate correlations",
+          "source_paper": "arxiv_2310_06625"
+        },
+        {
+          "fact": "iTransformer achieves state-of-the-art on challenging real-world datasets.",
+          "source_quote": "The iTransformer model achieves state-of-the-art on challenging real-world datasets",
+          "source_paper": "arxiv_2310_06625"
+        }
+      ]
+    },
+    {
+      "id": "cross_model_forecasting",
+      "question": "Which of the surveyed papers report results on real-world datasets, and which one claims the strongest accuracy gain?",
+      "gold_papers": ["arxiv_2211_14730", "arxiv_2106_13008", "arxiv_2310_06625"],
+      "gold_facts": [
+        {
+          "fact": "PatchTST claims significant accuracy improvement over SOTA Transformer-based models.",
+          "source_quote": "can improve the long-term forecasting accuracy significantly when compared with that of SOTA Transformer-based models",
+          "source_paper": "arxiv_2211_14730"
+        },
+        {
+          "fact": "Autoformer reports a 38% relative improvement on six benchmarks.",
+          "source_quote": "with a 38% relative improvement on six benchmarks",
+          "source_paper": "arxiv_2106_13008"
+        },
+        {
+          "fact": "iTransformer achieves state-of-the-art on challenging real-world datasets.",
+          "source_quote": "achieves state-of-the-art on challenging real-world datasets",
+          "source_paper": "arxiv_2310_06625"
+        }
+      ]
+    },
+    {
+      "id": "out_of_scope_qcd",
+      "question": "What is the asymptotic freedom scale in quantum chromodynamics?",
+      "gold_papers": [],
+      "gold_facts": [],
+      "expect_insufficient_evidence": true,
+      "_comment": "Deliberately unanswerable from the corpus. The required behaviour is a refusal that names itself as insufficient evidence, with zero invented citations."
+    }
+  ]
+}

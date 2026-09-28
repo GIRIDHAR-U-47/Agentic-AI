@@ -1,0 +1,18 @@
+first setup :
+graphify antigravity install
+graphify extract . --code-only
+
+to update:
+graphify update .
+
+to check:
+graphify query "show the main parts of this project"
+
+
+
+$env:PATH = "$env:USERPROFILE\.local\bin;$env:PATH"
+
+
+
+
+"Use Graphify to find the relevant parts of the project. Check the actual source files before editing. Complete this task: [describe the feature or fix]. After making changes, update the graph and tell me what you tested."

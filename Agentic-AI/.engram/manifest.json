@@ -1,0 +1,758 @@
+{
+  "D:/Agentic-AI/Agentic-AI/backend/data/mock_data.py": {
+    "mtime": 1790528780758.1763,
+    "hash": "51c84d41017417fddad8aaad334d804d"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/main.py": {
+    "mtime": 1790563682292.5896,
+    "hash": "d2d27c89ca0cbaa9e14c8b7ab44197fd"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/models/schemas.py": {
+    "mtime": 1790528780759.186,
+    "hash": "3c42083d39446283b700b43206379ad9"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/routers/agents.py": {
+    "mtime": 1790564916725.214,
+    "hash": "193cfa2bb5e3289dc74f8b02134f8880"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/routers/evidence.py": {
+    "mtime": 1790563775052.105,
+    "hash": "3650934164b1705a88c2c5ab5e1a6828"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/routers/papers.py": {
+    "mtime": 1790528780761.1875,
+    "hash": "cb1aae1e03abda6c63e8a6867a517fff"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/routers/pdf.py": {
+    "mtime": 1790528780761.1875,
+    "hash": "e9c1a3326032044436a92d289593ef60"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/services/agent_service.py": {
+    "mtime": 1790563737099.2852,
+    "hash": "b39d60576e5ded4f51d773e746ddcc17"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/services/paper_service.py": {
+    "mtime": 1790564704836.9216,
+    "hash": "ab25c4a2022710632b322324f42f3e69"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/services/pdf_rag_service.py": {
+    "mtime": 1790563312911.9846,
+    "hash": "6d3f4a2d6f417eb5c3200bd872e326fc"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/services/research_service.py": {
+    "mtime": 1790564803756.9202,
+    "hash": "5bd59115dad9ec6ad006d23dbabac3a8"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/postcss.config.js": {
+    "mtime": 1790528780795.798,
+    "hash": "33fad9c02cb0ec6d6030369ef6347d57"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/App.tsx": {
+    "mtime": 1790528780804.4404,
+    "hash": "aad17fd90ba5c6835afe61c31473ebb2"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/components/layout/AppLayout.tsx": {
+    "mtime": 1790528780812.5452,
+    "hash": "0e5025f05271658739a0fc247a1dd3ea"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/components/layout/Sidebar.tsx": {
+    "mtime": 1790528780812.5452,
+    "hash": "cecb8dd3802b8406d8d5a51489141f87"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/components/layout/Topbar.tsx": {
+    "mtime": 1790565650094.6626,
+    "hash": "0fe05a10c74edbfd8747379c82146c07"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/context/ResearchContext.tsx": {
+    "mtime": 1790528780814.0542,
+    "hash": "2ccf8adf5fffaae81115c84140d3705c"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/data/mockResearchData.ts": {
+    "mtime": 1790528780815.1975,
+    "hash": "4982d27ad3b22efa7a79470b1305d106"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/main.tsx": {
+    "mtime": 1790528780815.1975,
+    "hash": "fa535ad310524494d8f0e4b12962c74e"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/AIDetector.tsx": {
+    "mtime": 1790528780816.2092,
+    "hash": "98a2324293458d81d5096e29d49d0581"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/AIWriter.tsx": {
+    "mtime": 1790528780817.2124,
+    "hash": "422599e1085a0883100b4a595955f5c3"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/AgentGallery.tsx": {
+    "mtime": 1790528780817.2124,
+    "hash": "494eede1a860c951b5205307d853797d"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/ChatWithPDF.tsx": {
+    "mtime": 1790528780817.2124,
+    "hash": "7491eccbc38a940ac9cf33e6cf788dd1"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/CitationGenerator.tsx": {
+    "mtime": 1790528780818.2085,
+    "hash": "f26530c3c7fe4999ea9f585906ca5288"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/Comparison.tsx": {
+    "mtime": 1790528780818.2085,
+    "hash": "4c820cbd17011fdad85b1a062939c680"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/EvidenceValidation.tsx": {
+    "mtime": 1790565653288.7234,
+    "hash": "a4f52331e8d9cfbac43378fb97316cdb"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/ExtractData.tsx": {
+    "mtime": 1790528780818.2085,
+    "hash": "eae79d48bf67283315f1a238299a7858"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/FindTopics.tsx": {
+    "mtime": 1790528780819.798,
+    "hash": "e86976d77198b903909ca467ca5a70f2"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/LiteratureReview.tsx": {
+    "mtime": 1790566699911.9028,
+    "hash": "fb1841bd246cbcf40fd771f4bf867f61"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/PaperAnalysis.tsx": {
+    "mtime": 1790528780820.8096,
+    "hash": "748098701b33c5b75650e49c3d746b8f"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/Paraphraser.tsx": {
+    "mtime": 1790528780821.3186,
+    "hash": "31ce6d680d312e58f99f97b26529ae34"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/ResearchHome.tsx": {
+    "mtime": 1790528780821.3186,
+    "hash": "63dc9b3c0ed3459d4be3fe188fb9fe92"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/ResearchWorkspace.tsx": {
+    "mtime": 1790565657491.8284,
+    "hash": "3e1301c21ecbf933177d14d9229c0415"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/pages/Templates.tsx": {
+    "mtime": 1790528780822.3303,
+    "hash": "e2e48c4ccc9daab1efff6d6ac0cc6831"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/services/agentService.ts": {
+    "mtime": 1790528780823.3296,
+    "hash": "085dcd0cb5591fc42c5f6f3a4b205b36"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/services/intentService.ts": {
+    "mtime": 1790528780823.3296,
+    "hash": "7a28a1ed08ad42e19c46cb20e12f56d0"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/services/paperService.ts": {
+    "mtime": 1790528780824.338,
+    "hash": "3bcce9d617ec6193c233941dcbcbe4d5"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/services/pdfService.ts": {
+    "mtime": 1790528780824.9211,
+    "hash": "1dedade2ed386bdfd1a2baa42d30511f"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/services/researchService.ts": {
+    "mtime": 1790565642741.3625,
+    "hash": "5a708c747909de7e0490b0c848fa1896"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/types/index.ts": {
+    "mtime": 1790566695938.108,
+    "hash": "561d89ab45ee75c09b7ab6e091037654"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/vite-env.d.ts": {
+    "mtime": 1790528780825.4526,
+    "hash": "2f4aec21f48576c045ef07737c275d94"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/tailwind.config.js": {
+    "mtime": 1790528780826.0208,
+    "hash": "f03191b0e7e949663b4d04672c2a9b56"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/vite.config.ts": {
+    "mtime": 1790528780826.0208,
+    "hash": "044f18dfaeee022375312b4fa11efce8"
+  },
+  "D:/Agentic-AI/Agentic-AI/README.md": {
+    "mtime": 1790565738888.6243,
+    "hash": "446a62303c1b31c2b61b953efe5383a7"
+  },
+  "D:/Agentic-AI/Agentic-AI/backend/requirements.txt": {
+    "mtime": 1790561940288.138,
+    "hash": "cd993f2908d282c275f8f64aadd26e5b"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/DESIGN.md": {
+    "mtime": 1790528780765.66,
+    "hash": "169cf4934814c02a8f9a4f95977626fc"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/prototypes/evidence_matrix.html": {
+    "mtime": 1790528780774.3152,
+    "hash": "8070dc8d17b49488fc6f2cd4d6eea7f5"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/prototypes/literature_review.html": {
+    "mtime": 1790528780775.822,
+    "hash": "ded1b52bbbdfc9b6dd23ad566c837f9e"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/prototypes/paper_analysis.html": {
+    "mtime": 1790528780775.822,
+    "hash": "a24c8965ea1203b0d6346472515407a9"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/prototypes/rec_scholar_overview.html": {
+    "mtime": 1790528780776.8318,
+    "hash": "4524308821a7356a12be9598747c9f6f"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/prototypes/research_home.html": {
+    "mtime": 1790528780776.8318,
+    "hash": "aa34e9c8e6f34333a77ed4e5c4f71b19"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/prototypes/research_workspace.html": {
+    "mtime": 1790528780777.8325,
+    "hash": "f60f5fb1a157645fc7edcb1f78c62bf8"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/index.html": {
+    "mtime": 1790528780795.798,
+    "hash": "862a29b7ca1d7abebca27f94598fab60"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/assets/dr_ramanathan.png": {
+    "mtime": 1790528780772.3152,
+    "hash": "7c5d433adccc74525304c4d14d5587df"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/assets/logo.svg": {
+    "mtime": 1790528780772.3152,
+    "hash": "2b5ca3219914d3e69c06c595fdb401a8"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/assets/r_lens_logo.png": {
+    "mtime": 1790528780773.3147,
+    "hash": "ad172999bb5e8e87d0690d6813bf298d"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/screens/evidence_matrix.png": {
+    "mtime": 1790528780782.0042,
+    "hash": "3c62308b4157f9bee48757816e99b306"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/screens/literature_review.png": {
+    "mtime": 1790528780784.021,
+    "hash": "f1f6a5536426bfbb2782167e164382b2"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/screens/paper_analysis.png": {
+    "mtime": 1790528780787.552,
+    "hash": "8ef3e1b6449b55748b0fb97e8f2689a0"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/screens/rec_scholar_overview.png": {
+    "mtime": 1790528780789.061,
+    "hash": "f62dda0235d2d93ea1842f6f76984366"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/screens/research_home.png": {
+    "mtime": 1790528780791.6003,
+    "hash": "2fce49442fcafa0fc6a08e1f541981fa"
+  },
+  "D:/Agentic-AI/Agentic-AI/design/screens/research_workspace.png": {
+    "mtime": 1790528780795.274,
+    "hash": "7d58be706462c16f727fb3d9193d2c0a"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/public/dr_ramanathan.png": {
+    "mtime": 1790528780802.405,
+    "hash": "7c5d433adccc74525304c4d14d5587df"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/public/r_lens_logo.png": {
+    "mtime": 1790528780802.405,
+    "hash": "ad172999bb5e8e87d0690d6813bf298d"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/assets/dr_ramanathan.png": {
+    "mtime": 1790528780810.5413,
+    "hash": "7c5d433adccc74525304c4d14d5587df"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/assets/logo.svg": {
+    "mtime": 1790528780811.5442,
+    "hash": "2b5ca3219914d3e69c06c595fdb401a8"
+  },
+  "D:/Agentic-AI/Agentic-AI/frontend/src/assets/r_lens_logo.png": {
+    "mtime": 1790528780811.5442,
+    "hash": "ad172999bb5e8e87d0690d6813bf298d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/config.py": {
+    "mtime": 1790572298030.4463,
+    "hash": "9a74f4fbb81fa2a3762755a95c375e00"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/data/mock_data.py": {
+    "mtime": 1790528780758.1763,
+    "hash": "51c84d41017417fddad8aaad334d804d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/db.py": {
+    "mtime": 1790572379765.9912,
+    "hash": "315ee91a536af28c76c1d0aab35fa7c0"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/eval/metrics.py": {
+    "mtime": 1790565164721.9297,
+    "hash": "cefdf327af6920a2afa6d7cfdd64892e"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/eval/run_eval.py": {
+    "mtime": 1790565131455.9138,
+    "hash": "e333aabdf1b1f45e636806bb3f48aa63"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/main.py": {
+    "mtime": 1790568380720.9944,
+    "hash": "a3493ba515b87e5246294583fef03f1b"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/models/schemas.py": {
+    "mtime": 1790528780759.186,
+    "hash": "3c42083d39446283b700b43206379ad9"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/routers/agents.py": {
+    "mtime": 1790564916725.214,
+    "hash": "193cfa2bb5e3289dc74f8b02134f8880"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/routers/corpus.py": {
+    "mtime": 1790570317937.7468,
+    "hash": "aaf67ab479ce54293cec3e465861d304"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/routers/evidence.py": {
+    "mtime": 1790563775052.105,
+    "hash": "3650934164b1705a88c2c5ab5e1a6828"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/routers/papers.py": {
+    "mtime": 1790528780761.1875,
+    "hash": "cb1aae1e03abda6c63e8a6867a517fff"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/routers/pdf.py": {
+    "mtime": 1790528780761.1875,
+    "hash": "e9c1a3326032044436a92d289593ef60"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/routers/sessions.py": {
+    "mtime": 1790568372513.7441,
+    "hash": "b6e85014f6ba799f2734ed3bbcc5c1a8"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/scripts/fetch_corpus.py": {
+    "mtime": 1790562257431.9363,
+    "hash": "6357c4b12ee6f7efceb6ab689be37cc8"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/agent/__init__.py": {
+    "mtime": 1790562761636.787,
+    "hash": "6cdb574d9939820d75a33009fd3aff8f"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/agent/callbacks.py": {
+    "mtime": 1790562855854.501,
+    "hash": "229d2919539b4bd50a249b1639e7605f"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/agent/executor.py": {
+    "mtime": 1790568346970.9104,
+    "hash": "a2b4350ae2cfd43f69401a978a5ea921"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/agent/offline_policy.py": {
+    "mtime": 1790565317600.0537,
+    "hash": "6d52aa9d4e0e8d0936434445b7d80649"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/agent/prompts.py": {
+    "mtime": 1790562715841.3313,
+    "hash": "9370103c1f30c10aad775d30b567fce1"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/agent/reflection.py": {
+    "mtime": 1790564418842.855,
+    "hash": "05078e327cda57187a4acc4e37d1ddd1"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/agent/tools.py": {
+    "mtime": 1790568340919.4893,
+    "hash": "014686b8b5dae0fb5b23483851aacef9"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/agent_service.py": {
+    "mtime": 1790563737099.2852,
+    "hash": "b39d60576e5ded4f51d773e746ddcc17"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/arxiv.py": {
+    "mtime": 1790562242160.7095,
+    "hash": "4079801f178c55178c9ff7864c90dd0c"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/ingest.py": {
+    "mtime": 1790570312313.6406,
+    "hash": "28068d8c1e52107eaa4455f99c54dbf7"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/llm/__init__.py": {
+    "mtime": 1790562522665.9404,
+    "hash": "baef9b8b2f16fccb50f2d9854d2dd09d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/llm/base.py": {
+    "mtime": 1790562458571.9268,
+    "hash": "1c563245c0cbcac4e45b25cb2b2b610b"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/llm/gemini.py": {
+    "mtime": 1790562495131.8728,
+    "hash": "b4eff8cba0c3a85ed84d63a6e8a119ab"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/llm/offline.py": {
+    "mtime": 1790564017432.5442,
+    "hash": "200284d7bca6ea853506c2200ef1f00d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/llm/openai_compat.py": {
+    "mtime": 1790562505272.044,
+    "hash": "d993f016d03f73c4d060b70ff838fc82"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/llm/registry.py": {
+    "mtime": 1790572541290.2908,
+    "hash": "8bbedbb96c0ee972155cd4ff40b4da1d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/paper_service.py": {
+    "mtime": 1790564704836.9216,
+    "hash": "ab25c4a2022710632b322324f42f3e69"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/pdf_rag_service.py": {
+    "mtime": 1790563312911.9846,
+    "hash": "6d3f4a2d6f417eb5c3200bd872e326fc"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/research_service.py": {
+    "mtime": 1790564803756.9202,
+    "hash": "5bd59115dad9ec6ad006d23dbabac3a8"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/retrieval.py": {
+    "mtime": 1790565247723.123,
+    "hash": "d19588cfffa5f000b0c4c108af529693"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/review_service.py": {
+    "mtime": 1790568474799.1135,
+    "hash": "2833fef54c414798358fc467f1793289"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/workflow.py": {
+    "mtime": 1790576042295.7764,
+    "hash": "5971a21c9f946412044ebe745d228380"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/conftest.py": {
+    "mtime": 1790575563626.7493,
+    "hash": "568d4cefa951862e07203bb3117e4910"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_agent.py": {
+    "mtime": 1790565284553.938,
+    "hash": "f5152363ef3cdcfb9646a1758350b690"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_api.py": {
+    "mtime": 1790564901407.782,
+    "hash": "e35eecf33a120872cfab6ea40dcee778"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_ingest.py": {
+    "mtime": 1790564841015.869,
+    "hash": "c07a7b8fd46674846dcf309087910bca"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_reflection.py": {
+    "mtime": 1790563898778.338,
+    "hash": "117884a0154a5d73d370d90ac579f462"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_retrieval.py": {
+    "mtime": 1790563884824.5674,
+    "hash": "a66702ae2dd9ed7b3fe96d16892f7e69"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_workflow.py": {
+    "mtime": 1790564832506.8164,
+    "hash": "0d67845a1ef18af95f9ca399e138c2c9"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/postcss.config.js": {
+    "mtime": 1790528780795.798,
+    "hash": "33fad9c02cb0ec6d6030369ef6347d57"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/App.tsx": {
+    "mtime": 1790528780804.4404,
+    "hash": "aad17fd90ba5c6835afe61c31473ebb2"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/components/AgentActivityLog.tsx": {
+    "mtime": 1790565451315.9683,
+    "hash": "b18490752c9e391ebe7bb0c8a5c13230"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/components/SourceApprovalPanel.tsx": {
+    "mtime": 1790569323969.6987,
+    "hash": "2cb8111de723aef5721426de0be576aa"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/components/layout/AppLayout.tsx": {
+    "mtime": 1790528780812.5452,
+    "hash": "0e5025f05271658739a0fc247a1dd3ea"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/components/layout/Sidebar.tsx": {
+    "mtime": 1790528780812.5452,
+    "hash": "cecb8dd3802b8406d8d5a51489141f87"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/components/layout/Topbar.tsx": {
+    "mtime": 1790565650094.6626,
+    "hash": "0fe05a10c74edbfd8747379c82146c07"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/context/ResearchContext.tsx": {
+    "mtime": 1790528780814.0542,
+    "hash": "2ccf8adf5fffaae81115c84140d3705c"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/data/mockResearchData.ts": {
+    "mtime": 1790528780815.1975,
+    "hash": "4982d27ad3b22efa7a79470b1305d106"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/main.tsx": {
+    "mtime": 1790528780815.1975,
+    "hash": "fa535ad310524494d8f0e4b12962c74e"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/AIDetector.tsx": {
+    "mtime": 1790528780816.2092,
+    "hash": "98a2324293458d81d5096e29d49d0581"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/AIWriter.tsx": {
+    "mtime": 1790528780817.2124,
+    "hash": "422599e1085a0883100b4a595955f5c3"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/AgentGallery.tsx": {
+    "mtime": 1790528780817.2124,
+    "hash": "494eede1a860c951b5205307d853797d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/ChatWithPDF.tsx": {
+    "mtime": 1790528780817.2124,
+    "hash": "7491eccbc38a940ac9cf33e6cf788dd1"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/CitationGenerator.tsx": {
+    "mtime": 1790528780818.2085,
+    "hash": "f26530c3c7fe4999ea9f585906ca5288"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/Comparison.tsx": {
+    "mtime": 1790528780818.2085,
+    "hash": "4c820cbd17011fdad85b1a062939c680"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/EvidenceValidation.tsx": {
+    "mtime": 1790565653288.7234,
+    "hash": "a4f52331e8d9cfbac43378fb97316cdb"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/ExtractData.tsx": {
+    "mtime": 1790528780818.2085,
+    "hash": "eae79d48bf67283315f1a238299a7858"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/FindTopics.tsx": {
+    "mtime": 1790528780819.798,
+    "hash": "e86976d77198b903909ca467ca5a70f2"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/LiteratureReview.tsx": {
+    "mtime": 1790570337425.9033,
+    "hash": "d05df26a958704f3aac2c0317076e264"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/PaperAnalysis.tsx": {
+    "mtime": 1790528780820.8096,
+    "hash": "748098701b33c5b75650e49c3d746b8f"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/Paraphraser.tsx": {
+    "mtime": 1790528780821.3186,
+    "hash": "31ce6d680d312e58f99f97b26529ae34"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/ResearchHome.tsx": {
+    "mtime": 1790528780821.3186,
+    "hash": "63dc9b3c0ed3459d4be3fe188fb9fe92"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/ResearchWorkspace.tsx": {
+    "mtime": 1790565657491.8284,
+    "hash": "3e1301c21ecbf933177d14d9229c0415"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/pages/Templates.tsx": {
+    "mtime": 1790528780822.3303,
+    "hash": "e2e48c4ccc9daab1efff6d6ac0cc6831"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/services/agentService.ts": {
+    "mtime": 1790528780823.3296,
+    "hash": "085dcd0cb5591fc42c5f6f3a4b205b36"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/services/api.ts": {
+    "mtime": 1790569250268.5747,
+    "hash": "a84621e270594d7b6f65821381dcd491"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/services/intentService.ts": {
+    "mtime": 1790528780823.3296,
+    "hash": "7a28a1ed08ad42e19c46cb20e12f56d0"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/services/paperService.ts": {
+    "mtime": 1790528780824.338,
+    "hash": "3bcce9d617ec6193c233941dcbcbe4d5"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/services/pdfService.ts": {
+    "mtime": 1790528780824.9211,
+    "hash": "1dedade2ed386bdfd1a2baa42d30511f"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/services/researchService.ts": {
+    "mtime": 1790565642741.3625,
+    "hash": "5a708c747909de7e0490b0c848fa1896"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/types/index.ts": {
+    "mtime": 1790569640720.6016,
+    "hash": "f05235f2704d1cae23f18f4ef56adaf4"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/vite-env.d.ts": {
+    "mtime": 1790528780825.4526,
+    "hash": "2f4aec21f48576c045ef07737c275d94"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/tailwind.config.js": {
+    "mtime": 1790528780826.0208,
+    "hash": "f03191b0e7e949663b4d04672c2a9b56"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/vite.config.ts": {
+    "mtime": 1790528780826.0208,
+    "hash": "044f18dfaeee022375312b4fa11efce8"
+  },
+  "D:/Agentic-Ai/Agentic-AI/README.md": {
+    "mtime": 1790571031320.41,
+    "hash": "292ca0d623a4be9e448a48794056a5ff"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/eval/README.md": {
+    "mtime": 1790565780192.0527,
+    "hash": "b64621c9cde9f2f96966242e0d70ac4c"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/requirements.txt": {
+    "mtime": 1790572253206.7854,
+    "hash": "84f42dd5e9c877adf544ff1d149672fc"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/DESIGN.md": {
+    "mtime": 1790528780765.66,
+    "hash": "169cf4934814c02a8f9a4f95977626fc"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/prototypes/evidence_matrix.html": {
+    "mtime": 1790528780774.3152,
+    "hash": "8070dc8d17b49488fc6f2cd4d6eea7f5"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/prototypes/literature_review.html": {
+    "mtime": 1790528780775.822,
+    "hash": "ded1b52bbbdfc9b6dd23ad566c837f9e"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/prototypes/paper_analysis.html": {
+    "mtime": 1790528780775.822,
+    "hash": "a24c8965ea1203b0d6346472515407a9"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/prototypes/rec_scholar_overview.html": {
+    "mtime": 1790528780776.8318,
+    "hash": "4524308821a7356a12be9598747c9f6f"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/prototypes/research_home.html": {
+    "mtime": 1790528780776.8318,
+    "hash": "aa34e9c8e6f34333a77ed4e5c4f71b19"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/prototypes/research_workspace.html": {
+    "mtime": 1790528780777.8325,
+    "hash": "f60f5fb1a157645fc7edcb1f78c62bf8"
+  },
+  "D:/Agentic-Ai/Agentic-AI/docs/FAILURE_CASES.md": {
+    "mtime": 1790571077494.1047,
+    "hash": "99eed9a597a90c6096a97f534f6ff38f"
+  },
+  "D:/Agentic-Ai/Agentic-AI/docs/PROJECT_REPORT.md": {
+    "mtime": 1790571065335.6643,
+    "hash": "6bf4ac575aa0d7e0117c3a26ed8b35ee"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/index.html": {
+    "mtime": 1790528780795.798,
+    "hash": "862a29b7ca1d7abebca27f94598fab60"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/assets/dr_ramanathan.png": {
+    "mtime": 1790528780772.3152,
+    "hash": "7c5d433adccc74525304c4d14d5587df"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/assets/logo.svg": {
+    "mtime": 1790528780772.3152,
+    "hash": "2b5ca3219914d3e69c06c595fdb401a8"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/assets/r_lens_logo.png": {
+    "mtime": 1790528780773.3147,
+    "hash": "ad172999bb5e8e87d0690d6813bf298d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/screens/evidence_matrix.png": {
+    "mtime": 1790528780782.0042,
+    "hash": "3c62308b4157f9bee48757816e99b306"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/screens/literature_review.png": {
+    "mtime": 1790528780784.021,
+    "hash": "f1f6a5536426bfbb2782167e164382b2"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/screens/paper_analysis.png": {
+    "mtime": 1790528780787.552,
+    "hash": "8ef3e1b6449b55748b0fb97e8f2689a0"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/screens/rec_scholar_overview.png": {
+    "mtime": 1790528780789.061,
+    "hash": "f62dda0235d2d93ea1842f6f76984366"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/screens/research_home.png": {
+    "mtime": 1790528780791.6003,
+    "hash": "2fce49442fcafa0fc6a08e1f541981fa"
+  },
+  "D:/Agentic-Ai/Agentic-AI/design/screens/research_workspace.png": {
+    "mtime": 1790528780795.274,
+    "hash": "7d58be706462c16f727fb3d9193d2c0a"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/public/dr_ramanathan.png": {
+    "mtime": 1790528780802.405,
+    "hash": "7c5d433adccc74525304c4d14d5587df"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/public/r_lens_logo.png": {
+    "mtime": 1790528780802.405,
+    "hash": "ad172999bb5e8e87d0690d6813bf298d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/assets/dr_ramanathan.png": {
+    "mtime": 1790528780810.5413,
+    "hash": "7c5d433adccc74525304c4d14d5587df"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/assets/logo.svg": {
+    "mtime": 1790528780811.5442,
+    "hash": "2b5ca3219914d3e69c06c595fdb401a8"
+  },
+  "D:/Agentic-Ai/Agentic-AI/frontend/src/assets/r_lens_logo.png": {
+    "mtime": 1790528780811.5442,
+    "hash": "ad172999bb5e8e87d0690d6813bf298d"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/routers/collection.py": {
+    "mtime": 1790572450746.067,
+    "hash": "81793a982045f161ac642684a6fd2980"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/routers/discovery.py": {
+    "mtime": 1790568356568.9727,
+    "hash": "c3241ca954b0bdadb89ddc729cc7af12"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/discovery.py": {
+    "mtime": 1790570229026.893,
+    "hash": "e4be681b0e6fea5089dffdb4491a27c7"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/embeddings.py": {
+    "mtime": 1790572332159.9475,
+    "hash": "728c0f1186a8e2f2f9b9ab57206bfb5f"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/llm/openrouter.py": {
+    "mtime": 1790568295773.317,
+    "hash": "8f1d2b484b71acbb24012bd9e3d38b6e"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/services/vectorstore.py": {
+    "mtime": 1790574425872.1296,
+    "hash": "d57148eb95a5f73881c774d5fdbf91a8"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_discovery.py": {
+    "mtime": 1790570173965.9368,
+    "hash": "4bacfa44b6241f1e3b629729a3c09712"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_feedback.py": {
+    "mtime": 1790576482685.496,
+    "hash": "26385ee18fa50cb1e9cc166c274a6e8a"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_providers.py": {
+    "mtime": 1790568663517.8354,
+    "hash": "19f86165ad7f948fbfbfc5bc0110cc4c"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/tests/test_vectorstore.py": {
+    "mtime": 1790574996547.8242,
+    "hash": "82a3112a44d6e71260eb01a51747b597"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/debug_agent.py": {
+    "mtime": 1790575465649.15,
+    "hash": "069b0594fbba85e6d0a27cadf6a67de3"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/debug_revise.py": {
+    "mtime": 1790575437437.9001,
+    "hash": "b0b8ba95284c9688841c7353a0e64d38"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/debug_revise2.py": {
+    "mtime": 1790575762832.2588,
+    "hash": "4f9a416875a5b06942be73578562cdef"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/debug_revise3.py": {
+    "mtime": 1790575989026.421,
+    "hash": "2af23c2bc1d87c7a6aa2dd6f9bda2abb"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/debug_revise4.py": {
+    "mtime": 1790576258343.971,
+    "hash": "f74ea9e5d3e0d8c7cb4d1939cf0f8ea4"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/debug_workflow.py": {
+    "mtime": 1790575492625.3088,
+    "hash": "49d98f4b8f2965147f1f488968bf5430"
+  },
+  "D:/Agentic-Ai/Agentic-AI/backend/debug_workflow2.py": {
+    "mtime": 1790575526777.8298,
+    "hash": "15aab17dade958c363df4e6674ceb458"
+  }
+}
