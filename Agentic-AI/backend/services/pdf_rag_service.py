@@ -1,4 +1,4 @@
-﻿"""Backward-compatible facade over the new ingestion/retrieval/agent stack.
+"""Backward-compatible facade over the new ingestion/retrieval/agent stack.
 
 The original `PDFRAGService` was the only genuinely working part of the project.
 Its extraction and chunking logic is preserved verbatim in `services/ingest.py`,
@@ -41,12 +41,17 @@ class PDFDocument(BaseModel):
     title: str
     authors: str
     year: Optional[str] = None
+    venue: Optional[str] = ""
+    doi: Optional[str] = ""
     page_count: int = 0
     chunk_count: int = 0
     text_chars: int = 0
     sha256: Optional[str] = None
     source: str = "upload"
     abstract: str = ""
+    sections: List[Dict[str, Any]] = Field(default_factory=list)
+    chunks: List[Dict[str, Any]] = Field(default_factory=list)
+    full_text_by_page: Dict[int, str] = Field(default_factory=dict)
 
 
 class Citation(BaseModel):
@@ -179,13 +184,60 @@ class PDFRAGService:
 
     @staticmethod
     def _to_document(d: Dict[str, Any]) -> PDFDocument:
+        doc_id = d["id"]
+        chunks = d.get("chunks")
+        if chunks is None:
+            chunks = db.get_chunks([doc_id])
+        
+        # Build sections if missing
+        sections = d.get("sections")
+        if not sections and chunks:
+            seen_sections: Dict[str, Dict[str, Any]] = {}
+            for c in chunks:
+                sec = c.get("section", "Document Body")
+                if sec not in seen_sections:
+                    seen_sections[sec] = {
+                        "id": f"sec-{len(seen_sections)+1}",
+                        "title": sec,
+                        "page": int(c.get("page", 1)),
+                        "chunk_count": 0,
+                    }
+                seen_sections[sec]["chunk_count"] += 1
+            sections = list(seen_sections.values())
+        elif not sections:
+            sections = [{"id": "sec-1", "title": "Document Body", "page": 1, "chunk_count": 0}]
+
+        # Build full_text_by_page if missing
+        full_text = d.get("full_text_by_page")
+        if not full_text and chunks:
+            full_text = {}
+            for c in chunks:
+                p = int(c.get("page", 1))
+                txt = c.get("text", "")
+                if p in full_text:
+                    full_text[p] += "\n\n" + txt
+                else:
+                    full_text[p] = txt
+        elif not full_text:
+            full_text = {}
+
         return PDFDocument(
-            id=d["id"], filename=d.get("filename", ""), title=d.get("title", ""),
-            authors=d.get("authors", "Unavailable"), year=d.get("year"),
-            page_count=int(d.get("page_count", 0)),
-            chunk_count=int(d.get("chunk_count", 0)),
-            text_chars=int(d.get("text_chars", 0)), sha256=d.get("sha256"),
-            source=d.get("source", "upload"), abstract=d.get("abstract", ""),
+            id=doc_id,
+            filename=d.get("filename", ""),
+            title=d.get("title", "") or d.get("filename", "Untitled Paper"),
+            authors=d.get("authors", "Unavailable"),
+            year=d.get("year"),
+            venue=d.get("venue", ""),
+            doi=d.get("doi", ""),
+            page_count=int(d.get("page_count", 1) or 1),
+            chunk_count=len(chunks) if chunks else int(d.get("chunk_count", 0)),
+            text_chars=int(d.get("text_chars", 0)),
+            sha256=d.get("sha256"),
+            source=d.get("source", "upload"),
+            abstract=d.get("abstract", ""),
+            sections=sections or [],
+            chunks=chunks or [],
+            full_text_by_page=full_text or {},
         )
 
 

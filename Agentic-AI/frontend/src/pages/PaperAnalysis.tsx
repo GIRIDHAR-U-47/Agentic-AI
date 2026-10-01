@@ -115,6 +115,14 @@ export const PaperAnalysis: React.FC = () => {
               <span>IEEE Xplore</span>
             </a>
             <button
+              onClick={() => navigate(`/paper-chat/${paper.id}`)}
+              className="px-space-sm py-space-xs rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm font-label-md text-label-md flex items-center gap-space-2xs cursor-pointer font-semibold"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[16px]">chat_bubble</span>
+              <span>Chat with Paper</span>
+            </button>
+            <button
               onClick={() => showToast('Downloading verified publisher PDF (3.8MB)...')}
               className="px-space-sm py-space-xs rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors shadow-sm font-label-md text-label-md flex items-center gap-space-2xs border border-outline-variant/30 cursor-pointer"
               type="button"

@@ -10,6 +10,7 @@ corpus fetching works even in a minimal install.
 from __future__ import annotations
 
 import re
+import ssl
 import time
 import urllib.parse
 import urllib.request
@@ -28,12 +29,25 @@ class ArxivError(RuntimeError):
     pass
 
 
+def _ssl_context() -> ssl.SSLContext:
+    try:
+        import certifi
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        try:
+            return ssl.create_default_context()
+        except Exception:
+            return ssl._create_unverified_context()
+
+
 def _get(url: str) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": config.USER_AGENT})
     last: Optional[Exception] = None
+    ctx = _ssl_context()
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(req, timeout=config.ARXIV_TIMEOUT_S) as resp:
+            with urllib.request.urlopen(req, timeout=config.ARXIV_TIMEOUT_S, context=ctx) as resp:
                 return resp.read().decode("utf-8", errors="replace")
         except Exception as exc:  # pragma: no cover - network dependent
             last = exc
@@ -116,5 +130,6 @@ def download_pdf(arxiv_id: str, dest) -> bytes:
     """Download a paper PDF. Returns bytes; caller records the checksum."""
     url = pdf_url(arxiv_id)
     req = urllib.request.Request(url, headers={"User-Agent": config.USER_AGENT})
-    with urllib.request.urlopen(req, timeout=120) as resp:
+    ctx = _ssl_context()
+    with urllib.request.urlopen(req, timeout=120, context=ctx) as resp:
         return resp.read()

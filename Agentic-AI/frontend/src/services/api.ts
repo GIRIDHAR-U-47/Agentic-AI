@@ -57,12 +57,12 @@ export const api = {
 
   discover: {
     /** Search arXiv for a fresh topic (returns candidates with abs/pdf links). */
-    search: (question: string, topK = 8) =>
+    search: (question: string, topK = 12) =>
       request<{
         question: string;
         candidates: CandidatePaper[];
         refined: boolean;
-        search_events: { pass?: number; query?: string; note?: string; error?: string }[];
+        search_events: { source?: string; status?: string; count?: number; duration_s?: number; message?: string; pass?: number; query?: string; note?: string; error?: string }[];
         skipped_known: number;
         cached: boolean;
         error?: string;
@@ -70,10 +70,76 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ question, top_k: topK }),
       }),
+    plan: (topic: string) =>
+      request<{
+        topic: string;
+        domain: string;
+        model_families: string[];
+        methods: string[];
+        datasets: string[];
+        search_queries: string[];
+        summary: string;
+      }>('/api/discover/plan', {
+        method: 'POST',
+        body: JSON.stringify({ topic }),
+      }),
+    ingestCandidate: (candidate: Record<string, any>) =>
+      request<{
+        id: string;
+        title: string;
+        authors: string;
+        full_text_available: number;
+        abstract_only?: boolean;
+        chunk_count?: number;
+        duplicate?: boolean;
+        reason?: string;
+      }>('/api/discover/ingest-candidate', {
+        method: 'POST',
+        body: JSON.stringify({ candidate }),
+      }),
     cache: () =>
       request<{ searches: { question: string; refined: boolean; searched_at: string }[] }>(
         '/api/discover/cache'
       ),
+  },
+
+  paperChat: {
+    send: (params: {
+      docId?: string;
+      docIds?: string[];
+      query: string;
+      history?: { role: 'user' | 'assistant'; content: string }[];
+    }) =>
+      request<{
+        query: string;
+        answer: string;
+        sources: {
+          chunk_id: string;
+          doc_id: string;
+          doc_title: string;
+          filename: string;
+          page: number;
+          section: string;
+          quote: string;
+          marker: string;
+          score: number;
+        }[];
+        verified: boolean;
+        support_rate: number;
+        insufficient_evidence: boolean;
+        query_rewritten: boolean;
+        rewritten_query: string;
+        agent_status: string[];
+        latency_ms: number;
+      }>('/pdf/paper-chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          doc_id: params.docId,
+          doc_ids: params.docIds || (params.docId ? [params.docId] : []),
+          query: params.query,
+          history: params.history || [],
+        }),
+      }),
   },
 
   collection: {

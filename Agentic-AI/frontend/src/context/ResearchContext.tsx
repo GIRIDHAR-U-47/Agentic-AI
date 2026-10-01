@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { FilterState, AgentProvenanceStep } from '../types';
 import { MOCK_AGENT_STEPS } from '../data/mockResearchData';
 
@@ -146,41 +146,41 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('r_lens_saved_papers', JSON.stringify(savedPaperIds));
   }, [savedPaperIds]);
 
-  const setQuery = (newQuery: string) => {
+  const setQuery = useCallback((newQuery: string) => {
     setQueryState(newQuery);
-  };
+  }, []);
 
-  const togglePaperSelection = (id: string) => {
+  const togglePaperSelection = useCallback((id: string) => {
     setSelectedPaperIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const selectAllPapers = (all: boolean, ids: string[] = []) => {
+  const selectAllPapers = useCallback((all: boolean, ids: string[] = []) => {
     if (all) {
       setSelectedPaperIds(ids);
     } else {
       setSelectedPaperIds([]);
     }
-  };
+  }, []);
 
-  const setEvidenceStatus = (id: string, status: string) => {
+  const setEvidenceStatus = useCallback((id: string, status: string) => {
     setEvidenceStatusMap(prev => ({
       ...prev,
       [id]: status
     }));
-  };
+  }, []);
 
-  const toggleSavePaper = (id: string) => {
+  const toggleSavePaper = useCallback((id: string) => {
     setSelectedPaperIds(prev =>
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const addAgentInstruction = (instruction: string) => {
+  const addAgentInstruction = useCallback((instruction: string) => {
     const newStep: AgentProvenanceStep = {
       id: `step-${Date.now()}`,
-      stepNumber: agentSteps.length + 1,
+      stepNumber: Date.now(),
       title: 'Dynamic Agent Directive Injected',
       detail: instruction,
       duration: '0.12s',
@@ -188,28 +188,27 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       status: 'done'
     };
     setAgentSteps(prev => [...prev, newStep]);
-    showToast(`Directive applied to R-Lens Agent: "${instruction.slice(0, 30)}..."`);
-  };
+  }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
     }, 3500);
-  };
+  }, []);
 
-  const addResearchChatMessage = (msg: Omit<ResearchChatMessage, 'id' | 'timestamp'>) => {
+  const addResearchChatMessage = useCallback((msg: Omit<ResearchChatMessage, 'id' | 'timestamp'>) => {
     const newMsg: ResearchChatMessage = {
       ...msg,
       id: `chat-msg-${Date.now()}`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     setResearchChatMessages(prev => [...prev, newMsg]);
-  };
+  }, []);
 
-  const clearResearchChat = () => {
+  const clearResearchChat = useCallback(() => {
     setResearchChatMessages(DEFAULT_CHAT_MESSAGES);
-  };
+  }, []);
 
   return (
     <ResearchContext.Provider

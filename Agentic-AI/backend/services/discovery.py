@@ -268,25 +268,14 @@ def discover(
     client: Optional[ArxivClient] = None,
     use_cache: bool = True,
 ) -> Dict[str, Any]:
-    """Search arXiv for `question`, refining once when results look poor.
+    """Search academic sources for `question`, returning deduplicated candidates and search events.
 
-    Never raises for an empty result set or a failed refinement: the response
-    carries whatever was found, plus `search_events` so the UI can show the
-    agent actually tried and refined instead of silently fabricating.
+    Uses federated search over OpenAlex, Semantic Scholar, Crossref, and arXiv.
+    Never raises for an empty result set: the response carries whatever was found,
+    plus `search_events` so the UI can show the agent's real search activity.
     """
     question = (question or "").strip()
     top_k = top_k or config.DISCOVERY_MAX_RESULTS
-    if client is None:
-        # RLENS_FAKE_ARXIV=1 swaps in the deterministic test client. The arXiv
-        # export API is frequently rate-limited from CI/dev networks; this flag
-        # lets the demo and smoke paths run without fabricating results -- the
-        # fake client returns canned entries and is clearly labelled "fake" in
-        # the search_events and in the report. It is never on by default.
-        client = (
-            _FakeArxivClient()
-            if os.getenv("RLENS_FAKE_ARXIV") == "1"
-            else ArxivClient()
-        )
 
     if use_cache:
         cached = db.get_discovery_cache(question)
@@ -306,52 +295,88 @@ def discover(
     if not question:
         return {"question": question, "candidates": [], "error": "Empty research question."}
 
-    events: List[Dict[str, Any]] = []
-    known = {d.get("arxiv_id") for d in db.list_documents() if d.get("arxiv_id")}
-    skipped = [0]
+    # If an explicit client is provided (tests) or demo mode is forced via RLENS_FAKE_ARXIV
+    if client is not None or os.getenv("RLENS_FAKE_ARXIV") == "1":
+        client = client or _FakeArxivClient()
+        events: List[Dict[str, Any]] = []
+        known = {d.get("arxiv_id") for d in db.list_documents() if d.get("arxiv_id")}
+        skipped = [0]
+        raw = _safe_search(client, question, top_k, events)
+        candidates = _dedupe_and_filter(raw, known, skipped=skipped)
+        refined = False
+        if candidates and _poor_coverage(question, candidates):
+            from services.agent.offline_policy import expand_query
 
-    raw = _safe_search(client, question, top_k, events)
-    candidates = _dedupe_and_filter(raw, known, skipped=skipped)
-    refined = False
-    if candidates and _poor_coverage(question, candidates):
-        # First pass did not cover the topic: broaden with the offline policy's
-        # concept-expansion vocabulary and search again, merging + deduping.
-        from services.agent.offline_policy import expand_query
+            broader = expand_query(question)
+            events.append({"pass": 2, "query": broader, "note": "Refined query."})
+            try:
+                raw2 = client.search(broader, max_results=top_k)
+            except Exception as exc:
+                events.append({"pass": 2, "error": str(exc)})
+                raw2 = []
+            second = _dedupe_and_filter(raw2, known, skipped=skipped, existing=candidates)
+            if second:
+                candidates = second + [c for c in candidates if c["doc_id"] not in second]
+                refined = True
+        result = {
+            "question": question,
+            "candidates": candidates[:top_k],
+            "refined": refined,
+            "search_events": events,
+            "skipped_known": skipped[0],
+            "cached": False,
+        }
+        if candidates and use_cache:
+            db.cache_discovery(
+                question,
+                candidates,
+                refined=refined,
+                search_events=events,
+                skipped_known=skipped[0],
+            )
+        return result
 
-        broader = expand_query(question)
-        events.append(
-            {
-                "pass": 2,
-                "query": broader,
-                "note": "First pass did not cover the question's vocabulary; refined.",
-            }
-        )
-        try:
-            raw2 = client.search(broader, max_results=top_k)
-        except Exception as exc:  # pragma: no cover - network dependent
-            events.append({"pass": 2, "error": str(exc)})
-            raw2 = []
-        second = _dedupe_and_filter(raw2, known, skipped=skipped, existing=candidates)
-        if second:
-            candidates = second + [c for c in candidates if c["doc_id"] not in second]
-            refined = True
+    from services import academic_search
+
+    # Execute real federated academic search
+    search_res = academic_search.federated_academic_search(question, top_k=top_k)
+    candidates = search_res.get("candidates", [])
+    events = search_res.get("source_events", [])
+
+    # Filter out papers already present in the corpus
+    known_ids = {d.get("id") for d in db.list_documents()}
+    known_dois = {d.get("doi", "").lower() for d in db.list_documents() if d.get("doi")}
+    known_arxiv = {d.get("arxiv_id") for d in db.list_documents() if d.get("arxiv_id")}
+    
+    filtered_candidates = []
+    skipped_count = 0
+    for c in candidates:
+        cid = c.get("doc_id", "")
+        cdoi = (c.get("doi") or "").lower()
+        caid = c.get("arxiv_id") or ""
+        if (cid in known_ids) or (cdoi and cdoi in known_dois) or (caid and caid in known_arxiv):
+            skipped_count += 1
+            continue
+        filtered_candidates.append(c)
 
     result = {
         "question": question,
-        "candidates": candidates[:top_k],
-        "refined": refined,
+        "candidates": filtered_candidates[:top_k],
+        "refined": False,
         "search_events": events,
-        "skipped_known": skipped[0],
+        "skipped_known": skipped_count,
         "cached": False,
     }
-    if candidates:
+
+    if filtered_candidates:
         db.cache_discovery(
             question,
-            candidates,
-            refined=refined,
+            filtered_candidates,
+            refined=False,
             search_events=events,
-            skipped_known=skipped[0],
+            skipped_known=skipped_count,
         )
+
     return result
 
 
@@ -373,8 +398,6 @@ def _dedupe_and_filter(
     skipped: Optional[List[int]] = None,
     existing: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
-    """Dedupe by arXiv id (and, weakly, by normalised title), dropping papers
-    already in the corpus so a fresh-topic search never re-suggests the demo set."""
     seen = {c.get("doc_id") for c in (existing or [])}
     seen_titles = {re.sub(r"[^a-z0-9]", "", c.get("title", "").lower()) for c in (existing or [])}
     out: List[Dict[str, Any]] = []
@@ -396,31 +419,45 @@ def _dedupe_and_filter(
     return out
 
 
+def _download_url_bytes(url: str, timeout: float = 30.0) -> bytes:
+    """Download binary content from open-access URL."""
+    import urllib.request
+    from services.academic_search import _ssl_context
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 R-Lens/2.5"
+        },
+    )
+    ctx = _ssl_context()
+    with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+        return resp.read()
+
+
 def ingest_candidate(
     candidate: Dict[str, Any], client: Optional[ArxivClient] = None
 ) -> Dict[str, Any]:
     """Materialise an approved discovery candidate into the corpus.
 
-    Downloads and ingests the full-text PDF when arXiv serves it; otherwise
-    stores an abstract-only document (labelled full_text_available=0) so the
-    agent can still cite the abstract, and the UI shows a clear
-    "Abstract only" badge instead of pretending full text existed.
-
-    `client` is the network seam: the API path uses the real arXiv client
-    (subject to the same RLENS_FAKE_ARXIV=1 demo flag as `discover`); tests
-    inject `_FakeArxivClient` (or subclasses) to avoid the network.
+    Downloads and ingests the full-text PDF when an open-access URL or arXiv link exists;
+    otherwise stores an abstract-only document (labelled full_text_available=0) so the
+    agent can still cite the abstract, and the UI shows a clear "PDF Unavailable / Abstract Only"
+    badge instead of pretending full text existed.
     """
-    client = client or (
-        _FakeArxivClient()
-        if os.getenv("RLENS_FAKE_ARXIV") == "1"
-        else ArxivClient()
-    )
     arxiv_id = (candidate.get("arxiv_id") or "").strip()
-    doc_id = candidate.get("doc_id") or (
-        f"arxiv_{arxiv_id.replace('.', '_')}" if arxiv_id else ""
-    )
+    doi = (candidate.get("doi") or "").strip()
+    title = (candidate.get("title") or "Untitled Paper").strip()
+    pdf_url = (candidate.get("pdf_url") or "").strip()
+
+    doc_id = candidate.get("doc_id") or ""
     if not doc_id:
-        raise ValueError("Discovery candidate has no arxiv_id.")
+        if arxiv_id:
+            doc_id = f"arxiv_{arxiv_id.replace('.', '_')}"
+        elif doi:
+            doc_id = f"doi_{re.sub(r'[^a-zA-Z0-9]', '_', doi)[:24]}"
+        else:
+            raise ValueError("Discovery candidate has no arxiv_id.")
+
     existing = db.get_document(doc_id)
     if existing:
         out = dict(existing)
@@ -431,45 +468,70 @@ def ingest_candidate(
     base_meta = {
         "id": doc_id,
         "arxiv_id": arxiv_id,
-        "title": candidate.get("title", ""),
-        "authors": candidate.get("authors", ""),
-        "year": candidate.get("year"),
+        "title": title,
+        "authors": candidate.get("authors", "Unavailable"),
+        "year": str(candidate.get("year") or "Unavailable"),
         "venue": candidate.get("venue", ""),
-        "doi": candidate.get("doi", ""),
+        "doi": doi,
         "abstract": candidate.get("abstract", ""),
-        "source_url": candidate.get("abs_url") or candidate.get("pdf_url") or "",
+        "source_url": candidate.get("url") or candidate.get("abs_url") or pdf_url or "",
     }
 
+    # Try downloading PDF
     pdf_bytes = None
-    try:
-        pdf_bytes = client.download_pdf(arxiv_id)
-    except Exception as exc:  # noqa: BLE001 - network / PDF failures degrade to abstract-only
-        return _ingest_abstract_only(base_meta, reason=str(exc)[:200])
+    if client is not None:
+        try:
+            pdf_bytes = client.download_pdf(arxiv_id)
+        except Exception as exc:
+            return _ingest_abstract_only(base_meta, reason=str(exc)[:200])
+    elif os.getenv("RLENS_FAKE_ARXIV") == "1":
+        fake_c = _FakeArxivClient()
+        try:
+            pdf_bytes = fake_c.download_pdf(arxiv_id or "1905.10437")
+        except Exception as exc:
+            return _ingest_abstract_only(base_meta, reason=str(exc)[:200])
+    elif pdf_url:
+        try:
+            pdf_bytes = _download_url_bytes(pdf_url)
+        except Exception:
+            pdf_bytes = None
+    elif arxiv_id:
+        try:
+            from services import arxiv
+            pdf_bytes = arxiv.download_pdf(arxiv_id, None)
+        except Exception:
+            pdf_bytes = None
 
-    try:
-        from services import ingest
+    if pdf_bytes and len(pdf_bytes) > 500:
+        try:
+            from services import ingest
 
-        rec = ingest.ingest_pdf(
-            pdf_bytes,
-            filename=f"{arxiv_id}.pdf",
-            source="arxiv",
-            metadata={**base_meta, "authoritative": True},
-        )
-        rec["full_text_available"] = 1
-        rec["source_url"] = base_meta["source_url"] or "https://arxiv.org/abs/{0}".format(arxiv_id)
-        return rec
-    except ValueError as exc:  # scanned / unreadable PDF -> abstract-only
-        return _ingest_abstract_only(base_meta, reason=str(exc)[:200])
+            safe_fname = re.sub(r"[^a-zA-Z0-9_\-.]", "_", f"{doc_id}.pdf")
+            rec = ingest.ingest_pdf(
+                pdf_bytes,
+                filename=safe_fname,
+                source=candidate.get("source") or "academic-discovery",
+                metadata={**base_meta, "authoritative": True},
+            )
+            rec["full_text_available"] = 1
+            rec["source_url"] = base_meta["source_url"]
+            return rec
+        except Exception as exc:  # scanned / unreadable PDF -> fallback to abstract-only
+            return _ingest_abstract_only(base_meta, reason=str(exc)[:200])
+
+    # If full text PDF is unavailable online, store honest abstract-only document
+    return _ingest_abstract_only(base_meta, reason="Full text PDF unavailable online")
 
 
 def _ingest_abstract_only(base_meta: Dict[str, Any], reason: str = "") -> Dict[str, Any]:
     """Persist a paper we could not fetch full text for, clearly labelled."""
     abstract = (base_meta.get("abstract") or "").strip()
     doc_id = base_meta["id"]
+    safe_fname = re.sub(r"[^a-zA-Z0-9_\-.]", "_", f"{doc_id}.pdf")
     record = {
         "id": doc_id,
-        "source": "arxiv",
-        "filename": f"{base_meta.get('arxiv_id', '')}.pdf",
+        "source": "discovery",
+        "filename": safe_fname,
         "title": base_meta.get("title", ""),
         "authors": base_meta.get("authors", ""),
         "year": base_meta.get("year"),

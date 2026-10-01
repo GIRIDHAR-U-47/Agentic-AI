@@ -1,4 +1,4 @@
-﻿import { PDFDocumentModel, PDFRAGResult } from '../types';
+import { PDFDocumentModel, PDFRAGResult, PaperChatTurn, PaperChatResponse } from '../types';
 
 const API_BASE = 'http://localhost:8000';
 
@@ -92,6 +92,44 @@ class PDFService {
     }
 
     let detail = `Query failed (HTTP ${res.status})`;
+    try {
+      const body = await res.json();
+      if (body?.detail) detail = String(body.detail);
+    } catch { /* ignore */ }
+    throw new Error(detail);
+  }
+
+  /**
+   * Paper Chat: runs the full agentic RAG pipeline scoped strictly to a
+   * single document. Passes conversation history so follow-up questions work.
+   */
+  async paperChat(
+    docId: string,
+    query: string,
+    history: PaperChatTurn[]
+  ): Promise<PaperChatResponse> {
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/pdf/paper-chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doc_id: docId,
+          query,
+          history: history.map(h => ({ role: h.role, content: h.content })),
+        }),
+      });
+    } catch {
+      throw new Error(
+        'Cannot reach the R-Lens backend. Make sure the backend server is running on port 8000.'
+      );
+    }
+
+    if (res.ok) {
+      return await res.json() as PaperChatResponse;
+    }
+
+    let detail = `Paper chat failed (HTTP ${res.status})`;
     try {
       const body = await res.json();
       if (body?.detail) detail = String(body.detail);

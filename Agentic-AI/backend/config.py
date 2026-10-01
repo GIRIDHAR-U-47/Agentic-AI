@@ -105,6 +105,12 @@ def _specs() -> List[ProviderSpec]:
             model="extractive-v1",
             requires_key=False,
         ),
+        # Google Gemini: primary direct LLM provider
+        ProviderSpec(
+            name="gemini",
+            model=os.getenv("RLENS_GEMINI_MODEL", "gemini-2.0-flash"),
+            api_key_env="GEMINI_API_KEY",
+        ),
         # OpenRouter: one key, many model families. Two model slots are exposed
         # so the evaluation harness can compare at least two OpenRouter models
         # side by side whenever OPENROUTER_API_KEY is present. They are always
@@ -141,15 +147,15 @@ def available_providers() -> List[ProviderSpec]:
 def default_provider() -> ProviderSpec:
     """Pick the best provider that actually has credentials.
 
-    Preference order honours RLENS_LLM_PROVIDER when it is usable, then any
-    configured hosted provider, then the deterministic offline provider.
+    Preference order honours RLENS_LLM_PROVIDER when it is usable, then Gemini,
+    then any configured OpenRouter provider, then the deterministic offline provider.
     """
     requested = os.getenv("RLENS_LLM_PROVIDER", "").strip()
     if requested:
         spec = get_provider(requested)
         if spec and spec.key_present():
             return spec
-    for name in ("openrouter", "openrouter-strong"):
+    for name in ("gemini", "openrouter", "openrouter-strong"):
         spec = get_provider(name)
         if spec and spec.key_present():
             return spec

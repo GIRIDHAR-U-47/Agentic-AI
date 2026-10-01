@@ -14,12 +14,12 @@ interface ChatMessage {
 }
 
 const SUGGESTED_QUESTIONS = [
-  'Summarize the abstract',
-  'What is the methodology?',
+  'Summarize this paper',
+  'Explain the methodology',
   'What datasets were used?',
-  'Extract key findings',
+  'What are the main results?',
   'Find limitations',
-  'What research gaps are mentioned?',
+  'What are the key contributions?',
   'Compare the methodologies of these papers'
 ];
 
@@ -90,16 +90,17 @@ export const ChatWithPDF: React.FC = () => {
     setActiveDocId(doc.id);
     setSelectedDocIds(prev => prev.includes(doc.id) ? prev : [...prev, doc.id]);
     setActivePage(1);
-    setActiveSectionId(doc.sections[0]?.id || null);
+    setActiveSectionId(doc.sections?.[0]?.id || null);
     setHighlightedQuote(null);
 
     // Initial greeting if chat empty
     if (messages.length === 0) {
+      const secCount = doc.sections?.length || 0;
       setMessages([
         {
           id: `msg-${Date.now()}`,
           role: 'assistant',
-          text: `📄 **${doc.filename}** loaded and indexed into vector memory (${doc.page_count} pages, ${doc.sections.length} sections).\n\nYou can ask about methodology, mathematical formulations, datasets, empirical benchmarks, or limitations.`,
+          text: `📄 **${doc.filename || doc.title}** loaded and indexed into vector memory (${doc.page_count || 1} pages, ${secCount} sections).\n\nYou can ask about methodology, mathematical formulations, datasets, empirical benchmarks, or limitations.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -131,7 +132,8 @@ export const ChatWithPDF: React.FC = () => {
       setTimeout(() => {
         setIsProcessing(false);
         selectDocument(parsedDoc);
-        showToast(`✅ ${file.name} indexed — ${parsedDoc.page_count} pages, ${parsedDoc.sections.length} sections detected.`);
+        const secCount = parsedDoc.sections?.length || 0;
+        showToast(`✅ ${file.name} indexed — ${parsedDoc.page_count || 1} pages, ${secCount} sections detected.`);
       }, 500);
     } catch (err: unknown) {
       setIsProcessing(false);
@@ -336,10 +338,9 @@ export const ChatWithPDF: React.FC = () => {
                 {documents.map((doc: PDFDocumentModel) => (
                   <div
                     key={doc.id}
-                    onClick={() => selectDocument(doc)}
                     className="bg-white border border-[#E5DDE9] hover:border-[#5F2781] rounded-xl p-4 cursor-pointer transition-all hover:shadow-md group flex flex-col justify-between"
                   >
-                    <div>
+                    <div onClick={() => selectDocument(doc)}>
                       <div className="flex items-center gap-1.5 mb-2">
                         <span className="material-symbols-outlined text-[16px] text-[#5F2781]">description</span>
                         <span className="text-[11px] font-bold text-[#5F2781] bg-[#F5ECF9] px-2 py-0.5 rounded">
@@ -353,7 +354,17 @@ export const ChatWithPDF: React.FC = () => {
                     </div>
                     <div className="mt-3 pt-2 border-t border-[#F5EDFA] flex items-center justify-between text-[11px] text-outline">
                       <span>{doc.venue}</span>
-                      <span className="font-semibold text-[#5F2781] group-hover:underline">Re-open →</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/paper-chat/${doc.id}`); }}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#5F2781] text-white text-[11px] font-semibold hover:bg-[#4A176B] transition-colors cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[12px]">chat</span>
+                          Chat
+                        </button>
+                        <span className="font-semibold text-[#5F2781] group-hover:underline cursor-pointer" onClick={() => selectDocument(doc)}>Open →</span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -416,15 +427,28 @@ export const ChatWithPDF: React.FC = () => {
 
           {/* Active Paper Details */}
           <div className="bg-[#FAF7FC] border border-[#EAE0F0] rounded-xl p-3 flex flex-col gap-1.5 text-[12px]">
-            <h4 className="font-bold text-[#1D1A20] leading-snug line-clamp-2">{activeDoc.title}</h4>
-            <p className="text-on-surface-variant truncate"><strong>Authors:</strong> {activeDoc.authors}</p>
+            <h4 className="font-bold text-[#1D1A20] leading-snug line-clamp-2">
+              {activeDoc.title || activeDoc.filename || 'Untitled Document'}
+            </h4>
+            <p className="text-on-surface-variant truncate">
+              <strong>Authors:</strong> {activeDoc.authors || 'Unavailable'}
+            </p>
             <div className="flex items-center justify-between text-[11px] text-outline pt-1 border-t border-[#EFE5F5]">
-              <span>{activeDoc.venue} ({activeDoc.year})</span>
-              <span>{activeDoc.page_count} Pages</span>
+              <span>{activeDoc.venue || 'Preprint'} ({activeDoc.year || '2024'})</span>
+              <span>{activeDoc.page_count || 1} Pages</span>
             </div>
             {activeDoc.doi && (
               <span className="text-[10px] text-outline font-code truncate">DOI: {activeDoc.doi}</span>
             )}
+            {/* Open dedicated chat button */}
+            <button
+              type="button"
+              onClick={() => navigate(`/paper-chat/${activeDoc.id}`)}
+              className="mt-1 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-[#5F2781] hover:bg-[#4A176B] text-white rounded-lg text-[12px] font-semibold transition-colors cursor-pointer shadow-xs"
+            >
+              <span className="material-symbols-outlined text-[15px]">chat</span>
+              Open Dedicated Chat
+            </button>
           </div>
         </div>
 
@@ -655,27 +679,31 @@ export const ChatWithPDF: React.FC = () => {
             <span className="material-symbols-outlined text-[18px] text-[#5F2781]">menu_book</span>
             <span className="text-[13.5px] font-bold text-[#1D1A20]">Document Sections &amp; Viewer</span>
           </div>
-          <span className="text-[11px] text-outline font-medium">Page {activePage} of {activeDoc.page_count}</span>
+          <span className="text-[11px] text-outline font-medium">Page {activePage} of {activeDoc.page_count || 1}</span>
         </div>
 
         {/* Sections Outline List */}
         <div className="p-3 border-b border-[#EFE9F3] bg-white flex flex-col gap-1 max-h-48 overflow-y-auto no-scrollbar">
           <span className="text-[10.5px] font-bold uppercase tracking-wider text-outline px-1 mb-1">Table of Contents</span>
-          {activeDoc.sections.map((sec: PDFSectionInfo) => (
-            <button
-              key={sec.id}
-              onClick={() => handleSectionClick(sec)}
-              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                activeSectionId === sec.id
-                  ? 'bg-[#F5ECF9] text-[#5F2781] font-semibold'
-                  : 'text-[#4D4450] hover:bg-[#FAF7FC] hover:text-[#1D1A20]'
-              }`}
-              type="button"
-            >
-              <span className="truncate">{sec.title}</span>
-              <span className="text-[10.5px] text-outline ml-2 shrink-0">p. {sec.page}</span>
-            </button>
-          ))}
+          {(activeDoc.sections || []).length > 0 ? (
+            (activeDoc.sections || []).map((sec: PDFSectionInfo) => (
+              <button
+                key={sec.id}
+                onClick={() => handleSectionClick(sec)}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center justify-between cursor-pointer ${
+                  activeSectionId === sec.id
+                    ? 'bg-[#F5ECF9] text-[#5F2781] font-semibold'
+                    : 'text-[#4D4450] hover:bg-[#FAF7FC] hover:text-[#1D1A20]'
+                }`}
+                type="button"
+              >
+                <span className="truncate">{sec.title}</span>
+                <span className="text-[10.5px] text-outline ml-2 shrink-0">p. {sec.page}</span>
+              </button>
+            ))
+          ) : (
+            <span className="text-[11.5px] text-outline italic px-1 py-1">Document structure loaded</span>
+          )}
         </div>
 
         {/* In-Line Page Text Viewer */}
@@ -711,3 +739,4 @@ export const ChatWithPDF: React.FC = () => {
     </div>
   );
 };
+

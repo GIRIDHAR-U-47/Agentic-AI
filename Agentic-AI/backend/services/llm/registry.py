@@ -35,6 +35,11 @@ def build_llm(
 
         return openrouter.OpenRouterLLM(model=model or spec.model, base_url=spec.base_url)
 
+    if name == "gemini":
+        from services.llm import gemini
+
+        return gemini.GeminiLLM(model=model or (spec.model if spec else "gemini-2.0-flash"))
+
     return ExtractiveLLM()
 
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Activity,
   BookOpenCheck,
@@ -22,13 +22,17 @@ import {
   ShieldCheck,
   Sparkles,
   TriangleAlert,
+  Maximize2,
 } from 'lucide-react';
 import { api, MODE_DESCRIPTIONS } from '../services/api';
+import { pdfService } from '../services/pdfService';
 import { AgentActivityLog } from '../components/AgentActivityLog';
 import { SourceApprovalPanel } from '../components/SourceApprovalPanel';
 import {
   ActivityEvent,
   HealthInfo,
+  PaperChatSourceChunk,
+  PaperChatTurn,
   Review,
   ReviewCitation,
   ReviewMode,
@@ -146,10 +150,286 @@ function Markdown({ text }: { text: string }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* In-Page Interactive Paper Chat                                      */
+/* ------------------------------------------------------------------ */
+interface InPagePaperChatProps {
+  approvedDocIds: string[];
+  corpusTitleById: Record<string, string>;
+  defaultDocId?: string;
+  onOpenFullScreen?: (docId: string) => void;
+}
+
+interface InPageChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  citations?: PaperChatSourceChunk[];
+  verified?: boolean;
+}
+
+const IN_PAGE_SUGGESTED_PROMPTS = [
+  'Summarize this paper',
+  'Explain the methodology',
+  'What datasets were used?',
+  'What are the main results?',
+  'What are the key limitations?',
+];
+
+const InPagePaperChat: React.FC<InPagePaperChatProps> = ({
+  approvedDocIds,
+  corpusTitleById,
+  defaultDocId,
+  onOpenFullScreen,
+}) => {
+  const [activeDocId, setActiveDocId] = useState<string>(() => {
+    return (defaultDocId && approvedDocIds.includes(defaultDocId))
+      ? defaultDocId
+      : (approvedDocIds[0] || '');
+  });
+  const [messages, setMessages] = useState<InPageChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [stepLabel, setStepLabel] = useState('');
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Sync activeDocId if defaultDocId changes
+  useEffect(() => {
+    if (defaultDocId && approvedDocIds.includes(defaultDocId)) {
+      setActiveDocId(defaultDocId);
+    } else if (approvedDocIds.length > 0 && !approvedDocIds.includes(activeDocId)) {
+      setActiveDocId(approvedDocIds[0]);
+    }
+  }, [defaultDocId, approvedDocIds, activeDocId]);
+
+  // Initial greeting when paper changes
+  useEffect(() => {
+    if (activeDocId) {
+      const title = corpusTitleById[activeDocId] || activeDocId;
+      setMessages([
+        {
+          id: `greet-${activeDocId}`,
+          role: 'assistant',
+          text: `📄 Ready to chat with **${title}**.\n\nYou can ask about the methodology, mathematical formulations, empirical benchmark datasets, key findings, or limitations.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    }
+  }, [activeDocId, corpusTitleById]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isSearching]);
+
+  const activeTitle = corpusTitleById[activeDocId] || activeDocId || 'Select a paper';
+
+  const handleSend = async (overrideText?: string) => {
+    const q = (overrideText || input).trim();
+    if (!q || !activeDocId || isSearching) return;
+
+    setInput('');
+    const userMsg: InPageChatMessage = {
+      id: `usr-${Date.now()}`,
+      role: 'user',
+      text: q,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    const newHistory: PaperChatTurn[] = messages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .map((m) => ({ role: m.role, content: m.text }));
+    newHistory.push({ role: 'user', content: q });
+
+    setMessages((prev) => [...prev, userMsg]);
+    setIsSearching(true);
+    setStepLabel('Retrieving evidence from paper...');
+
+    const stepTimer1 = setTimeout(() => setStepLabel('Validating sources & coverage...'), 600);
+    const stepTimer2 = setTimeout(() => setStepLabel('Generating grounded answer...'), 1200);
+
+    try {
+      const resp = await pdfService.paperChat(activeDocId, q, newHistory);
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+
+      const assistantMsg: InPageChatMessage = {
+        id: `asst-${Date.now()}`,
+        role: 'assistant',
+        text: resp.answer,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        citations: resp.sources,
+        verified: resp.verified,
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch (err: unknown) {
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      const msg = err instanceof Error ? err.message : 'Chat query failed.';
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `err-${Date.now()}`,
+          role: 'assistant',
+          text: `❌ ${msg}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } finally {
+      setIsSearching(false);
+      setStepLabel('');
+    }
+  };
+
+  if (approvedDocIds.length === 0) {
+    return (
+      <div className="rounded-xl bg-surface-container-lowest p-6 border border-outline-variant/30 text-center">
+        <p className="font-body-sm text-body-sm text-on-surface-variant">
+          No papers approved yet. Approve candidate papers first to enable live paper chat.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm flex flex-col overflow-hidden">
+      {/* Paper Chat Header with Document Switcher */}
+      <div className="p-3 bg-surface-container-low border-b border-outline-variant/30 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="font-label-sm text-label-sm uppercase font-bold text-primary tracking-wider shrink-0 flex items-center gap-1">
+            <MessageSquareText className="w-4 h-4" />
+            Active Paper:
+          </span>
+          <select
+            value={activeDocId}
+            onChange={(e) => setActiveDocId(e.target.value)}
+            className="flex-1 max-w-md rounded-lg bg-surface-container-lowest border border-outline-variant/40 px-2.5 py-1 text-[12.5px] font-semibold text-on-surface focus:outline-none focus:border-primary truncate cursor-pointer"
+          >
+            {approvedDocIds.map((id) => (
+              <option key={id} value={id}>
+                {corpusTitleById[id] || id}
+              </option>
+            ))}
+          </select>
+        </div>
+        {onOpenFullScreen && (
+          <button
+            type="button"
+            onClick={() => onOpenFullScreen(activeDocId)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-[11.5px] font-semibold transition-colors cursor-pointer shrink-0"
+            title="Open in dedicated full-screen chat with split PDF reader"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+            <span>Full Reader View</span>
+          </button>
+        )}
+      </div>
+
+      {/* Messages Stream */}
+      <div className="p-4 space-y-3.5 max-h-[420px] overflow-y-auto bg-surface-container-lowest">
+        {messages.map((m) => (
+          <div
+            key={m.id}
+            className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            {m.role !== 'user' && (
+              <div className="w-7 h-7 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                <BrainCircuit className="w-4 h-4" />
+              </div>
+            )}
+            <div
+              className={`max-w-xl rounded-xl p-3 text-[13px] leading-relaxed shadow-xs ${
+                m.role === 'user'
+                  ? 'bg-primary text-on-primary rounded-tr-none font-medium'
+                  : 'bg-surface-container-low border border-outline-variant/30 text-on-surface rounded-tl-none'
+              }`}
+            >
+              <div className="whitespace-pre-line leading-relaxed">{m.text}</div>
+              {m.citations && m.citations.length > 0 && (
+                <div className="mt-2.5 pt-2 border-t border-outline-variant/20 space-y-1">
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-primary block">
+                    Verified Citations:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {m.citations.map((c, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-lowest border border-outline-variant/30 text-[11px] font-medium text-on-surface shadow-2xs"
+                        title={c.quote}
+                      >
+                        <strong className="text-primary">{c.marker}</strong>
+                        <span>p.{c.page}</span>
+                        {c.section && <span className="opacity-70">({c.section})</span>}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <span className={`block text-[10px] mt-1.5 ${m.role === 'user' ? 'text-on-primary/70' : 'text-outline'}`}>
+                {m.timestamp}
+              </span>
+            </div>
+          </div>
+        ))}
+
+        {isSearching && (
+          <div className="flex items-center gap-2.5 p-3 rounded-lg bg-surface-container-low border border-outline-variant/30 animate-fadeIn">
+            <Loader2 className="w-4 h-4 text-primary animate-spin" />
+            <span className="text-[12px] font-medium text-primary">{stepLabel}</span>
+          </div>
+        )}
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Suggested Prompt Chips */}
+      <div className="px-3 py-1.5 bg-surface-container border-t border-outline-variant/20 flex gap-1.5 flex-wrap">
+        {IN_PAGE_SUGGESTED_PROMPTS.map((prompt) => (
+          <button
+            key={prompt}
+            type="button"
+            onClick={() => handleSend(prompt)}
+            className="text-[11px] px-2.5 py-0.5 rounded-full border border-outline-variant/40 bg-surface-container-lowest hover:bg-primary-container hover:text-on-primary text-on-surface-variant transition-colors cursor-pointer font-medium"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+
+      {/* Chat Input Bar */}
+      <div className="p-3 bg-surface-container-low border-t border-outline-variant/30">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+          className="flex gap-2 items-center"
+        >
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={`Ask anything about ${activeTitle.slice(0, 45)}...`}
+            className="flex-1 rounded-lg bg-surface-container-lowest border border-outline-variant/40 px-3 py-2 text-[13px] text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:border-primary"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || isSearching}
+            className="px-3 py-2 rounded-lg bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 font-title-sm text-title-sm transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed shrink-0 font-semibold"
+          >
+            {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            <span>Ask</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 export const LiteratureReview: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const activeId = searchParams.get('session');
 
   const [health, setHealth] = useState<HealthInfo | null>(null);
@@ -175,6 +455,8 @@ export const LiteratureReview: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [centerTab, setCenterTab] = useState<'activity' | 'chat'>('activity');
+  const [chatSelectedDocId, setChatSelectedDocId] = useState<string | undefined>(undefined);
   const pollRef = useRef<number | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -760,15 +1042,29 @@ export const LiteratureReview: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <button
-                className="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container text-on-primary hover:bg-tertiary font-title-sm text-title-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                onClick={run}
-                disabled={running}
-                type="button"
-              >
-                {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-                {running ? 'Running agent…' : 'Run review'}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCenterTab('chat')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg font-title-sm text-title-sm font-semibold transition-all cursor-pointer ${
+                    centerTab === 'chat'
+                      ? 'bg-primary text-on-primary shadow-xs'
+                      : 'bg-primary/10 text-primary hover:bg-primary/20'
+                  }`}
+                >
+                  <MessageSquareText className="w-4 h-4" />
+                  <span>Chat with Paper</span>
+                </button>
+                <button
+                  className="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container text-on-primary hover:bg-tertiary font-title-sm text-title-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                  onClick={run}
+                  disabled={running}
+                  type="button"
+                >
+                  {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                  {running ? 'Running agent…' : 'Run review'}
+                </button>
+              </div>
             </div>
           )}
 
@@ -817,11 +1113,52 @@ export const LiteratureReview: React.FC = () => {
             </div>
           )}
 
-          {session && (session.state === 'complete' || session.state === 'planning') && (
-            <AgentActivityLog
-              events={session.activity as ActivityEvent[]}
-              running={session.state === 'planning'}
-            />
+          {session && (
+            <div className="flex flex-col gap-3">
+              {/* Tab Selector: Activity Log vs Live Chat */}
+              <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-2">
+                <button
+                  type="button"
+                  onClick={() => setCenterTab('activity')}
+                  className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    centerTab === 'activity'
+                      ? 'bg-primary text-on-primary shadow-xs'
+                      : 'bg-surface-container-lowest text-on-surface-variant hover:text-on-surface border border-outline-variant/30'
+                  }`}
+                >
+                  <Activity className="w-4 h-4" />
+                  <span>Agent Activity Log {session.activity?.length ? `(${session.activity.length})` : ''}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCenterTab('chat')}
+                  className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    centerTab === 'chat'
+                      ? 'bg-primary text-on-primary shadow-xs'
+                      : 'bg-surface-container-lowest text-on-surface-variant hover:text-on-surface border border-outline-variant/30'
+                  }`}
+                >
+                  <MessageSquareText className="w-4 h-4" />
+                  <span>💬 Chat with Paper {session.approved?.length ? `(${session.approved.length} approved)` : ''}</span>
+                </button>
+              </div>
+
+              {centerTab === 'activity' && (
+                <AgentActivityLog
+                  events={session.activity as ActivityEvent[]}
+                  running={session.state === 'planning'}
+                />
+              )}
+
+              {centerTab === 'chat' && (
+                <InPagePaperChat
+                  approvedDocIds={session.approved || []}
+                  corpusTitleById={corpusTitleById}
+                  defaultDocId={chatSelectedDocId}
+                  onOpenFullScreen={(docId) => navigate(`/paper-chat/${docId}`)}
+                />
+              )}
+            </div>
           )}
 
           {session && session.state === 'complete' && displayReview && displayReview.unverified && (
@@ -867,27 +1204,38 @@ export const LiteratureReview: React.FC = () => {
                   </span>
                   <div className="mt-1 flex flex-col gap-1 max-h-40 overflow-y-auto">
                     {session.approved.map((id) => (
-                      <label
+                      <div
                         key={id}
-                        className={`flex items-center gap-2 px-2 py-1 rounded-md border cursor-pointer text-[12.5px] transition-colors ${
+                        className={`flex items-center gap-2 px-2 py-1.5 rounded-md border text-[12.5px] transition-colors ${
                           excludeDocs.includes(id)
                             ? 'border-rose-400 bg-rose-50 dark:bg-rose-950/30'
                             : 'border-outline-variant/40 hover:border-outline'
                         }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={excludeDocs.includes(id)}
-                          onChange={() => toggleExclude(id)}
-                          className="accent-[#e11d48]"
-                        />
-                        <span className="truncate min-w-0 flex-1 font-body-sm text-body-sm text-on-surface-variant">
-                          {corpusTitleById[id] || id}
-                        </span>
+                        <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={excludeDocs.includes(id)}
+                            onChange={() => toggleExclude(id)}
+                            className="accent-[#e11d48]"
+                          />
+                          <span className="truncate min-w-0 flex-1 font-body-sm text-body-sm text-on-surface-variant">
+                            {corpusTitleById[id] || id}
+                          </span>
+                        </label>
                         {excludeDocs.includes(id) && (
                           <span className="font-code-sm text-code-sm text-rose-400 shrink-0">excluded</span>
                         )}
-                      </label>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/paper-chat/${id}`)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold transition-colors shrink-0 cursor-pointer"
+                          title="Open dedicated chat with this paper"
+                        >
+                          <MessageSquareText className="w-3 h-3" />
+                          <span>Chat</span>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -1100,6 +1448,29 @@ export const LiteratureReview: React.FC = () => {
                               <span className="text-outline/70"> · {c.source_url}</span>
                             )}
                           </div>
+                          <div className="mt-2 flex items-center justify-between gap-2 pt-1.5 border-t border-outline-variant/20">
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/paper-chat/${c.doc_id}`)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-primary text-on-primary hover:bg-primary/90 text-[11px] font-semibold transition-colors shadow-xs cursor-pointer"
+                              title={`Chat with ${corpusTitleById[c.doc_id] || c.doc_title || 'this paper'}`}
+                            >
+                              <MessageSquareText className="w-3.5 h-3.5" />
+                              <span>Chat with this paper</span>
+                            </button>
+                            {sourceUrl && (
+                              <a
+                                href={sourceUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-outline hover:text-primary transition-colors text-[11px] inline-flex items-center gap-1"
+                                title="Open canonical source"
+                              >
+                                <span>Source</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
                         </li>
                       );
                     })}
@@ -1145,11 +1516,24 @@ export const LiteratureReview: React.FC = () => {
                             <span className="font-code-sm text-code-sm text-outline">{r.year || ''} {r.venue ? `· ${r.venue}` : ''}</span>
                           </td>
                           <td className="py-1 font-code-sm text-code-sm align-top">
-                            {r.cited ? (
-                              <span className="text-emerald-500">yes · pp. {r.pages_cited.join(', ')}</span>
-                            ) : (
-                              <span className="text-outline">approved, uncited</span>
-                            )}
+                            <div className="flex items-center justify-between gap-2">
+                              {r.cited ? (
+                                <span className="text-emerald-500">yes · pp. {r.pages_cited.join(', ')}</span>
+                              ) : (
+                                <span className="text-outline">approved, uncited</span>
+                              )}
+                              {r.doc_id && (
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(`/paper-chat/${r.doc_id}`)}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 hover:bg-primary/20 text-primary text-[10.5px] font-semibold transition-colors cursor-pointer"
+                                  title={`Open chat with ${r.title}`}
+                                >
+                                  <MessageSquareText className="w-3 h-3" />
+                                  <span>Chat</span>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}

@@ -21,6 +21,7 @@ import { Paraphraser } from './pages/Paraphraser';
 import { CitationGenerator } from './pages/CitationGenerator';
 import { ExtractData } from './pages/ExtractData';
 import { AIDetector } from './pages/AIDetector';
+import { PaperChat } from './pages/PaperChat';
 
 export const App: React.FC = () => {
   return (
@@ -33,7 +34,9 @@ export const App: React.FC = () => {
 
             {/* Existing research pages */}
             <Route path="/research" element={<ResearchWorkspace />} />
+            <Route path="/research/session/:sessionId" element={<ResearchWorkspace />} />
             <Route path="/paper/:id" element={<PaperAnalysis />} />
+            <Route path="/paper/:id/chat" element={<PaperChat />} />
             <Route path="/evidence" element={<EvidenceValidation />} />
             <Route path="/compare" element={<Comparison />} />
             <Route path="/report" element={<LiteratureReview />} />
@@ -48,6 +51,9 @@ export const App: React.FC = () => {
             <Route path="/citation-generator" element={<CitationGenerator />} />
             <Route path="/extract-data" element={<ExtractData />} />
             <Route path="/ai-detector" element={<AIDetector />} />
+
+            {/* Dedicated chat screen for a single indexed paper */}
+            <Route path="/paper-chat/:docId" element={<PaperChat />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

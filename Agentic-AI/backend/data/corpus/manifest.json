@@ -1,90 +1,90 @@
 {
   "papers": {
     "1706.03762": {
-      "abs_url": "https://arxiv.org/abs/1706.03762v7",
-      "authors": "Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin",
+      "abs_url": "https://arxiv.org/abs/1706.03762",
+      "authors": "",
       "bytes": 2215244,
-      "fetched_at": "2026-09-28T03:06:58Z",
+      "fetched_at": "2026-09-28T12:29:01Z",
       "ingested": true,
       "note": "Foundational transformer (NeurIPS 2017)",
       "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
-      "title": "Attention Is All You Need",
-      "venue": "arXiv preprint",
-      "year": "2017"
+      "title": "",
+      "venue": "",
+      "year": ""
     },
     "2012.07436": {
-      "abs_url": "https://arxiv.org/abs/2012.07436v3",
-      "authors": "Haoyi Zhou, Shanghang Zhang, Jieqi Peng, Shuai Zhang, Jianxin Li, Hui Xiong, Wancai Zhang",
+      "abs_url": "https://arxiv.org/abs/2012.07436",
+      "authors": "",
       "bytes": 7291729,
-      "fetched_at": "2026-09-28T03:06:59Z",
+      "fetched_at": "2026-09-28T12:29:11Z",
       "ingested": true,
       "note": "Informer: ProbSparse attention (AAAI 2021)",
       "sha256": "95d8d427005e4dab28932b2630886931fc095996fdd4a65d0e050bae801ffc37",
-      "title": "Informer: Beyond Efficient Transformer for Long Sequence Time-Series Forecasting",
-      "venue": "arXiv preprint",
-      "year": "2020"
+      "title": "",
+      "venue": "",
+      "year": ""
     },
     "2106.13008": {
-      "abs_url": "https://arxiv.org/abs/2106.13008v5",
-      "authors": "Haixu Wu, Jiehui Xu, Jianmin Wang, Mingsheng Long",
+      "abs_url": "https://arxiv.org/abs/2106.13008",
+      "authors": "",
       "bytes": 12212707,
-      "fetched_at": "2026-09-28T03:06:59Z",
+      "fetched_at": "2026-09-28T12:29:20Z",
       "ingested": true,
       "note": "Autoformer: series decomposition",
       "sha256": "6ec6743b8d3df87a91ecd7b17d83123c0132f5ab87dffeb6318c05e2cb13f11b",
-      "title": "Autoformer: Decomposition Transformers with Auto-Correlation for Long-Term Series Forecasting",
-      "venue": "arXiv preprint",
-      "year": "2021"
+      "title": "",
+      "venue": "",
+      "year": ""
     },
     "2205.13504": {
-      "abs_url": "https://arxiv.org/abs/2205.13504v3",
-      "authors": "Ailing Zeng, Muxi Chen, Lei Zhang, Qiang Xu",
+      "abs_url": "https://arxiv.org/abs/2205.13504",
+      "authors": "",
       "bytes": 1584902,
-      "fetched_at": "2026-09-28T03:06:59Z",
+      "fetched_at": "2026-09-28T12:29:31Z",
       "ingested": true,
       "note": "DLinear: challenges transformer necessity (AAAI 2023)",
       "sha256": "97abddd1821cc72942c8d7ddde7e99466bb91f1bddc37c2b54e0e97be7b5be1b",
-      "title": "Are Transformers Effective for Time Series Forecasting?",
-      "venue": "arXiv preprint",
-      "year": "2022"
+      "title": "",
+      "venue": "",
+      "year": ""
     },
     "2210.02186": {
-      "abs_url": "https://arxiv.org/abs/2210.02186v3",
-      "authors": "Haixu Wu, Tengge Hu, Yong Liu, Hang Zhou, Jianmin Wang, Mingsheng Long",
+      "abs_url": "https://arxiv.org/abs/2210.02186",
+      "authors": "",
       "bytes": 4106684,
-      "fetched_at": "2026-09-28T03:07:00Z",
+      "fetched_at": "2026-09-28T12:29:42Z",
       "ingested": true,
       "note": "TimesNet: 2D variation modelling (ICLR 2023)",
       "sha256": "a45cb3d35c7b4db7091439ee714fd43dd6cd9e8f2fb1867f5463ae0433aebbd1",
-      "title": "TimesNet: Temporal 2D-Variation Modeling for General Time Series Analysis",
-      "venue": "arXiv preprint",
-      "year": "2022"
+      "title": "",
+      "venue": "",
+      "year": ""
     },
     "2211.14730": {
-      "abs_url": "https://arxiv.org/abs/2211.14730v2",
-      "authors": "Yuqi Nie, Nam H. Nguyen, Phanwadee Sinthong, Jayant Kalagnanam",
+      "abs_url": "https://arxiv.org/abs/2211.14730",
+      "authors": "",
       "bytes": 4027069,
-      "fetched_at": "2026-09-28T03:07:00Z",
+      "fetched_at": "2026-09-28T12:29:51Z",
       "ingested": true,
       "note": "PatchTST: patching (ICLR 2023)",
       "sha256": "ffd4021d25b4959883242f256b0fe4ec42f477f66db78c61bfacf7baa7848b0e",
-      "title": "A Time Series is Worth 64 Words: Long-term Forecasting with Transformers",
-      "venue": "arXiv preprint",
-      "year": "2022"
+      "title": "",
+      "venue": "",
+      "year": ""
     },
     "2310.06625": {
-      "abs_url": "https://arxiv.org/abs/2310.06625v4",
-      "authors": "Yong Liu, Tengge Hu, Haoran Zhang, Haixu Wu, Shiyu Wang, Lintao Ma, Mingsheng Long",
+      "abs_url": "https://arxiv.org/abs/2310.06625",
+      "authors": "",
       "bytes": 6345202,
-      "fetched_at": "2026-09-28T03:07:00Z",
+      "fetched_at": "2026-09-28T12:30:01Z",
       "ingested": true,
       "note": "iTransformer: inverted attention (ICLR 2024)",
       "sha256": "83e889795af52c672090255493266e3ea93e7b2a32c528f58074f2f9f757ffc5",
-      "title": "iTransformer: Inverted Transformers Are Effective for Time Series Forecasting",
-      "venue": "arXiv preprint",
-      "year": "2023"
+      "title": "",
+      "venue": "",
+      "year": ""
     }
   },
   "source": "https://arxiv.org",
-  "updated_at": "2026-09-28T03:07:00Z"
+  "updated_at": "2026-09-28T12:30:01Z"
 }

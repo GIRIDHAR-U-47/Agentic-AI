@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useResearch } from '../context/ResearchContext';
+import { api } from '../services/api';
 import { analyzeIntent, IntentAnalysisResult } from '../services/intentService';
 
 const TOOLS = [
@@ -107,68 +108,34 @@ export const ResearchHome: React.FC = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleSubmit = () => {
-    const trimmed = localInput.trim();
+  const SUGGESTED_ACTIONS = [
+    { label: 'Search Papers', icon: 'search', action: (t: string) => startResearch(t || 'Explainable Deep Learning for Short-Term Electricity Load Forecasting') },
+    { label: 'Literature Review', icon: 'menu_book', action: (t: string) => startResearch(t || 'Deep learning methods in multi-horizon time series forecasting') },
+    { label: 'Find Research Gaps', icon: 'troubleshoot', action: (t: string) => startResearch(t || 'Research gaps in explainable AI for energy systems') },
+    { label: 'Compare Methods', icon: 'compare_arrows', action: (t: string) => startResearch(t || 'Transformer vs LSTM vs TCN for time series load forecasting') },
+    { label: 'Chat with Papers', icon: 'chat', action: () => navigate('/chat-with-pdf') },
+  ];
+
+  const startResearch = async (topicToSearch: string) => {
+    const trimmed = topicToSearch.trim();
     if (!trimmed) return;
 
-    const analysis = analyzeIntent(trimmed);
-
-    // If dedicated single tool command (e.g. paraphrase or citation extraction), route appropriately
-    if (
-      analysis.intent !== 'RESEARCH_TOPIC' &&
-      analysis.intent !== 'RESEARCH_QUESTION'
-    ) {
-      setIntentPayload({
-        intent: analysis.intent,
-        text: analysis.extractedPayload,
-        prompt: analysis.extractedPayload,
-        doi: analysis.citationDoi,
-        template: analysis.suggestedTemplate,
-        topic: analysis.extractedTopic
-      });
-      showToast(`🎯 ${analysis.badgeLabel} detected → Launching workflow...`);
-      navigate(analysis.targetPath);
-      return;
-    }
-
-    // Default flow: Launch Agentic RAG sequence and open Workspace
-    setCurrentRagTopic(analysis.sessionTitle || trimmed);
-    setDiscoveredSubQueries(analysis.generatedSubQueries);
-    setIsRagRunning(true);
-    setRagProgress(15);
-    setActiveRagStep(1);
-
-    // Step 2: Generating search queries
-    setTimeout(() => {
-      setRagProgress(38);
-      setActiveRagStep(2);
-    }, 600);
-
-    // Step 3: Searching academic sources
-    setTimeout(() => {
-      setRagProgress(65);
-      setActiveRagStep(3);
-    }, 1300);
-
-    // Step 4: Analyzing papers
-    setTimeout(() => {
-      setRagProgress(85);
-      setActiveRagStep(4);
-    }, 2000);
-
-    // Step 5: Synthesizing findings & Workspace opening
-    setTimeout(() => {
-      setRagProgress(100);
-      setActiveRagStep(5);
-    }, 2700);
-
-    setTimeout(() => {
+    showToast(`Initializing research session for "${trimmed.slice(0, 45)}..."`);
+    try {
+      const res = await api.sessions.create(trimmed, 'agentic_rag', true);
       setQuery(trimmed);
-      setCurrentSessionTitle(analysis.sessionTitle || trimmed);
-      setGeneratedSubQueries(analysis.generatedSubQueries);
-      setIsRagRunning(false);
+      setCurrentSessionTitle(trimmed);
+      navigate(`/research?session=${res.session_id}`);
+    } catch {
+      // If backend session creation fails, navigate with query
+      setQuery(trimmed);
+      setCurrentSessionTitle(trimmed);
       navigate('/research');
-    }, 3400);
+    }
+  };
+
+  const handleSubmit = () => {
+    startResearch(localInput);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -178,31 +145,9 @@ export const ResearchHome: React.FC = () => {
     }
   };
 
-  const handleToolSelect = (tool: typeof TOOLS[0]) => {
-    setShowTools(false);
-    navigate(tool.path);
-  };
-
   const handleCardSelect = (card: WorkspaceCard) => {
     setLocalInput(card.topic);
-    const analysis = analyzeIntent(card.topic);
-    setCurrentRagTopic(card.topic);
-    setDiscoveredSubQueries(analysis.generatedSubQueries);
-    setIsRagRunning(true);
-    setRagProgress(25);
-    setActiveRagStep(1);
-
-    setTimeout(() => { setRagProgress(55); setActiveRagStep(2); }, 500);
-    setTimeout(() => { setRagProgress(85); setActiveRagStep(3); }, 1100);
-    setTimeout(() => { setRagProgress(100); setActiveRagStep(5); }, 1700);
-
-    setTimeout(() => {
-      setQuery(card.topic);
-      setCurrentSessionTitle(card.topic);
-      setGeneratedSubQueries(analysis.generatedSubQueries);
-      setIsRagRunning(false);
-      navigate('/research');
-    }, 2200);
+    startResearch(card.topic);
   };
 
   return (
@@ -216,7 +161,7 @@ export const ResearchHome: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <span className="text-[22px] font-bold text-[#3F1A57] tracking-tight leading-none">R-Lens</span>
-            <span className="text-[11.5px] text-outline font-medium tracking-wide">Research Intelligence Bench</span>
+            <span className="text-[11.5px] text-outline font-medium tracking-wide">Academic Research Assistant</span>
           </div>
         </div>
 
@@ -244,8 +189,8 @@ export const ResearchHome: React.FC = () => {
           {/* Hero Textarea */}
           <textarea
             id="home-query-input"
-            className="w-full bg-transparent border-0 resize-none font-body text-[16px] text-[#1D1A20] placeholder-[#8F8495] focus:outline-none leading-relaxed px-5 pt-4 pb-3 min-h-[92px]"
-            placeholder="What are you researching today?"
+            className="w-full bg-transparent border-0 resize-none font-body text-[15.5px] text-[#1D1A20] placeholder-[#8F8495] focus:outline-none leading-relaxed px-5 pt-4 pb-3 min-h-[92px]"
+            placeholder="How can explainable deep learning and metaheuristic optimization improve multi-horizon data center power forecasting?"
             value={localInput}
             onChange={e => setLocalInput(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -255,47 +200,19 @@ export const ResearchHome: React.FC = () => {
 
           {/* Toolbar */}
           <div className="px-4 pb-3.5 pt-2 flex items-center justify-between gap-3 border-t border-[#F5EDFA]">
-            {/* Left: Tools Dropdown */}
-            <div className="relative" ref={toolsRef}>
-              <button
-                id="home-tools-btn"
-                type="button"
-                onClick={() => setShowTools(!showTools)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-on-surface-variant hover:bg-[#F5ECF9] hover:text-[#5F2781] text-[13px] font-medium transition-colors border border-transparent hover:border-[#EBDFF1] cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px] text-[#5F2781]">widgets</span>
-                <span>Tools</span>
-                <span className="material-symbols-outlined text-[14px]">expand_more</span>
-              </button>
-
-              {showTools && (
-                <div className="absolute bottom-11 left-0 w-64 bg-white rounded-xl shadow-xl border border-[#E5DDE9] py-2 z-50 animate-scaleIn">
-                  <div className="px-3 py-1 text-[10.5px] font-bold uppercase tracking-wider text-outline">
-                    Research Features
-                  </div>
-                  {TOOLS.map(tool => (
-                    <button
-                      key={tool.label}
-                      id={`tool-${tool.label.toLowerCase().replace(/\s+/g, '-')}`}
-                      onClick={() => handleToolSelect(tool)}
-                      className="w-full text-left px-3 py-2 text-[13px] hover:bg-[#F7F2F9] flex items-center gap-2.5 cursor-pointer text-on-surface transition-colors"
-                      type="button"
-                    >
-                      <span className="material-symbols-outlined text-[17px] text-[#5F2781]">{tool.icon}</span>
-                      <span>{tool.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+            {/* Left: Quick Hint */}
+            <div className="flex items-center gap-1 text-[12px] text-outline">
+              <span className="material-symbols-outlined text-[15px] text-[#7B3A9E]">psychology</span>
+              <span>Searches OpenAlex, Semantic Scholar, Crossref &amp; arXiv</span>
             </div>
 
-            {/* Right: Send / Action Button */}
+            {/* Right: Research Button */}
             <div className="flex items-center gap-2">
               <button
                 id="home-send-btn"
                 type="button"
                 onClick={handleSubmit}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white font-medium text-[13.5px] transition-all shadow-sm cursor-pointer ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-medium text-[14px] transition-all shadow-sm cursor-pointer ${
                   localInput.trim()
                     ? 'bg-gradient-to-r from-[#5F2781] to-[#7B3A9E] hover:from-[#4A176B] hover:to-[#6A2B8A] scale-100 hover:scale-[1.02] shadow-[#5F2781]/20'
                     : 'bg-[#C4B2CC] cursor-not-allowed opacity-60'
@@ -303,25 +220,25 @@ export const ResearchHome: React.FC = () => {
                 disabled={!localInput.trim()}
                 title="Start Agentic Research"
               >
-                <span>Start Research</span>
-                <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+                <span>Research</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* ── ACTUAL FEATURES ROW ── */}
+        {/* ── SUGGESTED ACTIONS ROW ── */}
         <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
-          {TOOL_ROW.map(tool => (
+          {SUGGESTED_ACTIONS.map(action => (
             <button
-              key={tool.label}
-              id={`feature-chip-${tool.label.toLowerCase().replace(/\s+/g, '-')}`}
-              onClick={() => navigate(tool.path)}
+              key={action.label}
+              id={`suggested-action-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
+              onClick={() => action.action(localInput)}
               type="button"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#E5DDE9] hover:border-[#9C68BC] hover:bg-[#FAF7FC] text-[#4D4450] text-[13px] font-medium transition-all shadow-xs cursor-pointer hover:shadow-sm"
             >
-              <span className="material-symbols-outlined text-[15px] text-[#5F2781]">{tool.icon}</span>
-              <span>{tool.label}</span>
+              <span className="material-symbols-outlined text-[15px] text-[#5F2781]">{action.icon}</span>
+              <span>{action.label}</span>
             </button>
           ))}
         </div>

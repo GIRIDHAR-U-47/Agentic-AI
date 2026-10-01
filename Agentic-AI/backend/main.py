@@ -10,7 +10,7 @@ load_dotenv()
 import config
 import db
 
-from routers import papers, agents, evidence, pdf, corpus, sessions, discovery, collection
+from routers import papers, agents, evidence, pdf, corpus, sessions, discovery, collection, paper_chat
 
 config.ensure_dirs()
 db.init_db()
@@ -51,6 +51,7 @@ app.include_router(papers.router)
 app.include_router(agents.router)
 app.include_router(evidence.router)
 app.include_router(pdf.router)
+app.include_router(paper_chat.router)
 
 
 @app.get("/")

@@ -167,6 +167,52 @@ export interface PDFRAGResult {
 }
 
 // ---------------------------------------------------------------------------
+// Paper Chat types (single-document conversational RAG)
+// ---------------------------------------------------------------------------
+
+export interface PaperChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface PaperChatSourceChunk {
+  chunk_id: string;
+  doc_id: string;
+  doc_title: string;
+  filename: string;
+  page: number;
+  section: string;
+  quote: string;
+  marker: string;
+  score: number;
+}
+
+export interface PaperChatResponse {
+  query: string;
+  answer: string;
+  sources: PaperChatSourceChunk[];
+  verified: boolean;
+  support_rate: number;
+  insufficient_evidence: boolean;
+  query_rewritten: boolean;
+  rewritten_query: string;
+  agent_status: string[];
+  latency_ms: number;
+}
+
+export interface PaperChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  sources?: PaperChatSourceChunk[];
+  agentStatus?: string[];
+  verified?: boolean;
+  insufficient_evidence?: boolean;
+  isStreaming?: boolean;
+}
+
+// ---------------------------------------------------------------------------
 // Research-Pilot review workflow (backend `routers/sessions.py` + `corpus.py`)
 // ---------------------------------------------------------------------------
 
@@ -239,11 +285,17 @@ export interface CandidatePaper {
   abstract?: string;
   page_count?: number;
   source?: string;
-  relevance: number;
+  relevance?: number;
   /** Present on arXiv-discovery candidates so the researcher can open the source. */
   abs_url?: string;
   pdf_url?: string;
   source_url?: string;
+  url?: string;
+  is_open_access?: boolean;
+  citations_count?: number;
+  sources_found?: string[];
+  openalex_id?: string;
+  semantic_scholar_id?: string;
   /** 0 = abstract-only label; shown as a badge so nobody mistakes it for full text. */
   full_text_available?: number;
   abstract_only?: boolean;
@@ -310,6 +362,7 @@ export interface ReviewCitation {
 export interface ComparisonRow {
   marker: string;
   title: string;
+  doc_id?: string;
   authors?: string | null;
   year?: string | null;
   venue?: string | null;

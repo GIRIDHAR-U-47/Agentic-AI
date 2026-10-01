@@ -121,6 +121,7 @@ def build_comparison_table(
         rows.append(
             {
                 "marker": marker or "-",
+                "doc_id": p.get("id") or p.get("doc_id") or "",
                 "title": p.get("title") or "Untitled",
                 "authors": _blank(p.get("authors")),
                 "year": _blank(p.get("year")),

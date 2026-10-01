@@ -1,5 +1,4 @@
 @echo off
-setlocal enabledelayedexpansion
 title R-Lens Academic Research Assistant - Launcher
 color 0B
 
@@ -9,12 +8,17 @@ echo                     Unified Full-Stack Launcher
 echo ===============================================================================
 echo.
 
-:: Determine Base Directory (works whether run from root or Agentic-AI subfolder)
-set "BASE_DIR=%~dp0"
-if exist "%BASE_DIR%Agentic-AI\backend\main.py" (
-    set "PROJECT_ROOT=%BASE_DIR%Agentic-AI"
+:: Resolve absolute script directory path
+set "SCRIPT_DIR=%~dp0"
+if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
+:: Locate project root
+if exist "%SCRIPT_DIR%\backend\main.py" (
+    set "PROJECT_ROOT=%SCRIPT_DIR%"
+) else if exist "%SCRIPT_DIR%\Agentic-AI\backend\main.py" (
+    set "PROJECT_ROOT=%SCRIPT_DIR%\Agentic-AI"
 ) else (
-    set "PROJECT_ROOT=%BASE_DIR%"
+    set "PROJECT_ROOT=%SCRIPT_DIR%"
 )
 
 set "BACKEND_DIR=%PROJECT_ROOT%\backend"
@@ -25,23 +29,25 @@ echo [*] Backend Dir  : %BACKEND_DIR%
 echo [*] Frontend Dir : %FRONTEND_DIR%
 echo.
 
-:: Check for Python
+:: -----------------------------------------------------------------------------
+:: Check Prerequisites
+:: -----------------------------------------------------------------------------
 where python >nul 2>&1
-if %ERRORLEVEL% neq 0 (
+if %ERRORLEVEL% equ 0 (
+    set "PY_CMD=python"
+) else (
     where py >nul 2>&1
-    if %ERRORLEVEL% neq 0 (
+    if %ERRORLEVEL% equ 0 (
+        set "PY_CMD=py"
+    ) else (
         echo [ERROR] Python was not found in your PATH.
         echo Please install Python 3.10+ from https://www.python.org/downloads/
         echo Make sure to check "Add Python to PATH" during installation.
         pause
         exit /b 1
     )
-    set "PY_CMD=py"
-) else (
-    set "PY_CMD=python"
 )
 
-:: Check for Node.js / NPM
 where npm >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Node.js / npm was not found in your PATH.
@@ -54,66 +60,68 @@ if %ERRORLEVEL% neq 0 (
 :: Step 1: Environment Configuration Sync
 :: -----------------------------------------------------------------------------
 echo [1/4] Checking Environment Configurations...
+
 if not exist "%BACKEND_DIR%\.env" (
-    if exist "%BASE_DIR%\backend\.env" (
-        copy /y "%BASE_DIR%\backend\.env" "%BACKEND_DIR%\.env" >nul
-        echo     [+] Copied backend\.env configuration.
-    ) else if exist "%BASE_DIR%\.env" (
-        copy /y "%BASE_DIR%\.env" "%BACKEND_DIR%\.env" >nul
-        echo     [+] Copied root .env configuration.
-    ) else if exist "%BACKEND_DIR%\.env.example" (
+    if exist "%PROJECT_ROOT%\.env" (
+        copy /y "%PROJECT_ROOT%\.env" "%BACKEND_DIR%\.env" >nul
+        echo     [+] Copied root .env to backend\.env
+    )
+)
+if not exist "%BACKEND_DIR%\.env" (
+    if exist "%BACKEND_DIR%\.env.example" (
         copy /y "%BACKEND_DIR%\.env.example" "%BACKEND_DIR%\.env" >nul
-        echo     [+] Created backend\.env from template (.env.example).
+        echo     [+] Created backend\.env from .env.example template
     )
 )
 
 if not exist "%FRONTEND_DIR%\.env" (
-    if exist "%BASE_DIR%\frontend\.env" (
-        copy /y "%BASE_DIR%\frontend\.env" "%FRONTEND_DIR%\.env" >nul
-        echo     [+] Copied frontend\.env configuration.
+    if exist "%PROJECT_ROOT%\frontend\.env" (
+        copy /y "%PROJECT_ROOT%\frontend\.env" "%FRONTEND_DIR%\.env" >nul
+        echo     [+] Copied frontend\.env configuration
     ) else (
         echo VITE_GEMINI_API_KEY= > "%FRONTEND_DIR%\.env"
-        echo     [+] Initialized frontend\.env.
+        echo     [+] Created initial frontend\.env
     )
 )
 
+echo     [+] Environment files verified.
+
 :: -----------------------------------------------------------------------------
-:: Step 2: Backend Setup (Python Virtual Environment & Dependencies)
+:: Step 2: Backend Setup
 :: -----------------------------------------------------------------------------
 echo.
-echo [2/4] Preparing Backend (FastAPI + Agentic Engine)...
+echo [2/4] Preparing Backend - FastAPI and Agentic Engine...
 cd /d "%BACKEND_DIR%"
 
-if not exist "venv\Scripts\python.exe" (
-    echo     [*] Creating Python virtual environment (venv)...
+if not exist "%BACKEND_DIR%\venv\Scripts\python.exe" (
+    echo     [*] Creating Python virtual environment venv...
     %PY_CMD% -m venv venv
-    if %ERRORLEVEL% neq 0 (
+    if errorlevel 1 (
         echo [ERROR] Failed to create virtual environment.
         pause
         exit /b 1
     )
 )
 
-echo     [*] Checking & installing Python dependencies...
-".\venv\Scripts\python.exe" -m pip install -r requirements.txt --quiet
+echo     [*] Checking Python dependencies...
+"%BACKEND_DIR%\venv\Scripts\python.exe" -m pip install -r requirements.txt --quiet
 
-:: Verify corpus database exists, if not initialize it
-if not exist "data\rlens.sqlite3" (
+if not exist "%BACKEND_DIR%\data\rlens.sqlite3" (
     echo     [*] Initializing SQLite database and pinned research corpus...
-    ".\venv\Scripts\python.exe" scripts\fetch_corpus.py
+    "%BACKEND_DIR%\venv\Scripts\python.exe" scripts\fetch_corpus.py
 )
 
 :: -----------------------------------------------------------------------------
-:: Step 3: Frontend Setup (React + Vite + Tailwind)
+:: Step 3: Frontend Setup
 :: -----------------------------------------------------------------------------
 echo.
-echo [3/4] Preparing Frontend (React + Vite)...
+echo [3/4] Preparing Frontend - React and Vite...
 cd /d "%FRONTEND_DIR%"
 
-if not exist "node_modules" (
-    echo     [*] Installing Node.js packages (one-time setup)...
+if not exist "%FRONTEND_DIR%\node_modules" (
+    echo     [*] Installing Node.js packages...
     call npm install --no-audit
-    if %ERRORLEVEL% neq 0 (
+    if errorlevel 1 (
         echo [ERROR] NPM install failed.
         pause
         exit /b 1
@@ -121,17 +129,17 @@ if not exist "node_modules" (
 )
 
 :: -----------------------------------------------------------------------------
-:: Step 4: Launching Servers
+:: Step 4: Launching Services
 :: -----------------------------------------------------------------------------
 echo.
 echo [4/4] Starting Backend and Frontend services...
 echo.
 
 :: Launch Backend in separate window
-start "R-Lens Backend (FastAPI :8000)" /D "%BACKEND_DIR%" cmd /k "color 0A && title R-Lens Backend (FastAPI :8000) && echo ====================================================================== && echo   R-Lens Backend running at http://localhost:8000 && echo   Swagger Docs: http://localhost:8000/docs && echo ====================================================================== && echo. && venv\Scripts\python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+start "R-Lens Backend" /D "%BACKEND_DIR%" cmd /k "color 0A && title R-Lens Backend [FastAPI :8000] && echo ====================================================================== && echo   R-Lens Backend running at http://localhost:8000 && echo   Swagger Docs: http://localhost:8000/docs && echo ====================================================================== && echo. && venv\Scripts\python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 
 :: Launch Frontend in separate window
-start "R-Lens Frontend (Vite :5173)" /D "%FRONTEND_DIR%" cmd /k "color 09 && title R-Lens Frontend (Vite :5173) && echo ====================================================================== && echo   R-Lens Frontend UI running at http://localhost:5173 && echo ====================================================================== && echo. && npm run dev"
+start "R-Lens Frontend" /D "%FRONTEND_DIR%" cmd /k "color 09 && title R-Lens Frontend [Vite :5173] && echo ====================================================================== && echo   R-Lens Frontend UI running at http://localhost:5173 && echo ====================================================================== && echo. && npm run dev"
 
 echo ===============================================================================
 echo                       R-LENS SERVICES ARE RUNNING!
