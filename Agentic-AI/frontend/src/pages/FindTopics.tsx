@@ -49,31 +49,31 @@ export const FindTopics: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#FCFBFE] px-8 py-8">
+    <div className="min-h-[calc(100vh-56px)] bg-[#FAFAFC] px-6 sm:px-8 py-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-[28px] font-bold text-[#1D1A20] tracking-tight mb-1">Find Topics</h1>
-          <p className="text-[14px] text-on-surface-variant">Discover trending research areas and explore topics in your field</p>
+          <h1 className="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Find Topics</h1>
+          <p className="text-[14px] text-gray-500">Discover trending research areas and explore topics in your field</p>
         </div>
 
         {/* Search */}
         <div className="relative mb-8">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-outline pointer-events-none">search</span>
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-gray-400 pointer-events-none">search</span>
           <input
             id="find-topics-search"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search topics, research areas, keywords..."
-            className="w-full pl-12 pr-4 py-3.5 text-[14px] bg-white border border-[#E5DDE9] rounded-2xl focus:outline-none focus:border-[#9C68BC] shadow-sm transition-colors"
+            className="w-full pl-12 pr-4 py-3 text-[14px] bg-white border border-gray-200/80 rounded-2xl focus:outline-none focus:border-purple-600 shadow-2xs transition-colors"
           />
         </div>
 
         {/* Trending */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <span className="material-symbols-outlined text-[18px] text-[#5F2781]">trending_up</span>
-            <h2 className="text-[15px] font-bold text-[#1D1A20]">Trending Right Now</h2>
+            <span className="material-symbols-outlined text-[18px] text-purple-600">trending_up</span>
+            <h2 className="text-[15px] font-semibold text-gray-900">Trending Right Now</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {TRENDING_TOPICS.map(t => (
@@ -82,11 +82,11 @@ export const FindTopics: React.FC = () => {
                 id={`trending-${t.label.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => handleTopicClick(t.label)}
                 type="button"
-                className="group inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E5DDE9] hover:border-[#9C68BC] hover:bg-[#FAF7FC] transition-all cursor-pointer"
+                className="group inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-gray-200/80 hover:border-purple-400 hover:bg-purple-50/30 transition-all cursor-pointer shadow-2xs"
               >
-                {t.hot && <span className="material-symbols-outlined text-[14px] text-[#D44000]">local_fire_department</span>}
-                <span className="text-[12.5px] font-medium text-[#1D1A20] group-hover:text-[#5F2781]">{t.label}</span>
-                <span className="text-[11px] text-outline">{t.count}</span>
+                {t.hot && <span className="material-symbols-outlined text-[14px] text-amber-600">local_fire_department</span>}
+                <span className="text-[12.5px] font-medium text-gray-800 group-hover:text-purple-700">{t.label}</span>
+                <span className="text-[11px] text-gray-400">{t.count}</span>
               </button>
             ))}
           </div>
@@ -94,25 +94,24 @@ export const FindTopics: React.FC = () => {
 
         {/* Domain Cards */}
         <div>
-          <h2 className="text-[15px] font-bold text-[#1D1A20] mb-4">Browse by Research Area</h2>
+          <h2 className="text-[15px] font-semibold text-gray-900 mb-4">Browse by Research Area</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {TOPIC_CARDS.map(card => (
               <div
                 key={card.area}
                 id={`topic-area-${card.area.toLowerCase().replace(/\s+/g, '-')}`}
                 className={`bg-white border rounded-2xl p-5 cursor-pointer transition-all ${
-                  activeArea === card.area ? 'border-[#9C68BC] shadow-md' : 'border-[#E5DDE9] hover:border-[#9C68BC] hover:shadow-sm'
+                  activeArea === card.area ? 'border-purple-500 shadow-sm' : 'border-gray-200/80 hover:border-purple-300 hover:shadow-2xs'
                 }`}
                 onClick={() => setActiveArea(activeArea === card.area ? null : card.area)}
               >
                 <div className="flex items-center gap-2.5 mb-4">
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: card.bg }}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-50 text-purple-700 border border-purple-100"
                   >
-                    <span className="material-symbols-outlined text-[18px]" style={{ color: card.color }}>science</span>
+                    <span className="material-symbols-outlined text-[18px]">science</span>
                   </div>
-                  <h3 className="text-[14px] font-semibold" style={{ color: card.color }}>{card.area}</h3>
+                  <h3 className="text-[14px] font-semibold text-gray-900">{card.area}</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {card.topics.map(topic => (
@@ -120,7 +119,7 @@ export const FindTopics: React.FC = () => {
                       key={topic}
                       onClick={e => { e.stopPropagation(); handleTopicClick(topic); }}
                       type="button"
-                      className="text-left px-3 py-2 rounded-xl bg-[#F7F2F9] hover:bg-[#EFE3F6] text-[12.5px] text-[#3F1A57] font-medium cursor-pointer transition-colors"
+                      className="text-left px-3 py-2 rounded-xl bg-gray-50 hover:bg-purple-50/60 hover:text-purple-700 text-[12.5px] text-gray-700 font-medium cursor-pointer transition-colors border border-gray-100"
                     >
                       {topic}
                     </button>

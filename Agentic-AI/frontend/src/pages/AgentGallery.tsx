@@ -90,24 +90,24 @@ export const AgentGallery: React.FC = () => {
   });
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#FCFBFE] px-8 py-8">
+    <div className="min-h-[calc(100vh-56px)] bg-[#FAFAFC] px-6 sm:px-8 py-8">
       {/* Header */}
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-[28px] font-bold text-[#1D1A20] tracking-tight mb-1">Agent Gallery</h1>
-          <p className="text-[14px] text-on-surface-variant">Autonomous AI agents for every research workflow</p>
+          <h1 className="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Agent Gallery</h1>
+          <p className="text-[14px] text-gray-500">Autonomous AI agents for every research workflow</p>
         </div>
 
         {/* Search + Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">search</span>
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-gray-400 pointer-events-none">search</span>
             <input
               id="agent-gallery-search"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search agents..."
-              className="w-full pl-9 pr-4 py-2 text-[13.5px] bg-white border border-[#E5DDE9] rounded-xl focus:outline-none focus:border-[#9C68BC] transition-colors"
+              className="w-full pl-9 pr-4 py-2 text-[13.5px] bg-white border border-gray-200/80 rounded-xl focus:outline-none focus:border-purple-600 transition-colors shadow-2xs"
             />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -119,8 +119,8 @@ export const AgentGallery: React.FC = () => {
                 type="button"
                 className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-medium transition-all cursor-pointer ${
                   activeFilter === f
-                    ? 'bg-[#5F2781] text-white shadow-sm'
-                    : 'bg-white border border-[#E5DDE9] text-[#4D4450] hover:border-[#9C68BC]'
+                    ? 'bg-purple-600 text-white shadow-2xs'
+                    : 'bg-white border border-gray-200/80 text-gray-700 hover:border-purple-400'
                 }`}
               >
                 {f}
@@ -135,27 +135,27 @@ export const AgentGallery: React.FC = () => {
             <div
               key={agent.name}
               id={`agent-card-${agent.name.toLowerCase().replace(/\s+/g, '-')}`}
-              className="bg-white border border-[#E5DDE9] rounded-2xl p-5 flex flex-col gap-4 hover:border-[#9C68BC] hover:shadow-md transition-all group cursor-pointer"
+              className="bg-white border border-gray-200/80 rounded-2xl p-5 flex flex-col gap-4 hover:border-purple-300 hover:shadow-sm transition-all group cursor-pointer"
               onClick={() => navigate('/')}
             >
               <div className="flex items-start justify-between">
-                <div className={`w-11 h-11 rounded-xl ${agent.color} flex items-center justify-center shadow-sm`}>
-                  <span className="material-symbols-outlined text-white text-[22px]">{agent.icon}</span>
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-100">
+                  <span className="material-symbols-outlined text-[20px]">{agent.icon}</span>
                 </div>
-                <span className="text-[11px] text-outline font-medium">{agent.uses}</span>
+                <span className="text-[11px] text-gray-400 font-medium">{agent.uses}</span>
               </div>
               <div>
-                <h3 className="text-[14px] font-semibold text-[#1D1A20] group-hover:text-[#5F2781] transition-colors mb-1">{agent.name}</h3>
-                <p className="text-[12.5px] text-on-surface-variant leading-snug">{agent.desc}</p>
+                <h3 className="text-[14px] font-semibold text-gray-900 group-hover:text-purple-700 transition-colors mb-1">{agent.name}</h3>
+                <p className="text-[12.5px] text-gray-500 leading-snug">{agent.desc}</p>
               </div>
               <div className="flex gap-1.5 flex-wrap">
                 {agent.tags.map(tag => (
-                  <span key={tag} className="text-[10.5px] font-medium text-[#5F2781] bg-[#F1E8F4] px-2 py-0.5 rounded-full">{tag}</span>
+                  <span key={tag} className="text-[10.5px] font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100/60">{tag}</span>
                 ))}
               </div>
               <button
                 type="button"
-                className="w-full mt-auto py-2 text-[13px] font-semibold text-[#5F2781] border border-[#C4A8D6] rounded-xl hover:bg-[#5F2781] hover:text-white hover:border-[#5F2781] transition-all cursor-pointer"
+                className="w-full mt-auto py-2 text-[13px] font-medium text-purple-700 bg-purple-50/60 border border-purple-200/80 rounded-xl hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all cursor-pointer"
               >
                 Use Agent
               </button>

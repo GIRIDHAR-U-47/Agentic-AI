@@ -83,11 +83,11 @@ export const ExtractData: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#FCFBFE] px-8 py-8">
+    <div className="min-h-[calc(100vh-56px)] bg-[#FAFAFC] px-6 sm:px-8 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-[28px] font-bold text-[#1D1A20] tracking-tight mb-1">Extract Data</h1>
-          <p className="text-[14px] text-on-surface-variant">Pull structured data from research PDFs automatically</p>
+          <h1 className="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Extract Data</h1>
+          <p className="text-[14px] text-gray-500">Pull structured data from research PDFs automatically</p>
         </div>
 
         {/* Upload + Options Row */}
@@ -100,31 +100,31 @@ export const ExtractData: React.FC = () => {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             className={`min-h-[180px] flex flex-col items-center justify-center rounded-2xl border-2 border-dashed cursor-pointer transition-all ${
-              isDragging ? 'border-[#5F2781] bg-[#F5ECF9]'
-              : pdfName ? 'border-[#C4A8D6] bg-[#FAF7FC]'
-              : 'border-[#CFBFD9] bg-white hover:border-[#9C68BC] hover:bg-[#FAF7FC]'
+              isDragging ? 'border-purple-600 bg-purple-50/50'
+              : pdfName ? 'border-purple-400 bg-purple-50/20'
+              : 'border-gray-200 bg-white hover:border-purple-400 hover:bg-gray-50/60'
             }`}
           >
             <input ref={fileInputRef} type="file" accept=".pdf" className="hidden"
               onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
             {pdfName ? (
               <div className="text-center px-4">
-                <span className="material-symbols-outlined text-[36px] text-[#5F2781]">picture_as_pdf</span>
-                <p className="text-[13px] font-semibold text-[#1D1A20] mt-2 break-all">{pdfName}</p>
+                <span className="material-symbols-outlined text-[36px] text-purple-600">picture_as_pdf</span>
+                <p className="text-[13px] font-semibold text-gray-900 mt-2 break-all">{pdfName}</p>
                 <p className="text-[11.5px] text-emerald-600 mt-0.5">✓ Ready to extract</p>
               </div>
             ) : (
               <div className="text-center px-4">
-                <span className="material-symbols-outlined text-[36px] text-[#C4B2CC]">upload_file</span>
-                <p className="text-[13px] font-semibold text-[#1D1A20] mt-2">Upload PDF</p>
-                <p className="text-[12px] text-outline">Drag &amp; drop or click to browse</p>
+                <span className="material-symbols-outlined text-[36px] text-gray-300">upload_file</span>
+                <p className="text-[13px] font-semibold text-gray-800 mt-2">Upload PDF</p>
+                <p className="text-[12px] text-gray-400">Drag &amp; drop or click to browse</p>
               </div>
             )}
           </div>
 
           {/* Options */}
-          <div className="bg-white border border-[#E5DDE9] rounded-2xl p-4">
-            <p className="text-[12px] font-bold uppercase tracking-wider text-outline mb-3">What to extract</p>
+          <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-2xs">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-3">What to extract</p>
             <div className="grid grid-cols-2 gap-2 mb-4">
               {EXTRACT_OPTIONS.map(opt => (
                 <button
@@ -134,19 +134,19 @@ export const ExtractData: React.FC = () => {
                   type="button"
                   className={`flex flex-col items-start p-3 rounded-xl border transition-all cursor-pointer text-left ${
                     selectedOptions.includes(opt.id)
-                      ? 'border-[#9C68BC] bg-[#F5ECF9]'
-                      : 'border-[#E5DDE9] hover:border-[#9C68BC]'
+                      ? 'border-purple-500 bg-purple-50/60'
+                      : 'border-gray-200/80 hover:border-purple-300'
                   }`}
                 >
                   <div className="flex items-center gap-1.5 mb-1">
-                    <span className={`material-symbols-outlined text-[16px] ${selectedOptions.includes(opt.id) ? 'text-[#5F2781]' : 'text-outline'}`}>
+                    <span className={`material-symbols-outlined text-[16px] ${selectedOptions.includes(opt.id) ? 'text-purple-700' : 'text-gray-400'}`}>
                       {opt.icon}
                     </span>
-                    <span className={`text-[12.5px] font-semibold ${selectedOptions.includes(opt.id) ? 'text-[#5F2781]' : 'text-[#1D1A20]'}`}>
+                    <span className={`text-[12.5px] font-semibold ${selectedOptions.includes(opt.id) ? 'text-purple-700' : 'text-gray-800'}`}>
                       {opt.label}
                     </span>
                   </div>
-                  <span className="text-[11px] text-outline">{opt.desc}</span>
+                  <span className="text-[11px] text-gray-400">{opt.desc}</span>
                 </button>
               ))}
             </div>
@@ -155,8 +155,8 @@ export const ExtractData: React.FC = () => {
               onClick={handleExtract}
               type="button"
               disabled={!pdfName || selectedOptions.length === 0}
-              className={`w-full py-2.5 rounded-xl text-[13px] font-semibold text-white transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                pdfName && selectedOptions.length > 0 ? 'bg-[#5F2781] hover:bg-[#4A176B]' : 'bg-[#C4B2CC] cursor-not-allowed'
+              className={`w-full py-2.5 rounded-xl text-[13px] font-medium text-white transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                pdfName && selectedOptions.length > 0 ? 'bg-purple-600 hover:bg-purple-700 shadow-2xs' : 'bg-gray-300 cursor-not-allowed'
               }`}
             >
               {isLoading ? (
@@ -178,11 +178,11 @@ export const ExtractData: React.FC = () => {
         {results.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[15px] font-bold text-[#1D1A20]">Extracted Data ({results.length} items)</h2>
+              <h2 className="text-[15px] font-semibold text-gray-900">Extracted Data ({results.length} items)</h2>
               <button
                 type="button"
                 onClick={() => showToast('All data exported as JSON!')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5DDE9] text-[12px] font-medium text-[#5F2781] hover:bg-[#F5ECF9] cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200/80 text-[12px] font-medium text-purple-700 hover:bg-purple-50 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[14px]">download</span>
                 Export All
@@ -192,22 +192,22 @@ export const ExtractData: React.FC = () => {
               {results.map((item, i) => {
                 const colors = COLORS[item.type];
                 return (
-                  <div key={i} id={`extract-result-${i}`} className="bg-white border border-[#E5DDE9] rounded-xl p-4">
+                  <div key={i} id={`extract-result-${i}`} className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 flex-1">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: colors.bg }}>
-                          <span className="material-symbols-outlined text-[16px]" style={{ color: colors.text }}>{ICONS[item.type]}</span>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-purple-50 text-purple-700 border border-purple-100">
+                          <span className="material-symbols-outlined text-[16px]">{ICONS[item.type]}</span>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[12px] font-semibold" style={{ color: colors.text }}>{item.title}</span>
-                            <span className="text-[10px] text-outline">p.{item.page}</span>
+                            <span className="text-[12px] font-semibold text-gray-900">{item.title}</span>
+                            <span className="text-[10px] text-gray-400">p.{item.page}</span>
                           </div>
-                          <p className="text-[13px] text-[#1D1A20] font-mono leading-relaxed">{item.content}</p>
+                          <p className="text-[13px] text-gray-800 font-mono leading-relaxed">{item.content}</p>
                         </div>
                       </div>
                       <button onClick={() => handleCopyItem(item)} type="button"
-                        className="shrink-0 p-1.5 rounded-lg border border-[#E5DDE9] hover:border-[#9C68BC] text-outline hover:text-[#5F2781] cursor-pointer transition-colors">
+                        className="shrink-0 p-1.5 rounded-lg border border-gray-200/80 hover:border-purple-400 text-gray-400 hover:text-purple-700 cursor-pointer transition-colors">
                         <span className="material-symbols-outlined text-[16px]">content_copy</span>
                       </button>
                     </div>

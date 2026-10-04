@@ -8,26 +8,26 @@ export const AppLayout: React.FC = () => {
   const { toastMessage } = useResearch();
 
   return (
-    <div className="min-h-screen bg-[#FCFBFE] text-on-surface flex selection:bg-primary-fixed selection:text-primary">
-      {/* Fixed Left Sidebar (w-64) */}
+    <div className="min-h-screen bg-[#FAFAFC] text-gray-900 flex selection:bg-purple-100 selection:text-primary">
+      {/* Responsive Left Sidebar (~260px) */}
       <Sidebar />
 
       {/* Main App Canvas */}
-      <div className="pl-64 flex-1 flex flex-col min-h-screen min-w-0 bg-[#FCFBFE]">
-        {/* Fixed Topbar (h-14) */}
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 pl-0 md:pl-[260px] bg-[#FAFAFC] transition-all duration-200">
+        {/* Fixed Topbar */}
         <Topbar />
 
         {/* Page Viewport */}
-        <main className="w-full pt-14 bg-[#FCFBFE] min-h-screen flex-1">
+        <main className="w-full pt-14 min-h-[calc(100vh-56px)] flex-1 flex flex-col">
           <Outlet />
         </main>
       </div>
 
       {/* Global Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-inverse-surface text-inverse-on-surface px-space-md py-space-sm rounded-lg shadow-xl font-body-sm text-body-sm flex items-center gap-space-xs transition-all animate-bounce">
-          <span className="material-symbols-outlined text-inverse-primary text-[18px]">check_circle</span>
-          <span>{toastMessage}</span>
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-[13px] flex items-center gap-2 transition-all animate-fadeIn">
+          <span className="material-symbols-outlined text-emerald-400 text-[18px]">check_circle</span>
+          <span className="leading-snug">{toastMessage}</span>
         </div>
       )}
     </div>

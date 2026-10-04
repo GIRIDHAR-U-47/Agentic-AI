@@ -91,20 +91,24 @@ export const Templates: React.FC = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('All');
 
-  const filtered = TEMPLATES.filter(t => activeCategory === 'All' || t.category === activeCategory);
+  const filtered = TEMPLATES.filter((t) => activeCategory === 'All' || t.category === activeCategory);
 
   return (
-    <div className="min-h-[calc(100vh-56px)] bg-[#FCFBFE] px-8 py-8">
+    <div className="min-h-[calc(100vh-56px)] bg-[#FAFAFC] px-4 sm:px-8 py-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-[28px] font-bold text-[#1D1A20] tracking-tight mb-1">Research Templates</h1>
-          <p className="text-[14px] text-on-surface-variant">Pre-built workflows to accelerate your research process</p>
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-1">
+            Research Templates
+          </h1>
+          <p className="text-[14px] text-gray-500">
+            Pre-built academic workflows to accelerate your research and writing
+          </p>
         </div>
 
         {/* Category Filters */}
         <div className="flex gap-2 flex-wrap mb-6">
-          {CATEGORIES.map(cat => (
+          {CATEGORIES.map((cat) => (
             <button
               key={cat}
               id={`template-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
@@ -112,8 +116,8 @@ export const Templates: React.FC = () => {
               type="button"
               className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-medium transition-all cursor-pointer ${
                 activeCategory === cat
-                  ? 'bg-[#5F2781] text-white shadow-sm'
-                  : 'bg-white border border-[#E5DDE9] text-[#4D4450] hover:border-[#9C68BC]'
+                  ? 'bg-purple-50 text-primary border border-purple-200/80 shadow-2xs font-semibold'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
               {cat}
@@ -123,36 +127,35 @@ export const Templates: React.FC = () => {
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(tpl => (
+          {filtered.map((tpl) => (
             <div
               key={tpl.name}
               id={`template-${tpl.name.toLowerCase().replace(/\s+/g, '-')}`}
-              className="bg-white border border-[#E5DDE9] rounded-2xl p-5 flex flex-col gap-3.5 hover:border-[#9C68BC] hover:shadow-md transition-all group cursor-pointer"
+              className="bg-white border border-gray-200/80 rounded-2xl p-5 flex flex-col gap-3 hover:border-purple-200 hover:shadow-xs transition-all group cursor-pointer shadow-2xs"
               onClick={() => navigate('/')}
             >
               <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center"
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                 style={{ backgroundColor: tpl.bg }}
               >
-                <span className="material-symbols-outlined text-[22px]" style={{ color: tpl.color }}>{tpl.icon}</span>
+                <span className="material-symbols-outlined text-[20px]" style={{ color: tpl.color }}>
+                  {tpl.icon}
+                </span>
               </div>
               <div>
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="text-[14px] font-semibold text-[#1D1A20] group-hover:text-[#5F2781] transition-colors leading-snug">
-                    {tpl.name}
-                  </h3>
-                </div>
-                <p className="text-[12.5px] text-on-surface-variant leading-snug">{tpl.desc}</p>
+                <h3 className="text-[14px] font-semibold text-gray-900 group-hover:text-primary transition-colors leading-snug mb-1">
+                  {tpl.name}
+                </h3>
+                <p className="text-[12.5px] text-gray-500 leading-relaxed">{tpl.desc}</p>
               </div>
-              <div className="flex items-center justify-between mt-auto pt-1">
-                <span className="text-[11px] text-outline font-medium">{tpl.steps} steps · {tpl.category}</span>
-                <button
-                  type="button"
-                  className="text-[12px] font-semibold text-[#5F2781] hover:underline cursor-pointer"
-                  onClick={e => { e.stopPropagation(); navigate('/'); }}
-                >
-                  Use template →
-                </button>
+              <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
+                <span className="text-[11px] text-gray-400 font-medium">
+                  {tpl.steps} steps · {tpl.category}
+                </span>
+                <span className="text-[12px] font-medium text-primary group-hover:underline flex items-center gap-0.5">
+                  Use template
+                  <span className="material-symbols-outlined text-[13px]">arrow_forward</span>
+                </span>
               </div>
             </div>
           ))}

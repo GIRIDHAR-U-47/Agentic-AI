@@ -46,6 +46,7 @@ export const ChatWithPDF: React.FC = () => {
   const [activePage, setActivePage] = useState<number>(1);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [highlightedQuote, setHighlightedQuote] = useState<string | null>(null);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
   // Drag & drop ref
   const [isDragging, setIsDragging] = useState(false);
@@ -541,100 +542,127 @@ export const ChatWithPDF: React.FC = () => {
       </aside>
 
       {/* ── PANEL 2 (CENTER): AGENTIC RAG CONVERSATION ── */}
-      <main className="flex-1 flex flex-col bg-white border-r border-[#EFE9F3] min-w-0">
+      <main className="flex-1 flex flex-col bg-[#FAFAFC] border-r border-gray-200/80 min-w-0">
         {/* Chat Header */}
-        <div className="px-6 py-3 border-b border-[#EFE9F3] bg-white/80 backdrop-blur-md flex items-center justify-between">
+        <div className="px-6 py-2.5 border-b border-gray-200/80 bg-white flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-            <span className="text-[13.5px] font-bold text-[#1D1A20] truncate">
-              Agentic RAG Conversation — {activeDoc.filename}
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            <span className="text-[13px] font-bold text-gray-900 truncate">
+              {activeDoc.filename}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-[#5F2781] bg-[#F5ECF9] px-2.5 py-0.5 rounded-md border border-[#ECD9F3] font-semibold">
-              LangGraph Multi-Step Engine
+            <span className="hidden sm:inline-flex text-[11px] text-primary bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200/60 font-medium">
+              Agentic RAG Engine
             </span>
+
+            {/* Toggle Right Panel */}
+            <button
+              type="button"
+              onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+              className={`p-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+                isRightPanelOpen
+                  ? 'bg-purple-50 border-purple-200 text-primary'
+                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+              title="Toggle Document Viewer"
+            >
+              <span className="material-symbols-outlined text-[17px]">
+                {isRightPanelOpen ? 'chrome_reader_mode' : 'menu_book'}
+              </span>
+              <span className="hidden sm:inline">
+                {isRightPanelOpen ? 'Hide PDF' : 'View PDF'}
+              </span>
+            </button>
           </div>
         </div>
 
         {/* Message Stream */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {messages.map(msg => (
-            <div
-              key={msg.id}
-              className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              {msg.role !== 'user' && (
-                <div className="w-8 h-8 rounded-xl bg-[#5F2781] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                  <span className="material-symbols-outlined text-[16px]">psychology</span>
-                </div>
-              )}
-
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
+          <div className="max-w-3xl mx-auto space-y-4">
+            {messages.map((msg) => (
               <div
-                className={`max-w-2xl rounded-2xl p-4 text-[13.5px] leading-relaxed shadow-xs ${
-                  msg.role === 'user'
-                    ? 'bg-[#5F2781] text-white rounded-tr-none'
-                    : 'bg-[#FAF7FC] border border-[#EAE0F0] text-[#1D1A20] rounded-tl-none'
-                }`}
+                key={msg.id}
+                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className="font-medium whitespace-pre-line">{msg.text}</div>
-
-                {/* Clickable Citations list */}
-                {msg.citations && msg.citations.length > 0 && (
-                  <div className="mt-3 pt-2.5 border-t border-[#EFE5F5] space-y-1.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#5F2781] block mb-1">
-                      Verified Page Citations:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {msg.citations.map((c, i) => (
-                        <button
-                          key={i}
-                          onClick={() => handleCitationClick(c)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white hover:bg-[#F5ECF9] text-[#5F2781] border border-[#E5DDE9] text-[11.5px] font-semibold transition-colors cursor-pointer shadow-xs group"
-                          type="button"
-                          title={`Click to open ${c.doc_name} at Page ${c.page}`}
-                        >
-                          <span className="material-symbols-outlined text-[14px]">auto_stories</span>
-                          <span>{c.doc_name} — Page {c.page}</span>
-                          <span className="material-symbols-outlined text-[12px] opacity-60 group-hover:opacity-100">arrow_forward</span>
-                        </button>
-                      ))}
-                    </div>
+                {msg.role !== 'user' && (
+                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-primary border border-purple-200/60 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                    <span className="material-symbols-outlined text-[16px]">psychology</span>
                   </div>
                 )}
 
-                <span className={`block text-[10px] mt-2 ${msg.role === 'user' ? 'text-white/70' : 'text-outline'}`}>
-                  {msg.timestamp}
-                </span>
-              </div>
-            </div>
-          ))}
+                <div
+                  className={`max-w-2xl rounded-2xl p-4 text-[13.5px] leading-relaxed shadow-2xs ${
+                    msg.role === 'user'
+                      ? 'bg-gray-100 text-gray-900 border border-gray-200/60 rounded-tr-xs'
+                      : 'bg-white border border-gray-200/80 text-gray-900 rounded-tl-xs'
+                  }`}
+                >
+                  <div className="font-normal whitespace-pre-line leading-relaxed">{msg.text}</div>
 
-          {/* Live Agent Activity Indicator */}
-          {isAgentSearching && (
-            <div className="flex items-center gap-3 p-3.5 bg-[#FAF7FC] border border-[#E5DDE9] rounded-xl animate-fadeIn">
-              <div className="w-5 h-5 rounded-full border-2 border-[#5F2781] border-t-transparent animate-spin" />
-              <div className="flex flex-col">
-                <span className="text-[12.5px] font-bold text-[#3F1A57]">R-Lens Agentic Retrieval</span>
-                <span className="text-[11.5px] text-[#5F2781] flex items-center gap-1 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  {agentActivityStep}...
-                </span>
-              </div>
-            </div>
-          )}
+                  {/* Clickable Citations list */}
+                  {msg.citations && msg.citations.length > 0 && (
+                    <div className="mt-3 pt-2.5 border-t border-gray-100 space-y-1.5">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 block mb-1">
+                        Verified Citations:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {msg.citations.map((c, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              handleCitationClick(c);
+                              setIsRightPanelOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-primary border border-purple-200/60 text-[11.5px] font-medium transition-colors cursor-pointer shadow-2xs group"
+                            type="button"
+                            title={`Open ${c.doc_name} at Page ${c.page}`}
+                          >
+                            <span className="material-symbols-outlined text-[13px]">auto_stories</span>
+                            <span>{c.doc_name} — Page {c.page}</span>
+                            <span className="material-symbols-outlined text-[12px] opacity-60 group-hover:opacity-100">
+                              arrow_forward
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-          <div ref={chatEndRef} />
+                  <span className={`block text-[10px] mt-2 ${msg.role === 'user' ? 'text-gray-400 text-right' : 'text-gray-400'}`}>
+                    {msg.timestamp}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* Live Agent Activity Indicator */}
+            {isAgentSearching && (
+              <div className="flex items-center gap-3 p-3 bg-white border border-gray-200/80 rounded-2xl shadow-2xs animate-fadeIn max-w-sm">
+                <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[12px] font-bold text-gray-900">R-Lens Retrieval</span>
+                  <span className="text-[11px] text-primary flex items-center gap-1 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    {agentActivityStep}...
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div ref={chatEndRef} />
+          </div>
         </div>
 
         {/* Suggested Question Chips */}
-        <div className="px-6 py-2 border-t border-[#F5EDFA] bg-[#FCFBFE] flex gap-1.5 flex-wrap">
-          {SUGGESTED_QUESTIONS.map(q => (
+        <div className="px-4 sm:px-6 py-1.5 border-t border-gray-100 bg-white flex gap-1.5 overflow-x-auto no-scrollbar">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase shrink-0 py-1">Prompts:</span>
+          {SUGGESTED_QUESTIONS.map((q) => (
             <button
               key={q}
               onClick={() => handleSend(q)}
-              className="text-[11.5px] px-3 py-1 rounded-full border border-[#E5DDE9] bg-white hover:bg-[#F5ECF9] hover:text-[#5F2781] text-[#4D4450] transition-colors cursor-pointer font-medium shadow-xs"
+              className="text-[11.5px] px-2.5 py-1 rounded-full border border-gray-200/80 bg-gray-50 hover:bg-purple-50 text-gray-600 hover:text-primary transition-colors cursor-pointer font-medium shrink-0"
               type="button"
             >
               {q}
@@ -643,99 +671,113 @@ export const ChatWithPDF: React.FC = () => {
         </div>
 
         {/* Chat Input Bar */}
-        <div className="p-4 border-t border-[#EFE9F3] bg-white">
-          <div className="flex gap-2 items-center bg-[#FAF7FC] border border-[#E5DDE9] rounded-xl px-4 py-2.5 focus-within:border-[#5F2781] transition-colors shadow-inner">
+        <div className="p-3 sm:p-4 border-t border-gray-200/80 bg-white">
+          <div className="max-w-3xl mx-auto flex gap-2 items-center bg-white border border-gray-200/90 rounded-2xl px-4 py-2 focus-within:border-primary/80 focus-within:ring-2 focus-within:ring-primary/10 transition-all shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
             <textarea
               id="pdf-chat-input"
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={`Ask anything about ${activeDoc.filename}... (e.g. 'What datasets were used?')`}
               rows={1}
-              className="flex-1 bg-transparent resize-none border-0 focus:outline-none text-[13.5px] text-[#1D1A20] placeholder-[#8F8495]"
+              className="flex-1 bg-transparent resize-none border-0 focus:outline-none text-[14px] text-gray-900 placeholder-gray-400 leading-relaxed"
             />
             <button
               id="pdf-chat-send-btn"
               onClick={() => handleSend()}
               type="button"
               disabled={!input.trim()}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 transition-all ${
+              className={`w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 transition-all cursor-pointer ${
                 input.trim()
-                  ? 'bg-[#5F2781] hover:bg-[#4A176B] cursor-pointer shadow-xs'
-                  : 'bg-[#C4B2CC] cursor-not-allowed'
+                  ? 'bg-primary hover:bg-primary-hover shadow-2xs'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
-              <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+              <span className="material-symbols-outlined text-[17px]">arrow_upward</span>
             </button>
           </div>
         </div>
       </main>
 
-      {/* ── PANEL 3 (RIGHT): DOCUMENT STRUCTURE & PAGE TEXT VIEWER ── */}
-      <aside className="w-full xl:w-96 bg-[#FAF7FC] border-t xl:border-t-0 xl:border-l border-[#EFE9F3] flex flex-col shrink-0">
-        {/* Panel Header */}
-        <div className="p-4 border-b border-[#EFE9F3] bg-white flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-[#5F2781]">menu_book</span>
-            <span className="text-[13.5px] font-bold text-[#1D1A20]">Document Sections &amp; Viewer</span>
-          </div>
-          <span className="text-[11px] text-outline font-medium">Page {activePage} of {activeDoc.page_count || 1}</span>
-        </div>
-
-        {/* Sections Outline List */}
-        <div className="p-3 border-b border-[#EFE9F3] bg-white flex flex-col gap-1 max-h-48 overflow-y-auto no-scrollbar">
-          <span className="text-[10.5px] font-bold uppercase tracking-wider text-outline px-1 mb-1">Table of Contents</span>
-          {(activeDoc.sections || []).length > 0 ? (
-            (activeDoc.sections || []).map((sec: PDFSectionInfo) => (
-              <button
-                key={sec.id}
-                onClick={() => handleSectionClick(sec)}
-                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center justify-between cursor-pointer ${
-                  activeSectionId === sec.id
-                    ? 'bg-[#F5ECF9] text-[#5F2781] font-semibold'
-                    : 'text-[#4D4450] hover:bg-[#FAF7FC] hover:text-[#1D1A20]'
-                }`}
-                type="button"
-              >
-                <span className="truncate">{sec.title}</span>
-                <span className="text-[10.5px] text-outline ml-2 shrink-0">p. {sec.page}</span>
-              </button>
-            ))
-          ) : (
-            <span className="text-[11.5px] text-outline italic px-1 py-1">Document structure loaded</span>
-          )}
-        </div>
-
-        {/* In-Line Page Text Viewer */}
-        <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
-          <div className="flex items-center justify-between text-[11.5px] font-bold text-outline uppercase tracking-wider">
-            <span>Page {activePage} Full Text</span>
-            {highlightedQuote && (
-              <span className="text-[#5F2781] bg-[#F5ECF9] px-2 py-0.5 rounded text-[10.5px]">
-                Active Citation Highlighted
+      {/* ── PANEL 3 (RIGHT): DOCUMENT STRUCTURE & PAGE TEXT VIEWER (COLLAPSIBLE) ── */}
+      {isRightPanelOpen && (
+        <aside className="w-full xl:w-96 bg-white border-t xl:border-t-0 xl:border-l border-gray-200/80 flex flex-col shrink-0 animate-fadeIn">
+          {/* Panel Header */}
+          <div className="px-4 py-2.5 border-b border-gray-200/80 bg-gray-50/60 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[17px] text-primary">menu_book</span>
+              <span className="text-[13px] font-bold text-gray-900">Document Viewer</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-500 font-medium">
+                Page {activePage} of {activeDoc.page_count || 1}
               </span>
+              <button
+                type="button"
+                onClick={() => setIsRightPanelOpen(false)}
+                className="p-1 rounded-lg hover:bg-gray-200/60 text-gray-400 hover:text-gray-700"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Sections Outline List */}
+          <div className="p-3 border-b border-gray-100 bg-white flex flex-col gap-1 max-h-44 overflow-y-auto no-scrollbar">
+            <span className="text-[10.5px] font-semibold uppercase tracking-wider text-gray-400 px-1 mb-0.5">
+              Sections
+            </span>
+            {(activeDoc.sections || []).length > 0 ? (
+              (activeDoc.sections || []).map((sec: PDFSectionInfo) => (
+                <button
+                  key={sec.id}
+                  onClick={() => handleSectionClick(sec)}
+                  className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center justify-between cursor-pointer ${
+                    activeSectionId === sec.id
+                      ? 'bg-purple-50 text-primary font-semibold'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  type="button"
+                >
+                  <span className="truncate">{sec.title}</span>
+                  <span className="text-[10.5px] text-gray-400 ml-2 shrink-0">p. {sec.page}</span>
+                </button>
+              ))
+            ) : (
+              <span className="text-[11.5px] text-gray-400 italic px-1 py-1">Document loaded</span>
             )}
           </div>
 
-          {/* Retrieved Evidence Grounding Box - real passage from the PDF */}
-          {highlightedQuote && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[12px] text-amber-900 animate-fadeIn">
-              <div className="flex items-center gap-1.5 font-bold mb-1.5">
-                <span className="material-symbols-outlined text-[15px] text-amber-700">verified</span>
-                <span>Retrieved Evidence Passage</span>
-              </div>
-              <p className="italic leading-relaxed">"{highlightedQuote}"</p>
+          {/* In-Line Page Text Viewer */}
+          <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+              <span>Page {activePage} Text</span>
+              {highlightedQuote && (
+                <span className="text-primary bg-purple-50 px-2 py-0.5 rounded text-[10.5px] border border-purple-200/60">
+                  Cited Excerpt
+                </span>
+              )}
             </div>
-          )}
 
-          {/* Page Content Card - verbatim text extracted by PyMuPDF */}
-          <div className="p-4 bg-white border border-[#E5DDE9] rounded-xl shadow-xs text-[12.5px] text-[#2C2432] leading-relaxed whitespace-pre-line font-body">
-            {activeDoc.full_text_by_page?.[activePage]
-              || `[No extracted text for page ${activePage} — this page may contain only images or figures.]`
-            }
+            {/* Retrieved Evidence Grounding Box */}
+            {highlightedQuote && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[12px] text-amber-900 animate-fadeIn">
+                <div className="flex items-center gap-1.5 font-semibold mb-1">
+                  <span className="material-symbols-outlined text-[15px] text-amber-700">verified</span>
+                  <span>Retrieved Evidence</span>
+                </div>
+                <p className="italic leading-relaxed">"{highlightedQuote}"</p>
+              </div>
+            )}
+
+            {/* Verbatim extracted text */}
+            <div className="p-3.5 bg-gray-50/70 border border-gray-200/80 rounded-xl text-[12px] text-gray-800 leading-relaxed whitespace-pre-line font-mono shadow-2xs">
+              {activeDoc.full_text_by_page?.[activePage] ||
+                `[No extracted text for page ${activePage} — this page may contain figures or scans.]`}
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      )}
     </div>
   );
 };

@@ -50,6 +50,8 @@ interface ResearchContextType {
   researchChatMessages: ResearchChatMessage[];
   addResearchChatMessage: (msg: Omit<ResearchChatMessage, 'id' | 'timestamp'>) => void;
   clearResearchChat: () => void;
+  isMobileNavOpen: boolean;
+  setIsMobileNavOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const defaultFilters: FilterState = {
@@ -125,6 +127,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [agentSteps, setAgentSteps] = useState<AgentProvenanceStep[]>(MOCK_AGENT_STEPS);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [researchChatMessages, setResearchChatMessages] = useState<ResearchChatMessage[]>(DEFAULT_CHAT_MESSAGES);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
 
   useEffect(() => {
     localStorage.setItem('r_lens_query', query);
@@ -240,7 +243,9 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         showToast,
         researchChatMessages,
         addResearchChatMessage,
-        clearResearchChat
+        clearResearchChat,
+        isMobileNavOpen,
+        setIsMobileNavOpen
       }}
     >
       {children}
