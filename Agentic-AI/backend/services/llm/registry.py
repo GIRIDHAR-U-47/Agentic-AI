@@ -56,6 +56,19 @@ def build_llm(
             model=model or (spec.model if spec else os.getenv("RLENS_GEMINI_MODEL", "gemini-3.8-flash"))
         )
 
+    if name == "groq":
+        key = os.getenv("GROQ_API_KEY", "").strip()
+        if not key:
+            if strict_key:
+                raise LLMError("Groq provider selected but GROQ_API_KEY is not configured.")
+            return ExtractiveLLM(model=model or "extractive-v1")
+
+        from services.llm import groq
+
+        return groq.GroqLLM(
+            model=model or (spec.model if spec else os.getenv("RLENS_GROQ_MODEL", "openai/gpt-oss-120b"))
+        )
+
     if name in ("openrouter", "openrouter-strong"):
         if spec is None or not spec.key_present():
             return ExtractiveLLM(model=model or "extractive-v1")

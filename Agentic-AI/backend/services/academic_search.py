@@ -1,16 +1,18 @@
 """Multi-source academic search service.
 
-Queries real academic sources:
+Queries real academic sources in parallel:
 1. OpenAlex (https://api.openalex.org) - Open catalog with abstracts & OA links
 2. Semantic Scholar (https://api.semanticscholar.org) - Citation graph & OA PDFs
 3. Crossref (https://api.crossref.org) - Publisher DOIs & metadata
 4. arXiv (export API) - Physics, CS & AI preprints
 
-Deduplicates across sources by DOI and normalised title + year.
+Uses concurrent multi-threading, fast timeouts, deduplication across sources by
+DOI and normalised title, and in-memory TTL caching for instant repeat searches.
 Never fabricates papers or metrics.
 """
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import re
 import ssl
@@ -26,6 +28,11 @@ class AcademicSearchError(RuntimeError):
     pass
 
 
+# Fast in-memory TTL cache for search queries
+_SEARCH_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+_CACHE_TTL_SECONDS = 300.0
+
+
 def _ssl_context() -> ssl.SSLContext:
     try:
         import certifi
@@ -38,7 +45,7 @@ def _ssl_context() -> ssl.SSLContext:
             return ssl._create_unverified_context()
 
 
-def _http_get_json(url: str, timeout: float = 20.0, headers: Optional[Dict[str, str]] = None) -> Any:
+def _http_get_json(url: str, timeout: float = 6.0, headers: Optional[Dict[str, str]] = None) -> Any:
     req_headers = {
         "User-Agent": config.USER_AGENT,
         "Accept": "application/json",
@@ -84,14 +91,14 @@ def _clean_text(text: Optional[str]) -> str:
 # ---------------------------------------------------------------------------
 # Source 1: OpenAlex
 # ---------------------------------------------------------------------------
-def search_openalex(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+def search_openalex(query: str, max_results: int = 10, timeout: float = 6.0) -> List[Dict[str, Any]]:
     """Search OpenAlex API for scholarly works."""
     q = urllib.parse.quote(query.strip())
     # OpenAlex polite pool request
     url = f"https://api.openalex.org/works?search={q}&per-page={max(1, min(max_results, 25))}&mailto=research-assistant@rlens.local"
     
     try:
-        data = _http_get_json(url, timeout=18.0)
+        data = _http_get_json(url, timeout=timeout)
     except Exception as exc:
         raise AcademicSearchError(f"OpenAlex search error: {exc}") from exc
 
@@ -159,7 +166,7 @@ def search_openalex(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # Source 2: Semantic Scholar
 # ---------------------------------------------------------------------------
-def search_semantic_scholar(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+def search_semantic_scholar(query: str, max_results: int = 10, timeout: float = 6.0) -> List[Dict[str, Any]]:
     """Search Semantic Scholar Graph API."""
     fields = "title,authors,year,abstract,venue,publicationVenue,openAccessPdf,citationCount,externalIds,url"
     params = {
@@ -170,7 +177,7 @@ def search_semantic_scholar(query: str, max_results: int = 10) -> List[Dict[str,
     url = f"https://api.semanticscholar.org/graph/v1/paper/search?{urllib.parse.urlencode(params)}"
 
     try:
-        data = _http_get_json(url, timeout=18.0)
+        data = _http_get_json(url, timeout=timeout)
     except Exception as exc:
         raise AcademicSearchError(f"Semantic Scholar search error: {exc}") from exc
 
@@ -220,17 +227,18 @@ def search_semantic_scholar(query: str, max_results: int = 10) -> List[Dict[str,
 # ---------------------------------------------------------------------------
 # Source 3: Crossref
 # ---------------------------------------------------------------------------
-def search_crossref(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+def search_crossref(query: str, max_results: int = 10, timeout: float = 6.0) -> List[Dict[str, Any]]:
     """Search Crossref REST API."""
     params = {
         "query.bibliographic": query.strip(),
         "rows": str(max(1, min(max_results, 25))),
         "sort": "relevance",
+        "select": "DOI,title,author,published-print,published-online,created,container-title,abstract,link,is-referenced-by-count,URL",
     }
     url = f"https://api.crossref.org/works?{urllib.parse.urlencode(params)}"
 
     try:
-        data = _http_get_json(url, timeout=18.0)
+        data = _http_get_json(url, timeout=timeout)
     except Exception as exc:
         raise AcademicSearchError(f"Crossref search error: {exc}") from exc
 
@@ -290,7 +298,7 @@ def search_crossref(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
             "doi": doi,
             "abstract": abstract or "Abstract unavailable from Crossref metadata.",
             "url": url_link,
-            "pdf_url": pdf_url if pdf_url.startswith("http") else "",
+            "pdf_url": pdf_url if pdf_url and pdf_url.startswith("http") else "",
             "is_open_access": bool(pdf_url),
             "citations_count": int(item.get("is-referenced-by-count") or 0),
             "source": "Crossref",
@@ -302,7 +310,7 @@ def search_crossref(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # Source 4: arXiv
 # ---------------------------------------------------------------------------
-def search_arxiv(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+def search_arxiv(query: str, max_results: int = 10, timeout: float = 6.0) -> List[Dict[str, Any]]:
     """Search arXiv export API."""
     from services import arxiv
 
@@ -338,16 +346,17 @@ def search_arxiv(query: str, max_results: int = 10) -> List[Dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# Federated Search & Deduplication Engine
+# Federated Search & Deduplication Engine (Concurrent & Fast)
 # ---------------------------------------------------------------------------
 def federated_academic_search(
     query: str,
     top_k: int = 15,
     sources: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    """Execute real academic search across OpenAlex, Semantic Scholar, Crossref, and arXiv.
+    """Execute real academic search across OpenAlex, Semantic Scholar, Crossref, and arXiv in parallel.
 
-    Returns deduplicated candidates and per-source activity events.
+    Uses a concurrent ThreadPoolExecutor so that all providers execute at the same
+    time, dramatically reducing search latency. Returns deduplicated candidates.
     """
     q = query.strip()
     if not q:
@@ -360,100 +369,144 @@ def federated_academic_search(
         }
 
     sources_to_use = sources or ["openalex", "semanticscholar", "crossref", "arxiv"]
+    
+    # Check in-memory fast cache
+    cache_key = f"{q.lower()}||{top_k}||{','.join(sorted(sources_to_use))}"
+    now = time.time()
+    if cache_key in _SEARCH_CACHE:
+        cached_time, cached_data = _SEARCH_CACHE[cache_key]
+        if now - cached_time < _CACHE_TTL_SECONDS:
+            return cached_data
+
     all_results: List[Dict[str, Any]] = []
     source_events: List[Dict[str, Any]] = []
 
-    # 1. OpenAlex
+    # Worker runners with individual timing and exception isolation
+    def _run_openalex() -> Tuple[str, List[Dict[str, Any]], Dict[str, Any]]:
+        t0 = time.perf_counter()
+        try:
+            items = search_openalex(q, max_results=top_k, timeout=5.0)
+            dur = round(time.perf_counter() - t0, 2)
+            event = {
+                "source": "OpenAlex",
+                "status": "success",
+                "count": len(items),
+                "duration_s": dur,
+                "message": f"Retrieved {len(items)} papers",
+            }
+            return ("openalex", items, event)
+        except Exception as exc:
+            dur = round(time.perf_counter() - t0, 2)
+            event = {
+                "source": "OpenAlex",
+                "status": "error",
+                "count": 0,
+                "duration_s": dur,
+                "error": str(exc),
+                "message": "Search temporarily unavailable",
+            }
+            return ("openalex", [], event)
+
+    def _run_semantic_scholar() -> Tuple[str, List[Dict[str, Any]], Dict[str, Any]]:
+        t0 = time.perf_counter()
+        try:
+            items = search_semantic_scholar(q, max_results=top_k, timeout=5.0)
+            dur = round(time.perf_counter() - t0, 2)
+            event = {
+                "source": "Semantic Scholar",
+                "status": "success",
+                "count": len(items),
+                "duration_s": dur,
+                "message": f"Retrieved {len(items)} papers",
+            }
+            return ("semanticscholar", items, event)
+        except Exception as exc:
+            dur = round(time.perf_counter() - t0, 2)
+            event = {
+                "source": "Semantic Scholar",
+                "status": "error",
+                "count": 0,
+                "duration_s": dur,
+                "error": str(exc),
+                "message": "Search temporarily unavailable",
+            }
+            return ("semanticscholar", [], event)
+
+    def _run_crossref() -> Tuple[str, List[Dict[str, Any]], Dict[str, Any]]:
+        t0 = time.perf_counter()
+        try:
+            items = search_crossref(q, max_results=top_k, timeout=5.0)
+            dur = round(time.perf_counter() - t0, 2)
+            event = {
+                "source": "Crossref",
+                "status": "success",
+                "count": len(items),
+                "duration_s": dur,
+                "message": f"Retrieved {len(items)} papers",
+            }
+            return ("crossref", items, event)
+        except Exception as exc:
+            dur = round(time.perf_counter() - t0, 2)
+            event = {
+                "source": "Crossref",
+                "status": "error",
+                "count": 0,
+                "duration_s": dur,
+                "error": str(exc),
+                "message": "Search temporarily unavailable",
+            }
+            return ("crossref", [], event)
+
+    def _run_arxiv() -> Tuple[str, List[Dict[str, Any]], Dict[str, Any]]:
+        t0 = time.perf_counter()
+        try:
+            items = search_arxiv(q, max_results=top_k, timeout=6.0)
+            dur = round(time.perf_counter() - t0, 2)
+            event = {
+                "source": "arXiv",
+                "status": "success",
+                "count": len(items),
+                "duration_s": dur,
+                "message": f"Retrieved {len(items)} papers",
+            }
+            return ("arxiv", items, event)
+        except Exception as exc:
+            dur = round(time.perf_counter() - t0, 2)
+            event = {
+                "source": "arXiv",
+                "status": "error",
+                "count": 0,
+                "duration_s": dur,
+                "error": str(exc),
+                "message": "Search temporarily unavailable",
+            }
+            return ("arxiv", [], event)
+
+    # Execute all selected sources in parallel
+    tasks = []
     if "openalex" in sources_to_use:
-        t0 = time.perf_counter()
-        try:
-            oa_items = search_openalex(q, max_results=top_k)
-            dur = round(time.perf_counter() - t0, 2)
-            source_events.append({
-                "source": "OpenAlex",
-                "status": "success",
-                "count": len(oa_items),
-                "duration_s": dur,
-                "message": f"Retrieved {len(oa_items)} papers",
-            })
-            all_results.extend(oa_items)
-        except Exception as exc:
-            source_events.append({
-                "source": "OpenAlex",
-                "status": "error",
-                "count": 0,
-                "error": str(exc),
-                "message": "Search temporarily unavailable",
-            })
-
-    # 2. Semantic Scholar
+        tasks.append(_run_openalex)
     if "semanticscholar" in sources_to_use:
-        t0 = time.perf_counter()
-        try:
-            s2_items = search_semantic_scholar(q, max_results=top_k)
-            dur = round(time.perf_counter() - t0, 2)
-            source_events.append({
-                "source": "Semantic Scholar",
-                "status": "success",
-                "count": len(s2_items),
-                "duration_s": dur,
-                "message": f"Retrieved {len(s2_items)} papers",
-            })
-            all_results.extend(s2_items)
-        except Exception as exc:
-            source_events.append({
-                "source": "Semantic Scholar",
-                "status": "error",
-                "count": 0,
-                "error": str(exc),
-                "message": "Search temporarily unavailable",
-            })
-
-    # 3. Crossref
+        tasks.append(_run_semantic_scholar)
     if "crossref" in sources_to_use:
-        t0 = time.perf_counter()
-        try:
-            cr_items = search_crossref(q, max_results=top_k)
-            dur = round(time.perf_counter() - t0, 2)
-            source_events.append({
-                "source": "Crossref",
-                "status": "success",
-                "count": len(cr_items),
-                "duration_s": dur,
-                "message": f"Retrieved {len(cr_items)} papers",
-            })
-            all_results.extend(cr_items)
-        except Exception as exc:
-            source_events.append({
-                "source": "Crossref",
-                "status": "error",
-                "count": 0,
-                "error": str(exc),
-                "message": "Search temporarily unavailable",
-            })
+        tasks.append(_run_crossref)
+    if "arxiv" in sources_to_use:
+        tasks.append(_run_arxiv)
 
-    # 4. arXiv (supplementary / preprint)
-    if "arxiv" in sources_to_use and len(all_results) < top_k:
-        t0 = time.perf_counter()
-        try:
-            ax_items = search_arxiv(q, max_results=top_k)
-            dur = round(time.perf_counter() - t0, 2)
-            source_events.append({
-                "source": "arXiv",
-                "status": "success",
-                "count": len(ax_items),
-                "duration_s": dur,
-                "message": f"Retrieved {len(ax_items)} papers",
-            })
-            all_results.extend(ax_items)
-        except Exception as exc:
-            source_events.append({
-                "source": "arXiv",
-                "status": "error",
-                "count": 0,
-                "error": str(exc),
-                "message": "Search temporarily unavailable",
-            })
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(4, max(1, len(tasks)))) as executor:
+        future_map = [executor.submit(fn) for fn in tasks]
+        for future in concurrent.futures.as_completed(future_map):
+            try:
+                _src_name, items, event = future.result()
+                all_results.extend(items)
+                source_events.append(event)
+            except Exception as exc:
+                source_events.append({
+                    "source": "Federated Worker",
+                    "status": "error",
+                    "count": 0,
+                    "error": str(exc),
+                })
 
     # -----------------------------------------------------------------------
     # Deduplication & Merge
@@ -528,10 +581,20 @@ def federated_academic_search(
     deduped_list.sort(key=_rank_key, reverse=True)
     final_candidates = deduped_list[:top_k]
 
-    return {
+    result = {
         "query": q,
         "candidates": final_candidates,
         "source_events": source_events,
         "total_found_before_dedupe": len(all_results),
         "total_deduplicated": len(final_candidates),
     }
+
+    # Store in memory cache
+    _SEARCH_CACHE[cache_key] = (now, result)
+    # Prune old cache entries if needed
+    if len(_SEARCH_CACHE) > 200:
+        old_keys = [k for k, (t, _) in _SEARCH_CACHE.items() if now - t > _CACHE_TTL_SECONDS]
+        for k in old_keys:
+            _SEARCH_CACHE.pop(k, None)
+
+    return result

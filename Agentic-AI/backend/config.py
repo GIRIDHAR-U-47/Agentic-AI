@@ -102,7 +102,14 @@ def _specs() -> List[ProviderSpec]:
             model="extractive-v1",
             requires_key=False,
         ),
-        # Google Gemini: primary active LLM provider
+        # Groq: high-speed LLM inference
+        ProviderSpec(
+            name="groq",
+            model=os.getenv("RLENS_GROQ_MODEL", os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")),
+            api_key_env="GROQ_API_KEY",
+            base_url="https://api.groq.com/openai/v1",
+        ),
+        # Google Gemini provider
         ProviderSpec(
             name="gemini",
             model=os.getenv("RLENS_GEMINI_MODEL", os.getenv("GEMINI_MODEL", "gemini-3.8-flash")),
@@ -143,9 +150,10 @@ def default_provider() -> ProviderSpec:
 
     Explicit preference order:
     1. LLM_PROVIDER or RLENS_LLM_PROVIDER environment setting
-    2. Gemini (primary default provider)
-    3. OpenRouter (if credentials exist)
-    4. Offline extractive provider
+    2. Groq (if credentials exist)
+    3. Gemini (if credentials exist)
+    4. OpenRouter (if credentials exist)
+    5. Offline extractive provider
     """
     requested = (
         os.getenv("LLM_PROVIDER", "").strip().lower()
@@ -156,7 +164,12 @@ def default_provider() -> ProviderSpec:
         if spec:
             return spec
 
-    # Default provider is Gemini
+    # Preference 1: Groq (ultra-fast inference)
+    groq_spec = get_provider("groq")
+    if groq_spec and groq_spec.key_present():
+        return groq_spec
+
+    # Preference 2: Gemini
     gemini_spec = get_provider("gemini")
     if gemini_spec and gemini_spec.key_present():
         return gemini_spec
@@ -167,7 +180,7 @@ def default_provider() -> ProviderSpec:
         if spec and spec.key_present():
             return spec
 
-    return gemini_spec or get_provider("offline")  # type: ignore[return-value]
+    return groq_spec or gemini_spec or get_provider("offline")  # type: ignore[return-value]
 
 
 def llm_status() -> dict:

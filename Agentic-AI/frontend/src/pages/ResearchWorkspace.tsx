@@ -211,43 +211,25 @@ export const ResearchWorkspace: React.FC = () => {
           }).catch(() => undefined);
         }
 
-        // Step A: Search Plan
+        // Run Search Plan and Federated Academic Search concurrently in parallel
+        const [planOutcome, searchOutcome] = await Promise.allSettled([
+          api.discover.plan(q),
+          api.discover.search(q, 15),
+        ]);
+
         let planRes: any = null;
-        try {
-          planRes = await api.discover.plan(q);
-          if (planRes && planRes.search_queries) {
+        if (planOutcome.status === 'fulfilled' && planOutcome.value) {
+          planRes = planOutcome.value;
+          if (planRes.search_queries) {
             setGeneratedSubQueries(planRes.search_queries);
           }
-        } catch {
-          // fallback plan handled by search
         }
 
-        // Update milestone status
-        setConversation((prev) =>
-          prev.map((t) =>
-            t.id === turnId
-              ? {
-                  ...t,
-                  activityMilestones: [
-                    { label: 'Understood research question & parameters', done: true },
-                    {
-                      label: planRes?.summary || 'Formulated targeted search strategy across baseline models',
-                      done: true,
-                    },
-                    {
-                      label: 'Searching academic sources (OpenAlex, Semantic Scholar, Crossref, arXiv)...',
-                      done: false,
-                      active: true,
-                    },
-                    { label: 'Filtering & ranking relevant papers', done: false },
-                  ],
-                }
-              : t
-          )
-        );
+        if (searchOutcome.status === 'rejected') {
+          throw searchOutcome.reason;
+        }
 
-        // Step B: Real Federated Academic Discovery
-        const res = await api.discover.search(q, 15);
+        const res = searchOutcome.value;
         const candidatesFound = res.candidates || [];
         setCandidates(candidatesFound);
 

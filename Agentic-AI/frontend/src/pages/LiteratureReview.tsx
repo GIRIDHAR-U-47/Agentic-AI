@@ -194,30 +194,12 @@ export const LiteratureReview: React.FC = () => {
         content: `Literature Review: ${topic}`,
       });
 
-      // 3. Plan & Federated Discovery
-      try {
-        await api.discover.plan(topic);
-      } catch {
-        // Continue
-      }
+      // 3. Plan & Federated Discovery (Concurrent Execution)
+      const [_planRes, searchRes] = await Promise.all([
+        api.discover.plan(topic).catch(() => null),
+        api.discover.search(topic, 14),
+      ]);
 
-      setChatTurns((prev) =>
-        prev.map((t) =>
-          t.id === actTurnId
-            ? {
-                ...t,
-                activityMilestones: [
-                  { label: 'Understood research question & domain parameters', done: true },
-                  { label: 'Generated search queries for time-series, XAI, and optimization', done: true },
-                  { label: 'Searching OpenAlex, Semantic Scholar, Crossref & arXiv...', done: false, active: true },
-                  { label: 'Filtering & ranking relevant papers', done: false },
-                ],
-              }
-            : t
-        )
-      );
-
-      const searchRes = await api.discover.search(topic, 14);
       const foundPapers = searchRes.candidates || [];
       setCandidates(foundPapers);
 
