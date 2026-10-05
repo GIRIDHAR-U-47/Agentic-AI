@@ -475,3 +475,41 @@ export interface ApprovalDecision {
   note?: string;
 }
 
+export type ConversationMode = 'research' | 'chat_with_paper' | 'literature_review' | 'general_research';
+
+export interface ConversationMessage {
+  id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant' | 'agent-activity';
+  content: string;
+  sequence: number;
+  metadata?: {
+    sources?: PaperChatSourceChunk[];
+    verified?: boolean;
+    support_rate?: number;
+    insufficient_evidence?: boolean;
+    milestones?: { label: string; done: boolean; active?: boolean }[];
+    latency_ms?: number;
+    type?: string;
+    topic?: string;
+    [key: string]: unknown;
+  };
+  created_at: number;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  mode: ConversationMode;
+  status: string;
+  user_id: string;
+  research_topic: string;
+  selected_paper_ids: string[];
+  metadata: Record<string, any>;
+  created_at: number;
+  updated_at: number;
+  message_count?: number;
+  messages?: ConversationMessage[];
+}
+
+

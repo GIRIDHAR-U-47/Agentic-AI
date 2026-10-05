@@ -1,7 +1,10 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useResearch } from '../../context/ResearchContext';
+import { api } from '../../services/api';
+import { Conversation } from '../../types';
 import drRamanathanImg from '../../assets/dr_ramanathan.png';
+import rlensIcon from '../../assets/rlens_icon.jpg';
 
 const primaryNavItems = [
   { label: 'Home', path: '/', icon: 'home', exact: true },
@@ -29,9 +32,44 @@ const resourcesNavItems = [
   { label: 'Extract Data', path: '/extract-data', icon: 'data_object' },
 ];
 
+function formatTimeAgo(timestampSeconds: number): string {
+  if (!timestampSeconds) return 'Recently';
+  const nowSec = Date.now() / 1000;
+  const diffSec = Math.max(0, nowSec - timestampSeconds);
+  if (diffSec < 60) return 'Just now';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  if (diffSec < 172800) return 'Yesterday';
+  const days = Math.floor(diffSec / 86400);
+  if (days < 7) return `${days}d ago`;
+  const date = new Date(timestampSeconds * 1000);
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isMobileNavOpen, setIsMobileNavOpen, setQuery, setCurrentSessionTitle } = useResearch();
+
+  const [recentConversations, setRecentConversations] = useState<Conversation[]>([]);
+  const [loadingChats, setLoadingChats] = useState(false);
+
+  // Load conversations from backend
+  const loadConversations = useCallback(async () => {
+    try {
+      setLoadingChats(true);
+      const res = await api.conversations.list(undefined, 30);
+      setRecentConversations(res.conversations || []);
+    } catch {
+      // Backend may be starting or offline
+    } finally {
+      setLoadingChats(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations, location.pathname]);
 
   const handleNewResearch = () => {
     setQuery('');
@@ -42,6 +80,33 @@ export const Sidebar: React.FC = () => {
 
   const handleNavClick = () => {
     setIsMobileNavOpen(false);
+  };
+
+  const handleSelectConversation = (conv: Conversation) => {
+    setQuery(conv.research_topic || conv.title);
+    setCurrentSessionTitle(conv.title);
+
+    if (conv.mode === 'literature_review') {
+      navigate(`/report/${conv.id}`);
+    } else if (conv.mode === 'chat_with_paper' && conv.metadata?.doc_id) {
+      navigate(`/paper-chat/${conv.metadata.doc_id}/${conv.id}`);
+    } else {
+      navigate(`/chat/${conv.id}`);
+    }
+    setIsMobileNavOpen(false);
+  };
+
+  const handleDeleteConversation = async (e: React.MouseEvent, convId: string) => {
+    e.stopPropagation();
+    try {
+      await api.conversations.delete(convId);
+      setRecentConversations((prev) => prev.filter((c) => c.id !== convId));
+      if (location.pathname.includes(convId)) {
+        navigate('/');
+      }
+    } catch {
+      // Handle error
+    }
   };
 
   return (
@@ -63,16 +128,18 @@ export const Sidebar: React.FC = () => {
       >
         {/* Top Brand Header */}
         <div className="p-4 pb-3 flex items-center justify-between border-b border-gray-100">
-          <div
+            <div
             className="flex items-center gap-2.5 cursor-pointer group"
             onClick={() => {
               navigate('/');
               setIsMobileNavOpen(false);
             }}
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#5B21B6] to-[#7C3AED] flex items-center justify-center shrink-0 shadow-xs">
-              <span className="material-symbols-outlined text-white text-[19px]">science</span>
-            </div>
+            <img
+              src={rlensIcon}
+              alt="R-Lens"
+              className="w-8 h-8 rounded-xl object-cover shrink-0 shadow-sm ring-1 ring-purple-200/60 group-hover:scale-105 transition-transform duration-200"
+            />
             <div className="flex flex-col leading-tight">
               <span className="font-semibold tracking-tight text-gray-900 text-[15px] group-hover:text-primary transition-colors">
                 R-Lens
@@ -108,6 +175,67 @@ export const Sidebar: React.FC = () => {
             </span>
             <span>New Research</span>
           </button>
+
+          {/* Persistent Recent Chats Section */}
+          {recentConversations.length > 0 && (
+            <div className="space-y-1">
+              <div className="px-2.5 py-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                <span>Recent Chats</span>
+                <span className="text-[10px] lowercase font-normal text-gray-400">
+                  {recentConversations.length} saved
+                </span>
+              </div>
+              <div className="space-y-0.5 font-medium text-[13px] max-h-56 overflow-y-auto no-scrollbar">
+                {recentConversations.map((conv) => {
+                  const isActive = location.pathname.includes(conv.id);
+                  const modeIcon =
+                    conv.mode === 'literature_review'
+                      ? 'menu_book'
+                      : conv.mode === 'chat_with_paper'
+                      ? 'picture_as_pdf'
+                      : 'chat_bubble_outline';
+
+                  return (
+                    <div
+                      key={conv.id}
+                      onClick={() => handleSelectConversation(conv)}
+                      className={`group flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] cursor-pointer transition-colors ${
+                        isActive
+                          ? 'bg-purple-50 text-primary font-semibold'
+                          : 'text-gray-700 hover:bg-gray-100/80 hover:text-gray-900'
+                      }`}
+                      title={conv.title || 'Untitled Conversation'}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span
+                          className={`material-symbols-outlined text-[16px] shrink-0 ${
+                            isActive ? 'text-primary' : 'text-gray-400 group-hover:text-gray-600'
+                          }`}
+                        >
+                          {modeIcon}
+                        </span>
+                        <span className="truncate leading-tight">{conv.title || 'Untitled'}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-[10px] text-gray-400 group-hover:hidden">
+                          {formatTimeAgo(conv.updated_at)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteConversation(e, conv.id)}
+                          className="hidden group-hover:flex p-0.5 text-gray-400 hover:text-red-500 rounded transition-colors"
+                          title="Delete chat"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Primary Nav */}
           <nav className="space-y-0.5 font-medium text-[13px]">

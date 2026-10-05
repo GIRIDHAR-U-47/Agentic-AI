@@ -1,40 +1,24 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useResearch } from '../context/ResearchContext';
 import { api } from '../services/api';
 import { analyzeIntent, IntentAnalysisResult } from '../services/intentService';
+import { Conversation } from '../types';
+import rlensIcon from '../assets/rlens_icon.jpg';
 
-interface RecentResearchItem {
-  id: string;
-  topic: string;
-  domain: string;
-  timeAgo: string;
-  papersCount: number;
+function formatTimeAgo(timestampSeconds: number): string {
+  if (!timestampSeconds) return 'Recently';
+  const nowSec = Date.now() / 1000;
+  const diffSec = Math.max(0, nowSec - timestampSeconds);
+  if (diffSec < 60) return 'Just now';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  if (diffSec < 172800) return 'Yesterday';
+  const days = Math.floor(diffSec / 86400);
+  if (days < 7) return `${days}d ago`;
+  const date = new Date(timestampSeconds * 1000);
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
-
-const RECENT_RESEARCH: RecentResearchItem[] = [
-  {
-    id: 'ws-1',
-    topic: 'Explainable Metaheuristic Optimized Deep Temporal Learning for Multi-Horizon Data Center Power Forecasting',
-    domain: 'Power Grid Telemetry & Deep Time-Series',
-    timeAgo: '5m ago',
-    papersCount: 18,
-  },
-  {
-    id: 'ws-2',
-    topic: 'Interpretable Machine Learning Models for Industrial Energy Consumption & Load Shedding',
-    domain: 'Energy Optimization & Review',
-    timeAgo: '2h ago',
-    papersCount: 14,
-  },
-  {
-    id: 'ws-3',
-    topic: 'Comparative Analysis of Spatio-Temporal Graph Neural Networks for Renewable Grid Forecasting',
-    domain: 'ST-GNN Architecture & Benchmarks',
-    timeAgo: 'Yesterday',
-    papersCount: 12,
-  },
-];
 
 export const ResearchHome: React.FC = () => {
   const {
@@ -46,6 +30,10 @@ export const ResearchHome: React.FC = () => {
   const [localInput, setLocalInput] = useState('');
   const [liveIntent, setLiveIntent] = useState<IntentAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [recentChats, setRecentChats] = useState<Conversation[]>([]);
+
+  // Glow is active only when the input is empty (idle state)
+  const isIdle = localInput.trim().length === 0 && !isLoading;
 
   const navigate = useNavigate();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -69,6 +57,22 @@ export const ResearchHome: React.FC = () => {
     }
   }, [localInput]);
 
+  // Load real recent conversations from backend
+  const loadRecent = useCallback(async () => {
+    try {
+      const res = await api.conversations.list(undefined, 5);
+      if (res.conversations && res.conversations.length > 0) {
+        setRecentChats(res.conversations);
+      }
+    } catch {
+      // Backend maybe offline
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRecent();
+  }, [loadRecent]);
+
   const QUICK_ACTIONS = [
     {
       label: 'Search Papers',
@@ -83,7 +87,7 @@ export const ResearchHome: React.FC = () => {
       label: 'Literature Review',
       icon: 'menu_book',
       action: () =>
-        startResearch(
+        startLiteratureReview(
           localInput || 'Deep learning methods in multi-horizon time series forecasting'
         ),
     },
@@ -115,15 +119,19 @@ export const ResearchHome: React.FC = () => {
     if (!trimmed || isLoading) return;
 
     setIsLoading(true);
-    showToast(`Initializing research session for "${trimmed.slice(0, 45)}..."`);
+    showToast(`Initializing persistent research conversation...`);
 
     try {
-      const res = await api.sessions.create(trimmed, 'agentic_rag', true);
+      const conv = await api.conversations.create({
+        mode: 'research',
+        research_topic: trimmed,
+        metadata: { source: 'home_composer' },
+      });
       setQuery(trimmed);
-      setCurrentSessionTitle(trimmed);
-      navigate(`/research?session=${res.session_id}`);
+      setCurrentSessionTitle(conv.title || trimmed);
+      navigate(`/chat/${conv.id}`);
     } catch {
-      // If backend session creation fails, proceed to workspace with query
+      // Fallback
       setQuery(trimmed);
       setCurrentSessionTitle(trimmed);
       navigate('/research');
@@ -132,8 +140,35 @@ export const ResearchHome: React.FC = () => {
     }
   };
 
+  const startLiteratureReview = async (topicToSearch: string) => {
+    const trimmed = topicToSearch.trim();
+    if (!trimmed || isLoading) return;
+
+    setIsLoading(true);
+    showToast(`Initializing Literature Review workspace...`);
+
+    try {
+      const conv = await api.conversations.create({
+        mode: 'literature_review',
+        research_topic: trimmed,
+        metadata: { source: 'home_composer', review_mode: 'agentic_rag' },
+      });
+      setQuery(trimmed);
+      setCurrentSessionTitle(conv.title || trimmed);
+      navigate(`/report/${conv.id}`);
+    } catch {
+      navigate('/report');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = () => {
-    startResearch(localInput);
+    if (liveIntent?.intent === 'LITERATURE_REVIEW') {
+      startLiteratureReview(localInput);
+    } else {
+      startResearch(localInput);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -143,16 +178,29 @@ export const ResearchHome: React.FC = () => {
     }
   };
 
+  const openRecentChat = (conv: Conversation) => {
+    setQuery(conv.research_topic || conv.title);
+    setCurrentSessionTitle(conv.title);
+    if (conv.mode === 'literature_review') {
+      navigate(`/report/${conv.id}`);
+    } else if (conv.mode === 'chat_with_paper' && conv.metadata?.doc_id) {
+      navigate(`/paper-chat/${conv.metadata.doc_id}/${conv.id}`);
+    } else {
+      navigate(`/chat/${conv.id}`);
+    }
+  };
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-between px-4 sm:px-6 py-8 w-full max-w-4xl mx-auto min-h-[calc(100vh-56px)] select-none">
-      <div className="w-full flex-1 flex flex-col items-center justify-center max-w-3xl my-auto">
+    <div className="flex-1 flex flex-col items-center justify-between px-4 sm:px-6 py-8 w-full max-w-4xl mx-auto min-h-[calc(100vh-56px)] select-none overflow-visible">
+      <div className="w-full flex-1 flex flex-col items-center justify-center max-w-3xl my-auto overflow-visible">
         {/* R-Lens Brand Header */}
         <div className="flex flex-col items-center text-center mb-8 animate-fadeIn">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#5B21B6] to-[#7C3AED] flex items-center justify-center shadow-md mb-4">
-            <span className="material-symbols-outlined text-white text-[28px]">
-              science
-            </span>
-          </div>
+          <img
+            src={rlensIcon}
+            alt="R-Lens"
+            className="w-16 h-16 rounded-2xl object-cover shadow-lg mb-4 ring-2 ring-purple-200/60"
+            style={{ filter: 'drop-shadow(0 4px 24px rgba(124,58,237,0.25))' }}
+          />
 
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-2">
             What are you researching today?
@@ -163,10 +211,42 @@ export const ResearchHome: React.FC = () => {
         </div>
 
         {/* Large ChatGPT / Gemini-Style Composer Card */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* MOON GLOW — a giant circular purple orb behind the card     */}
+        {/* Fixed so it escapes container clipping like a real moon     */}
+        {/* ──────────────────────────────────────────────────────────── */}
         <div
-          id="home-input-card"
-          className="w-full bg-white border border-gray-200/90 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:border-gray-300 focus-within:border-primary/80 focus-within:ring-3 focus-within:ring-primary/10 transition-all duration-200 flex flex-col"
-        >
+          aria-hidden="true"
+          className="pointer-events-none"
+          style={{
+            position: 'fixed',
+            width: '900px',
+            height: '900px',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -40%)',
+            borderRadius: '50%',
+            background: [
+              'radial-gradient(circle at 50% 50%,',
+              '  rgba(124, 58, 237, 0.45) 0%,',
+              '  rgba(139, 92, 246, 0.32) 20%,',
+              '  rgba(167, 139, 250, 0.18) 45%,',
+              '  rgba(196, 181, 253, 0.07) 65%,',
+              '  transparent 80%)',
+            ].join(''),
+            filter: 'blur(72px)',
+            opacity: isIdle ? 1 : 0.12,
+            transition: 'opacity 1s ease-in-out',
+            animation: isIdle ? 'moonGlow 5s ease-in-out infinite' : 'none',
+            zIndex: 0,
+          }}
+        />
+
+        <div className="relative w-full" style={{ zIndex: 1 }}>
+          <div
+            id="home-input-card"
+            className="relative w-full bg-white border border-gray-200/90 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:border-gray-300 focus-within:border-primary/80 focus-within:ring-3 focus-within:ring-primary/10 transition-all duration-200 flex flex-col"
+          >
           {/* Live Intent Pill */}
           {liveIntent && (
             <div className="px-5 pt-3 pb-1 flex items-center justify-between text-xs animate-fadeIn">
@@ -228,7 +308,8 @@ export const ResearchHome: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+          </div>{/* end inner card */}
+        </div>{/* end glow wrapper */}
 
         {/* Compact Quick Actions */}
         <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
@@ -248,52 +329,57 @@ export const ResearchHome: React.FC = () => {
         </div>
       </div>
 
-      {/* Lightweight Recent Research Section (Per Requirement 13) */}
-      <div className="w-full max-w-3xl mt-6 pt-4 border-t border-gray-200/60">
-        <div className="flex items-center justify-between mb-2.5 px-1">
-          <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
-            Recent Research
-          </span>
-          <span className="text-[11.5px] text-gray-400">Click to resume</span>
-        </div>
+      {/* Real Persistent Recent Research Section */}
+      {recentChats.length > 0 && (
+        <div className="w-full max-w-3xl mt-6 pt-4 border-t border-gray-200/60">
+          <div className="flex items-center justify-between mb-2.5 px-1">
+            <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
+              Recent Research
+            </span>
+            <span className="text-[11.5px] text-gray-400">Click to resume</span>
+          </div>
 
-        <div className="divide-y divide-gray-100 rounded-xl bg-white border border-gray-200/70 overflow-hidden shadow-2xs">
-          {RECENT_RESEARCH.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => {
-                setLocalInput(item.topic);
-                startResearch(item.topic);
-              }}
-              className="px-4 py-3 hover:bg-gray-50/80 cursor-pointer transition-colors flex items-center justify-between gap-3 group"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="material-symbols-outlined text-[17px] text-gray-400 group-hover:text-primary transition-colors shrink-0">
-                  history
-                </span>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[13.5px] font-medium text-gray-800 group-hover:text-primary truncate transition-colors">
-                    {item.topic}
-                  </span>
-                  <span className="text-[11.5px] text-gray-400 truncate">
-                    {item.domain}
-                  </span>
+          <div className="divide-y divide-gray-100 rounded-xl bg-white border border-gray-200/70 overflow-hidden shadow-2xs">
+            {recentChats.map((item) => {
+              const modeIcon =
+                item.mode === 'literature_review'
+                  ? 'menu_book'
+                  : item.mode === 'chat_with_paper'
+                  ? 'picture_as_pdf'
+                  : 'history';
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => openRecentChat(item)}
+                  className="px-4 py-3 hover:bg-gray-50/80 cursor-pointer transition-colors flex items-center justify-between gap-3 group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="material-symbols-outlined text-[17px] text-gray-400 group-hover:text-primary transition-colors shrink-0">
+                      {modeIcon}
+                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[13.5px] font-medium text-gray-800 group-hover:text-primary truncate transition-colors">
+                        {item.title || item.research_topic || 'Untitled Research'}
+                      </span>
+                      <span className="text-[11.5px] text-gray-400 truncate">
+                        {item.research_topic || 'Academic Research Conversation'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs text-gray-400 shrink-0">
+                    <span>{formatTimeAgo(item.updated_at)}</span>
+                    <span className="material-symbols-outlined text-[15px] text-gray-300 group-hover:text-gray-500 transition-colors">
+                      chevron_right
+                    </span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3 text-xs text-gray-400 shrink-0">
-                <span className="hidden sm:inline text-gray-500">
-                  {item.papersCount} papers
-                </span>
-                <span>{item.timeAgo}</span>
-                <span className="material-symbols-outlined text-[15px] text-gray-300 group-hover:text-gray-500 transition-colors">
-                  chevron_right
-                </span>
-              </div>
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

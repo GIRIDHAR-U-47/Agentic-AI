@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useResearch } from '../../context/ResearchContext';
 import { researchService } from '../../services/researchService';
 import drRamanathanImg from '../../assets/dr_ramanathan.png';
+import rlensIcon from '../../assets/rlens_icon.jpg';
 
 export const Topbar: React.FC = () => {
   const { isAutoPilot, setIsAutoPilot, showToast, isMobileNavOpen, setIsMobileNavOpen } = useResearch();
@@ -83,12 +84,24 @@ export const Topbar: React.FC = () => {
 
         {isHome ? (
           <div className="flex items-center gap-2">
+            {/* Logo visible on mobile only (sidebar hidden) */}
+            <img
+              src={rlensIcon}
+              alt="R-Lens"
+              className="w-6 h-6 rounded-lg object-cover shrink-0 ring-1 ring-purple-200/50 md:hidden"
+            />
             <span className="text-[13px] font-medium text-gray-500">
               Academic Research Assistant
             </span>
           </div>
         ) : (
           <div className="flex items-center gap-1.5 text-[13px] text-gray-600 font-medium min-w-0">
+            {/* Logo on mobile non-home pages */}
+            <img
+              src={rlensIcon}
+              alt="R-Lens"
+              className="w-5 h-5 rounded-md object-cover shrink-0 ring-1 ring-purple-200/50 md:hidden mr-0.5"
+            />
             <span
               className="text-gray-400 hover:text-gray-700 cursor-pointer transition-colors"
               onClick={() => navigate('/')}

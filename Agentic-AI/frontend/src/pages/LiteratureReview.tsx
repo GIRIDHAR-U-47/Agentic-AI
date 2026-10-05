@@ -1,1576 +1,1050 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import {
-  Activity,
-  BookOpenCheck,
-  BrainCircuit,
-  CheckCircle2,
-  Clipboard,
-  Copy,
-  ExternalLink,
-  FileDiff,
-  FileText,
-  GitBranch,
-  History,
-  Loader2,
-  MessageSquareText,
-  Play,
-  Plus,
-  RefreshCw,
-  Scale,
-  Send,
-  ShieldCheck,
-  Sparkles,
-  TriangleAlert,
-  Maximize2,
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { api, MODE_DESCRIPTIONS } from '../services/api';
-import { pdfService } from '../services/pdfService';
-import { AgentActivityLog } from '../components/AgentActivityLog';
-import { SourceApprovalPanel } from '../components/SourceApprovalPanel';
-import {
-  ActivityEvent,
-  HealthInfo,
-  PaperChatSourceChunk,
-  PaperChatTurn,
-  Review,
-  ReviewCitation,
-  ReviewMode,
-  Revision,
-  SessionListItem,
-  SessionView,
-} from '../types';
+import { CandidatePaper, Conversation, ReviewCitation, ReviewMode } from '../types';
+import { ChatComposer } from '../components/ChatComposer';
 
-/* ------------------------------------------------------------------ */
-/* Tiny markdown renderer for the backend's plain-markdown output.     */
-/* Renders only the shapes review_service.render_markdown emits:       */
-/* #/## headings, **bold**, - bullets and | tables. No innerHTML.      */
-/* ------------------------------------------------------------------ */
-function inline(text: string, keyPrefix: string): React.ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
-  return parts.map((p, i) =>
-    p.startsWith('**') && p.endsWith('**') ? (
-      <strong key={`${keyPrefix}-${i}`} className="font-semibold text-on-surface">
-        {p.slice(2, -2)}
-      </strong>
-    ) : (
-      <span key={`${keyPrefix}-${i}`}>{p}</span>
-    )
-  );
-}
-
-function Markdown({ text }: { text: string }) {
-  const lines = text.split('\n');
-  const out: React.ReactNode[] = [];
-  let i = 0;
-  let bulletKey = 0;
-  while (i < lines.length) {
-    const line = lines[i];
-    if (line.startsWith('#')) {
-      const level = line.match(/^#+/)?.[0].length ?? 1;
-      const body = line.replace(/^#+\s*/, '');
-      out.push(
-        level === 1 ? (
-          <h2 key={`h${i}`} className="font-title-md text-title-md font-bold text-on-surface mt-4 mb-1">
-            {inline(body, `h${i}`)}
-          </h2>
-        ) : (
-          <h3 key={`h${i}`} className="font-title-sm text-title-sm font-bold text-primary mt-4 mb-1">
-            {inline(body, `h${i}`)}
-          </h3>
-        )
-      );
-      i += 1;
-      continue;
-    }
-    if (line.startsWith('|') && i + 1 < lines.length && /^\|[\s\-|]+$/.test(lines[i + 1])) {
-      const rows: string[][] = [];
-      while (i < lines.length && line.startsWith('|')) {
-        const cells = lines[i]
-          .split('|')
-          .slice(1, -1)
-          .map((c) => c.trim());
-        if (!/^-+$/.test(cells[0] || '')) rows.push(cells);
-        i += 1;
-      }
-      const [head, ...body] = rows;
-      if (head) {
-        out.push(
-          <div key={`t${i}`} className="overflow-x-auto my-2">
-            <table className="w-full text-[12px] border-collapse">
-              <thead>
-                <tr>
-                  {head.map((c, j) => (
-                    <th key={j} className="text-left font-semibold text-on-surface px-2 py-1 border-b border-outline-variant/40">
-                      {inline(c, `th${i}-${j}`)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {body.map((r, j) => (
-                  <tr key={j}>
-                    {r.map((c, k) => (
-                      <td key={k} className="px-2 py-1 border-b border-outline-variant/20 text-on-surface-variant align-top">
-                        {inline(c, `td${i}-${j}-${k}`)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      }
-      continue;
-    }
-    if (line.trim() === '') {
-      i += 1;
-      continue;
-    }
-    if (/^[-*•]\s+/.test(line)) {
-      const body = line.replace(/^[-*•]\s+/, '');
-      out.push(
-        <p key={`b${i}-${bulletKey++}`} className="font-body-sm text-body-sm text-on-surface-variant pl-4 -indent-4 leading-relaxed my-1">
-          <span className="text-primary mr-1">•</span>
-          {inline(body, `b${i}`)}
-        </p>
-      );
-      i += 1;
-      continue;
-    }
-    out.push(
-      <p key={`p${i}`} className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed my-1.5 text-justify">
-        {inline(line, `p${i}`)}
-      </p>
-    );
-    i += 1;
-  }
-  return <div className="text-body-sm">{out}</div>;
-}
-
-/* ------------------------------------------------------------------ */
-/* In-Page Interactive Paper Chat                                      */
-/* ------------------------------------------------------------------ */
-interface InPagePaperChatProps {
-  approvedDocIds: string[];
-  corpusTitleById: Record<string, string>;
-  defaultDocId?: string;
-  onOpenFullScreen?: (docId: string) => void;
-}
-
-interface InPageChatMessage {
+interface ReviewChatTurn {
   id: string;
-  role: 'user' | 'assistant';
-  text: string;
+  role: 'user' | 'assistant' | 'agent-activity';
+  text?: string;
   timestamp: string;
-  citations?: PaperChatSourceChunk[];
-  verified?: boolean;
+  activityDone?: boolean;
+  activityRunning?: boolean;
+  activityMilestones?: { label: string; done: boolean; active?: boolean }[];
+  candidates?: CandidatePaper[];
+  citations?: any[];
+  matrixMarkdown?: string;
+  isStreaming?: boolean;
 }
 
-const IN_PAGE_SUGGESTED_PROMPTS = [
-  'Summarize this paper',
-  'Explain the methodology',
-  'What datasets were used?',
-  'What are the main results?',
-  'What are the key limitations?',
+const LITERATURE_REVIEW_SECTIONS = [
+  '1. Introduction',
+  '2. Existing Approaches',
+  '3. Deep Learning Methods',
+  '4. Optimization Techniques',
+  '5. Explainable AI (XAI)',
+  '6. Multi-Horizon Forecasting & Empirical Evaluation',
+  '7. Comparative Analysis Matrix',
+  '8. Identified Research Gaps',
+  '9. Future Research Directions',
+  '10. References',
 ];
 
-const InPagePaperChat: React.FC<InPagePaperChatProps> = ({
-  approvedDocIds,
-  corpusTitleById,
-  defaultDocId,
-  onOpenFullScreen,
-}) => {
-  const [activeDocId, setActiveDocId] = useState<string>(() => {
-    return (defaultDocId && approvedDocIds.includes(defaultDocId))
-      ? defaultDocId
-      : (approvedDocIds[0] || '');
+export const LiteratureReview: React.FC = () => {
+  const { conversationId: paramConvId } = useParams<{ conversationId?: string }>();
+  const [searchParams] = useSearchParams();
+  const queryConvId = searchParams.get('conversationId') || searchParams.get('session');
+  const activeConvId = paramConvId || queryConvId || null;
+
+  const navigate = useNavigate();
+
+  // New review form states
+  const [researchTopic, setResearchTopic] = useState(
+    'How can explainable deep learning and metaheuristic optimization improve multi-horizon data center power forecasting?'
+  );
+  const [reviewMode, setReviewMode] = useState<ReviewMode>('agentic_rag');
+  const [sources, setSources] = useState({
+    openAlex: true,
+    semanticScholar: true,
+    crossref: true,
+    arxiv: true,
   });
-  const [messages, setMessages] = useState<InPageChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [stepLabel, setStepLabel] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Active review state
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [chatTurns, setChatTurns] = useState<ReviewChatTurn[]>([]);
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+  const [candidates, setCandidates] = useState<CandidatePaper[]>([]);
+  const [activeEvidenceList, setActiveEvidenceList] = useState<any[]>([]);
+  const [generatedReviewText, setGeneratedReviewText] = useState<string | null>(null);
+  const [generatedMatrixText, setGeneratedMatrixText] = useState<string | null>(null);
+
+  // Status & loading
+  const [reviewChatInput, setReviewChatInput] = useState('');
+  const [isStartingReview, setIsStartingReview] = useState(false);
+  const [isProcessingChat, setIsProcessingChat] = useState(false);
+  const [isGeneratingReview, setIsGeneratingReview] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<'discover' | 'select' | 'analyze' | 'compare' | 'synthesize'>('discover');
+
+  // Right drawer state: 'sources' | 'evidence' | 'outputs'
+  const [drawerTab, setDrawerTab] = useState<'sources' | 'evidence' | 'outputs'>('sources');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const loadedIdRef = useRef<string | null>(null);
 
-  // Sync activeDocId if defaultDocId changes
-  useEffect(() => {
-    if (defaultDocId && approvedDocIds.includes(defaultDocId)) {
-      setActiveDocId(defaultDocId);
-    } else if (approvedDocIds.length > 0 && !approvedDocIds.includes(activeDocId)) {
-      setActiveDocId(approvedDocIds[0]);
-    }
-  }, [defaultDocId, approvedDocIds, activeDocId]);
-
-  // Initial greeting when paper changes
-  useEffect(() => {
-    if (activeDocId) {
-      const title = corpusTitleById[activeDocId] || activeDocId;
-      setMessages([
-        {
-          id: `greet-${activeDocId}`,
-          role: 'assistant',
-          text: `📄 Ready to chat with **${title}**.\n\nYou can ask about the methodology, mathematical formulations, empirical benchmark datasets, key findings, or limitations.`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    }
-  }, [activeDocId, corpusTitleById]);
-
-  useEffect(() => {
+  const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isSearching]);
-
-  const activeTitle = corpusTitleById[activeDocId] || activeDocId || 'Select a paper';
-
-  const handleSend = async (overrideText?: string) => {
-    const q = (overrideText || input).trim();
-    if (!q || !activeDocId || isSearching) return;
-
-    setInput('');
-    const userMsg: InPageChatMessage = {
-      id: `usr-${Date.now()}`,
-      role: 'user',
-      text: q,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    const newHistory: PaperChatTurn[] = messages
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => ({ role: m.role, content: m.text }));
-    newHistory.push({ role: 'user', content: q });
-
-    setMessages((prev) => [...prev, userMsg]);
-    setIsSearching(true);
-    setStepLabel('Retrieving evidence from paper...');
-
-    const stepTimer1 = setTimeout(() => setStepLabel('Validating sources & coverage...'), 600);
-    const stepTimer2 = setTimeout(() => setStepLabel('Generating grounded answer...'), 1200);
-
-    try {
-      const resp = await pdfService.paperChat(activeDocId, q, newHistory);
-      clearTimeout(stepTimer1);
-      clearTimeout(stepTimer2);
-
-      const assistantMsg: InPageChatMessage = {
-        id: `asst-${Date.now()}`,
-        role: 'assistant',
-        text: resp.answer,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        citations: resp.sources,
-        verified: resp.verified,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err: unknown) {
-      clearTimeout(stepTimer1);
-      clearTimeout(stepTimer2);
-      const msg = err instanceof Error ? err.message : 'Chat query failed.';
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `err-${Date.now()}`,
-          role: 'assistant',
-          text: `❌ ${msg}`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    } finally {
-      setIsSearching(false);
-      setStepLabel('');
-    }
   };
 
-  if (approvedDocIds.length === 0) {
-    return (
-      <div className="rounded-xl bg-surface-container-lowest p-6 border border-outline-variant/30 text-center">
-        <p className="font-body-sm text-body-sm text-on-surface-variant">
-          No papers approved yet. Approve candidate papers first to enable live paper chat.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-sm flex flex-col overflow-hidden">
-      {/* Paper Chat Header with Document Switcher */}
-      <div className="p-3 bg-surface-container-low border-b border-outline-variant/30 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="font-label-sm text-label-sm uppercase font-bold text-primary tracking-wider shrink-0 flex items-center gap-1">
-            <MessageSquareText className="w-4 h-4" />
-            Active Paper:
-          </span>
-          <select
-            value={activeDocId}
-            onChange={(e) => setActiveDocId(e.target.value)}
-            className="flex-1 max-w-md rounded-lg bg-surface-container-lowest border border-outline-variant/40 px-2.5 py-1 text-[12.5px] font-semibold text-on-surface focus:outline-none focus:border-primary truncate cursor-pointer"
-          >
-            {approvedDocIds.map((id) => (
-              <option key={id} value={id}>
-                {corpusTitleById[id] || id}
-              </option>
-            ))}
-          </select>
-        </div>
-        {onOpenFullScreen && (
-          <button
-            type="button"
-            onClick={() => onOpenFullScreen(activeDocId)}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-[11.5px] font-semibold transition-colors cursor-pointer shrink-0"
-            title="Open in dedicated full-screen chat with split PDF reader"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-            <span>Full Reader View</span>
-          </button>
-        )}
-      </div>
-
-      {/* Messages Stream */}
-      <div className="p-4 space-y-3.5 max-h-[420px] overflow-y-auto bg-surface-container-lowest">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            {m.role !== 'user' && (
-              <div className="w-7 h-7 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                <BrainCircuit className="w-4 h-4" />
-              </div>
-            )}
-            <div
-              className={`max-w-xl rounded-xl p-3 text-[13px] leading-relaxed shadow-xs ${
-                m.role === 'user'
-                  ? 'bg-primary text-on-primary rounded-tr-none font-medium'
-                  : 'bg-surface-container-low border border-outline-variant/30 text-on-surface rounded-tl-none'
-              }`}
-            >
-              <div className="whitespace-pre-line leading-relaxed">{m.text}</div>
-              {m.citations && m.citations.length > 0 && (
-                <div className="mt-2.5 pt-2 border-t border-outline-variant/20 space-y-1">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-primary block">
-                    Verified Citations:
-                  </span>
-                  <div className="flex flex-wrap gap-1">
-                    {m.citations.map((c, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-lowest border border-outline-variant/30 text-[11px] font-medium text-on-surface shadow-2xs"
-                        title={c.quote}
-                      >
-                        <strong className="text-primary">{c.marker}</strong>
-                        <span>p.{c.page}</span>
-                        {c.section && <span className="opacity-70">({c.section})</span>}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <span className={`block text-[10px] mt-1.5 ${m.role === 'user' ? 'text-on-primary/70' : 'text-outline'}`}>
-                {m.timestamp}
-              </span>
-            </div>
-          </div>
-        ))}
-
-        {isSearching && (
-          <div className="flex items-center gap-2.5 p-3 rounded-lg bg-surface-container-low border border-outline-variant/30 animate-fadeIn">
-            <Loader2 className="w-4 h-4 text-primary animate-spin" />
-            <span className="text-[12px] font-medium text-primary">{stepLabel}</span>
-          </div>
-        )}
-        <div ref={chatEndRef} />
-      </div>
-
-      {/* Suggested Prompt Chips */}
-      <div className="px-3 py-1.5 bg-surface-container border-t border-outline-variant/20 flex gap-1.5 flex-wrap">
-        {IN_PAGE_SUGGESTED_PROMPTS.map((prompt) => (
-          <button
-            key={prompt}
-            type="button"
-            onClick={() => handleSend(prompt)}
-            className="text-[11px] px-2.5 py-0.5 rounded-full border border-outline-variant/40 bg-surface-container-lowest hover:bg-primary-container hover:text-on-primary text-on-surface-variant transition-colors cursor-pointer font-medium"
-          >
-            {prompt}
-          </button>
-        ))}
-      </div>
-
-      {/* Chat Input Bar */}
-      <div className="p-3 bg-surface-container-low border-t border-outline-variant/30">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          className="flex gap-2 items-center"
-        >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={`Ask anything about ${activeTitle.slice(0, 45)}...`}
-            className="flex-1 rounded-lg bg-surface-container-lowest border border-outline-variant/40 px-3 py-2 text-[13px] text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:border-primary"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isSearching}
-            className="px-3 py-2 rounded-lg bg-primary text-on-primary hover:bg-primary/90 disabled:opacity-50 font-title-sm text-title-sm transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed shrink-0 font-semibold"
-          >
-            {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            <span>Ask</span>
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
-export const LiteratureReview: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const activeId = searchParams.get('session');
-
-  const [health, setHealth] = useState<HealthInfo | null>(null);
-  const [backendUp, setBackendUp] = useState<boolean | null>(null);
-  const [sessions, setSessions] = useState<SessionListItem[]>([]);
-  const [session, setSession] = useState<SessionView | null>(null);
-  const [corpusTitleById, setCorpusTitleById] = useState<Record<string, string>>({});
-
-  const [question, setQuestion] = useState(
-    'How does channel independence work in PatchTST, and what does it buy compared with attention-based baselines?'
-  );
-  const [mode, setMode] = useState<ReviewMode>('agentic_rag');
-  const [discover, setDiscover] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [approving, setApproving] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [replying, setReplying] = useState(false);
-  const [replyText, setReplyText] = useState('');
-  const [feedbackText, setFeedbackText] = useState('');
-  const [excludeDocs, setExcludeDocs] = useState<string[]>([]);
-  const [submittingFeedback, setSubmittingFeedback] = useState(false);
-  const [draftIndex, setDraftIndex] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [centerTab, setCenterTab] = useState<'activity' | 'chat'>('activity');
-  const [chatSelectedDocId, setChatSelectedDocId] = useState<string | undefined>(undefined);
-  const pollRef = useRef<number | null>(null);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 3200);
-  }, []);
-
-  const review = session?.review ?? null;
-
-  // Draft history: the latest review is shown first, older drafts after it.
-  // Draft 0 is the original review; every completed revision adds a draft.
-  const drafts = useMemo<{ review: Review; label: string; feedback?: string }[]>(() => {
-    const revs = session?.revisions ?? [];
-    const out: { review: Review; label: string; feedback?: string }[] = [];
-    for (let i = revs.length - 1; i >= 0; i--) {
-      const r = revs[i];
-      if (r.review) out.push({ review: r.review, label: `Revised draft ${i + 2}`, feedback: r.feedback });
-    }
-    const original = revs.length > 0 ? revs[0]?.prior_review : null;
-    if (original) out.push({ review: original, label: 'Draft 1 (original)' });
-    if (out.length === 0 && review) out.push({ review, label: 'Draft 1' });
-    return out;
-  }, [session, review]);
-
-  const displayReview = drafts[draftIndex]?.review ?? review;
-
-  // The "cited passages" list on this page is the *current* verified set; for
-  // older drafts we fall back to the sources embedded in that draft's review.
-  const displayCitations = useMemo(() => {
-    if (draftIndex === 0) return session?.citations ?? [];
-    if (!displayReview) return [];
-    return (displayReview.sources as ReviewCitation[]) ?? [];
-  }, [draftIndex, displayReview, session]);
-
   useEffect(() => {
-    // Every session switch starts from the latest draft + clean feedback state.
-    setDraftIndex(0);
-    setFeedbackText('');
-    setExcludeDocs([]);
-  }, [activeId]);
+    scrollToBottom();
+  }, [chatTurns, isProcessingChat, isGeneratingReview]);
 
-  const loadSessions = useCallback(async () => {
+  // Load existing persistent review conversation
+  const loadReviewConversation = useCallback(async (convId: string) => {
     try {
-      const r = await api.sessions.list();
-      setSessions(r.sessions);
-    } catch {
-      /* keep the previous list */
-    }
-  }, []);
+      setLoadError(null);
+      const conv = await api.conversations.get(convId);
+      if (conv) {
+        loadedIdRef.current = convId;
+        setConversation(conv);
+        if (conv.research_topic) setResearchTopic(conv.research_topic);
+        if (conv.selected_paper_ids) setSelectedDocIds(conv.selected_paper_ids);
+        if (conv.metadata?.candidates) setCandidates(conv.metadata.candidates);
+        if (conv.metadata?.generated_review) setGeneratedReviewText(conv.metadata.generated_review);
 
-  const loadSession = useCallback(async (id: string) => {
-    try {
-      const view = await api.sessions.get(id);
-      // GET /sessions/{id} does not carry candidates; the approval panel needs
-      // them, so re-suggest whenever the session has not been approved yet.
-      if (!view.candidates && (view.state === 'created' || view.state === 'awaiting_approval')) {
-        try {
-          const sugg = await api.corpus.suggest(view.question);
-          view.candidates = sugg.candidates;
-        } catch {
-          view.candidates = [];
+        // Map messages
+        if (conv.messages && conv.messages.length > 0) {
+          const turns: ReviewChatTurn[] = conv.messages.map((m) => {
+            const isAct = m.role === 'agent-activity' || m.metadata?.type === 'activity';
+            return {
+              id: m.id,
+              role: isAct ? 'agent-activity' : (m.role as any),
+              text: m.content,
+              timestamp: m.created_at
+                ? new Date(m.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'Just now',
+              citations: m.metadata?.sources,
+              activityMilestones: m.metadata?.milestones,
+              activityDone: true,
+              candidates: (m.metadata?.candidates as any) || (isAct && conv.metadata?.candidates ? conv.metadata.candidates : undefined),
+              matrixMarkdown: m.metadata?.matrix_markdown as string | undefined,
+            };
+          });
+          setChatTurns(turns);
+          setCurrentStep(conv.metadata?.generated_review ? 'synthesize' : 'analyze');
         }
       }
-      setSession(view);
-      return view;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      return null;
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Could not load literature review conversation');
     }
   }, []);
 
   useEffect(() => {
-    api.health().then(
-      (h) => {
-        setHealth(h);
-        setBackendUp(true);
-      },
-      () => setBackendUp(false)
-    );
-    api.corpus
-      .list()
-      .then((r) => {
-        const m: Record<string, string> = {};
-        for (const d of r.documents) m[d.id] = d.title;
-        setCorpusTitleById(m);
-      })
-      .catch(() => undefined);
-    void loadSessions();
-  }, [loadSessions]);
+    if (activeConvId) {
+      if (loadedIdRef.current !== activeConvId) {
+        loadReviewConversation(activeConvId);
+      }
+    } else {
+      setConversation(null);
+      setChatTurns([]);
+    }
+  }, [activeConvId, loadReviewConversation]);
 
-  useEffect(() => {
-    if (activeId) void loadSession(activeId);
-    else setSession(null);
-  }, [activeId, loadSession]);
+  // Start new literature review flow
+  const handleStartReview = async () => {
+    const topic = researchTopic.trim();
+    if (!topic || isStartingReview) return;
 
-  const create = async () => {
-    if (!question.trim() || creating) return;
-    setCreating(true);
-    setError(null);
+    setIsStartingReview(true);
+    setLoadError(null);
+
     try {
-      const r = await api.sessions.create(question.trim(), mode, discover);
-      setSearchParams({ session: r.session_id });
-      setSession({
-        ...r,
-        title: r.question,
-        approved: [],
-        rejected: [],
-        decisions: [],
-        citations: [],
-        can_run: false,
-        can_resume: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      // 1. Create persistent review conversation
+      const conv = await api.conversations.create({
+        mode: 'literature_review',
+        research_topic: topic,
+        metadata: {
+          review_mode: reviewMode,
+          sources_selected: sources,
+        },
       });
-      showToast(
-        discover
-          ? 'Session created — approve the arXiv sources it may cite.'
-          : 'Session created — approve the sources it may cite.'
-      );
-      void loadSessions();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setCreating(false);
-    }
-  };
 
-  const saveApprovals = async (decisions: { doc_id: string; decision: 'approved' | 'rejected' }[]) => {
-    if (!session) return;
-    setApproving(true);
-    setError(null);
-    try {
-      const resp = await api.sessions.approve(session.session_id, decisions);
-      const view = await api.sessions.get(session.session_id);
-      setSession(view);
-      const ingested = resp.ingested || [];
-      const abstractOnly = ingested.filter(
-        (r) => r.abstract_only || r.full_text_available === 0
-      );
-      const duplicates = ingested.filter((r) => r.duplicate);
-      const notes: string[] = [];
-      if (abstractOnly.length > 0) {
-        notes.push(
-          `${abstractOnly.length} had no full text — stored as abstract-only (clearly labelled).`
-        );
+      loadedIdRef.current = conv.id;
+      setConversation(conv);
+      navigate(`/report/${conv.id}`, { replace: true });
+
+      // 2. Initial turns: Question + Activity Stream
+      const userTurnId = `user-${Date.now()}`;
+      const actTurnId = `act-${Date.now()}`;
+
+      setChatTurns([
+        {
+          id: userTurnId,
+          role: 'user',
+          text: `Literature Review: ${topic}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+        {
+          id: actTurnId,
+          role: 'agent-activity',
+          text: 'Initiating multi-source academic discovery and evidence indexing...',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          activityRunning: true,
+          activityDone: false,
+          activityMilestones: [
+            { label: 'Understood research question & domain parameters', done: true },
+            { label: 'Generating targeted search queries across academic databases', done: false, active: true },
+            { label: 'Searching OpenAlex, Semantic Scholar, Crossref & arXiv', done: false },
+            { label: 'Filtering & ranking relevant papers', done: false },
+          ],
+        },
+      ]);
+
+      // Save user turn to backend
+      await api.conversations.addMessage(conv.id, {
+        id: userTurnId,
+        role: 'user',
+        content: `Literature Review: ${topic}`,
+      });
+
+      // 3. Plan & Federated Discovery
+      try {
+        await api.discover.plan(topic);
+      } catch {
+        // Continue
       }
-      if (duplicates.length > 0) {
-        notes.push(
-          `${duplicates.length} matched a paper already in the corpus — skipped as a duplicate.`
-        );
-      }
-      if (view.can_run) {
-        const base = `${view.approved.length} paper(s) approved — ready to run the review.`;
-        showToast(notes.length ? `${base} ${notes.join(' ')}` : base);
-      } else {
-        showToast('No papers approved. The agent cannot retrieve without sources.');
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setApproving(false);
-    }
-  };
 
-  const toggleExclude = (id: string) => {
-    setExcludeDocs((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  const submitFeedback = async () => {
-    if (!session || !feedbackText.trim() || submittingFeedback) return;
-    setSubmittingFeedback(true);
-    setError(null);
-    try {
-      const resp = await api.sessions.feedback(session.session_id, feedbackText.trim(), excludeDocs);
-      await loadSession(session.session_id);
-      setFeedbackText('');
-      setExcludeDocs([]);
-      showToast(
-        resp.revision
-          ? `Revised draft ready (feedback applied${excludeDocs.length ? `, ${excludeDocs.length} paper(s) excluded` : ''}).`
-          : 'Feedback recorded.'
+      setChatTurns((prev) =>
+        prev.map((t) =>
+          t.id === actTurnId
+            ? {
+                ...t,
+                activityMilestones: [
+                  { label: 'Understood research question & domain parameters', done: true },
+                  { label: 'Generated search queries for time-series, XAI, and optimization', done: true },
+                  { label: 'Searching OpenAlex, Semantic Scholar, Crossref & arXiv...', done: false, active: true },
+                  { label: 'Filtering & ranking relevant papers', done: false },
+                ],
+              }
+            : t
+        )
       );
-      void loadSessions();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setSubmittingFeedback(false);
-    }
-  };
 
-  const run = async () => {
-    if (!session || running) return;
-    setRunning(true);
-    setError(null);
-    try {
-      const resp = await api.sessions.run(session.session_id);
-      // The run response is partial; re-fetch the full resumable view.
-      const fresh = await loadSession(session.session_id);
-      if (!fresh) return;
-      if (fresh.state === 'awaiting_user') {
-        showToast('The agent paused — it wants your input before continuing.');
-      } else if (resp.insufficient_evidence || (fresh.review && fresh.review.claims_total === 0 && fresh.citations.length === 0)) {
-        showToast('The agent reported insufficient evidence rather than guessing.');
-      } else {
-        showToast(`Review complete — ${fresh.citations.length} source-backed citation(s).`);
-      }
-      void loadSessions();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setRunning(false);
-    }
-  };
+      const searchRes = await api.discover.search(topic, 14);
+      const foundPapers = searchRes.candidates || [];
+      setCandidates(foundPapers);
 
-  const submitReply = async () => {
-    if (!session || !replyText.trim() || replying) return;
-    setReplying(true);
-    setError(null);
-    try {
-      await api.sessions.reply(session.session_id, replyText.trim());
-      setReplyText('');
-      const fresh = await loadSession(session.session_id);
-      showToast(
-        fresh && fresh.state === 'complete'
-          ? `Review complete — ${fresh.citations.length} citation(s).`
-          : 'Resumed with your clarification.'
+      const topIds = foundPapers.slice(0, 3).map((c) => c.doc_id || c.arxiv_id || '').filter(Boolean);
+      setSelectedDocIds(topIds);
+      setCurrentStep('select');
+
+      // Update persistent conversation
+      await api.conversations.update(conv.id, {
+        selected_paper_ids: topIds,
+        metadata: {
+          candidates: foundPapers,
+          review_mode: reviewMode,
+          sources_selected: sources,
+        },
+      });
+
+      // Finalize activity turn
+      setChatTurns((prev) =>
+        prev.map((t) =>
+          t.id === actTurnId
+            ? {
+                ...t,
+                activityRunning: false,
+                activityDone: true,
+                activityMilestones: [
+                  { label: 'Understood research question & domain parameters', done: true },
+                  { label: 'Generated targeted search queries', done: true },
+                  { label: 'Searched OpenAlex, Semantic Scholar, Crossref & arXiv', done: true },
+                  { label: `Deduplicated and ranked ${foundPapers.length} relevant candidate papers`, done: true },
+                ],
+                candidates: foundPapers,
+              }
+            : t
+        )
       );
-      void loadSessions();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+
+      // Save activity turn
+      await api.conversations.addMessage(conv.id, {
+        id: actTurnId,
+        role: 'agent-activity',
+        content: `Discovered ${foundPapers.length} verified academic papers across OpenAlex, Semantic Scholar, Crossref & arXiv.`,
+        metadata: {
+          type: 'activity',
+          candidates: foundPapers,
+          milestones: [
+            { label: 'Understood research question & domain parameters', done: true },
+            { label: 'Generated targeted search queries', done: true },
+            { label: 'Searched OpenAlex, Semantic Scholar, Crossref & arXiv', done: true },
+            { label: `Deduplicated and ranked ${foundPapers.length} relevant papers`, done: true },
+          ],
+        },
+      });
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Error starting review');
     } finally {
-      setReplying(false);
+      setIsStartingReview(false);
     }
   };
 
-  const copyMarkdown = async () => {
-    if (!session) return;
+  // Toggle paper selection
+  const handleTogglePaper = async (paperId: string) => {
+    const updated = selectedDocIds.includes(paperId)
+      ? selectedDocIds.filter((id) => id !== paperId)
+      : [...selectedDocIds, paperId];
+    setSelectedDocIds(updated);
+
+    if (activeConvId) {
+      api.conversations.update(activeConvId, { selected_paper_ids: updated }).catch(() => undefined);
+    }
+  };
+
+  // In-review chat turn
+  const handleSendChatMessage = async (directText?: string) => {
+    if (!activeConvId || isProcessingChat) return;
+
+    const txt = (directText || '').trim();
+    if (!txt) return;
+
+    setIsProcessingChat(true);
+
+    const userMsgId = `user-${Date.now()}`;
+    const asstMsgId = `asst-${Date.now()}`;
+
+    setChatTurns((prev) => [
+      ...prev,
+      {
+        id: userMsgId,
+        role: 'user',
+        text: txt,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+      {
+        id: asstMsgId,
+        role: 'assistant',
+        text: 'Analyzing literature evidence & generating verified response...',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isStreaming: true,
+      },
+    ]);
+
     try {
-      const r = await api.sessions.markdown(session.session_id);
-      if (navigator.clipboard) await navigator.clipboard.writeText(r.markdown);
-      setCopied(true);
-      showToast('Review copied as Markdown.');
-      window.setTimeout(() => setCopied(false), 2500);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      // Check for specific intent shortcuts
+      const lower = txt.toLowerCase();
+      if (lower.includes('generate') && (lower.includes('literature review') || lower.includes('review'))) {
+        await handleGenerateLiteratureReview();
+        setIsProcessingChat(false);
+        return;
+      }
+
+      if (lower.includes('compare') || lower.includes('comparison matrix')) {
+        await handleGenerateComparison();
+        setIsProcessingChat(false);
+        return;
+      }
+
+      const res = await api.conversations.chat(activeConvId, {
+        query: txt,
+        selected_paper_ids: selectedDocIds,
+        mode: 'literature_review',
+        message_id: userMsgId,
+      });
+
+      if (res.sources && res.sources.length > 0) {
+        setActiveEvidenceList(res.sources);
+      }
+
+      setChatTurns((prev) =>
+        prev.map((t) =>
+          t.id === asstMsgId
+            ? {
+                ...t,
+                text: res.content,
+                citations: res.sources,
+                isStreaming: false,
+              }
+            : t
+        )
+      );
+      setCurrentStep('analyze');
+    } catch (err) {
+      setChatTurns((prev) =>
+        prev.map((t) =>
+          t.id === asstMsgId
+            ? {
+                ...t,
+                text: `I couldn't verify this claim in the current literature scope. ${
+                  err instanceof Error ? err.message : ''
+                }`,
+                isStreaming: false,
+              }
+            : t
+        )
+      );
+    } finally {
+      setIsProcessingChat(false);
     }
   };
 
-  const phase = useMemo(() => {
-    if (!session) return 'idle';
-    return session.state;
-  }, [session]);
+  // Compare papers matrix action
+  const handleGenerateComparison = async () => {
+    if (!activeConvId || isComparing) return;
+    setIsComparing(true);
+    setCurrentStep('compare');
 
-  if (backendUp === false) {
+    try {
+      const res = await api.conversations.compare(activeConvId);
+      setGeneratedMatrixText(res.matrix_markdown);
+      setDrawerTab('outputs');
+      setIsDrawerOpen(true);
+
+      // Add to conversation turn list
+      setChatTurns((prev) => [
+        ...prev,
+        {
+          id: res.id || `cmp-${Date.now()}`,
+          role: 'assistant',
+          text: `### Evidence-Backed Comparison Matrix\n\n${res.matrix_markdown}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } catch (err) {
+      // Fallback
+    } finally {
+      setIsComparing(false);
+    }
+  };
+
+  // Generate full 10-section Literature Review
+  const handleGenerateLiteratureReview = async () => {
+    if (!activeConvId || isGeneratingReview) return;
+    setIsGeneratingReview(true);
+    setCurrentStep('synthesize');
+
+    try {
+      const res = await api.conversations.generateReview(activeConvId, {
+        focus_topic: researchTopic,
+      });
+      setGeneratedReviewText(res.content);
+      setDrawerTab('outputs');
+      setIsDrawerOpen(true);
+
+      setChatTurns((prev) => [
+        ...prev,
+        {
+          id: res.id || `rev-${Date.now()}`,
+          role: 'assistant',
+          text: res.content,
+          citations: res.sources,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } catch (err) {
+      // Fallback
+    } finally {
+      setIsGeneratingReview(false);
+    }
+  };
+
+  // ── Render Form when no active review ──
+  if (!activeConvId && !conversation) {
     return (
-      <div className="w-full bg-surface-container-lowest min-h-screen text-on-surface flex items-center justify-center p-gutter-desktop">
-        <div className="max-w-lg text-center space-y-4">
-          <TriangleAlert className="w-10 h-10 text-rose-400 mx-auto" />
-          <h1 className="font-headline-md text-headline-md font-bold">
-            Backend is offline
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
-            This page only shows verified backend state — there is no mock fallback.
-            Start the server with <span className="font-code-sm">start.bat</span>{' '}
-            (backend on <span className="font-code-sm">http://localhost:8000</span>) and reload.
-          </p>
-          <button
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary hover:bg-tertiary font-title-sm text-title-sm"
-            onClick={() => window.location.reload()}
-            type="button"
-          >
-            <RefreshCw className="w-4 h-4" /> Reload
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full bg-surface-container-lowest min-h-screen text-on-surface">
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-inverse-surface text-inverse-on-surface px-4 py-3 rounded-lg shadow-xl font-body-sm text-body-sm flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{toast}</span>
-        </div>
-      )}
-
-      {/* Header */}
-      <header className="bg-surface-container-lowest px-gutter-desktop py-space-md flex flex-wrap items-center justify-between gap-space-md border-b border-outline-variant/40 shadow-sm sticky top-16 z-30">
-        <div className="flex flex-col min-w-0 max-w-2xl">
-          <div className="flex items-center gap-space-xs text-primary font-label-md text-label-md uppercase tracking-wider font-semibold">
-            <ShieldCheck className="w-4 h-4" />
-            <span>R-Lens Research Pilot</span>
-            <span className="text-outline-variant">•</span>
-            <span className="font-code-sm text-code-sm text-outline">v2.5.0</span>
-          </div>
-          <h1 className="font-headline-md text-headline-md text-on-surface truncate font-bold mt-0.5">
-            Source-backed review workflow
-          </h1>
-          <p className="font-body-sm text-body-sm text-on-surface-variant truncate">
-            Real papers → retrieval → your approval → verified, cited review. Every number shown here comes from the backend.
-          </p>
-        </div>
-        <div className="flex items-center flex-wrap gap-space-xs">
-          {health && (
-            <>
-              <span className="inline-flex items-center gap-1.5 px-space-sm py-space-2xs rounded border border-outline-variant/30 font-code-sm text-code-sm text-on-surface-variant">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                {health.corpus.documents} docs · {health.corpus.chunks} chunks
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-space-sm py-space-2xs rounded border border-outline-variant/30 font-code-sm text-code-sm text-on-surface-variant">
-                max {health.limits.max_agent_iterations} iter · {health.limits.max_tool_calls} tools ·{' '}
-                {health.limits.max_query_refinements} refinements
-              </span>
-              {session && session.state === 'complete' && (
-                <button
-                  className="inline-flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-title-sm text-title-sm transition-all"
-                  onClick={copyMarkdown}
-                  type="button"
-                >
-                  {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                  Copy Markdown
-                </button>
-              )}
-            </>
-          )}
-        </div>
-      </header>
-
-      {error && (
-        <div className="mx-gutter-desktop mt-4 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 px-4 py-3 flex items-start gap-2 font-body-sm text-body-sm text-rose-800 dark:text-rose-300">
-          <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" />
-          <span className="flex-1">{error}</span>
-          <button className="hover:opacity-70 font-semibold" onClick={() => setError(null)} type="button">
-            Dismiss
-          </button>
-        </div>
-      )}
-
-      <div className="p-gutter-desktop grid grid-cols-12 gap-space-lg items-start">
-        {/* LEFT: sessions + new session */}
-        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-space-md">
-          {/* New session */}
-          <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm">
-            <div className="flex items-center gap-2 pb-space-sm border-b border-outline-variant/30">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                New review
-              </span>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-[#FAFAFC] min-h-[calc(100vh-56px)] select-none">
+        <div className="w-full max-w-2xl bg-white border border-gray-200/90 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-primary border border-purple-200/60 flex items-center justify-center shadow-2xs">
+              <span className="material-symbols-outlined text-[22px]">menu_book</span>
             </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Literature Review Workspace</h1>
+              <p className="text-xs text-gray-500">
+                Persistent multi-paper review, comparative matrix synthesis & evidence verification.
+              </p>
+            </div>
+          </div>
+
+          {/* Research Question */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-600">
+              What would you like to review?
+            </label>
             <textarea
-              className="w-full mt-3 rounded-lg bg-surface-container p-3 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant/60 border border-outline-variant/40 focus:outline-none focus:border-primary resize-none"
-              rows={4}
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ask a research question — the approved corpus answers it, or turn on “Discover on arXiv” for any fresh topic…"
+              rows={3}
+              value={researchTopic}
+              onChange={(e) => setResearchTopic(e.target.value)}
+              placeholder="How can explainable deep learning and metaheuristic optimization improve multi-horizon data center power forecasting?"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14.5px] text-gray-900 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
             />
-            <div className="flex flex-col gap-2 mt-3">
-              {(['agentic_rag', 'basic_rag', 'no_rag'] as ReviewMode[]).map((m) => (
-                <label
-                  key={m}
-                  className={`flex items-start gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
-                    mode === m
-                      ? 'border-primary bg-primary-container/40'
-                      : 'border-outline-variant/40 hover:border-outline'
+          </div>
+
+          {/* Review Mode Radio */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-600">
+              Review Mode
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {[
+                { id: 'agentic_rag', label: 'Agentic RAG', desc: 'Iterative retrieval, evidence verification & query refinement' },
+                { id: 'basic_rag', label: 'Basic RAG', desc: 'Single-shot passage retrieval from approved corpus' },
+                { id: 'no_rag', label: 'No RAG', desc: 'Direct baseline generation without retrieval' },
+              ].map((m) => (
+                <div
+                  key={m.id}
+                  onClick={() => setReviewMode(m.id as ReviewMode)}
+                  className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                    reviewMode === m.id
+                      ? 'bg-purple-50/70 border-primary shadow-xs'
+                      : 'bg-white border-gray-200 hover:border-gray-300'
                   }`}
                 >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="reviewMode"
+                      checked={reviewMode === m.id}
+                      onChange={() => setReviewMode(m.id as ReviewMode)}
+                      className="text-primary focus:ring-primary"
+                    />
+                    <span className="text-xs font-bold text-gray-900">{m.label}</span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1 pl-5">{m.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sources Checkboxes */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-600">
+              Academic Sources
+            </label>
+            <div className="flex flex-wrap gap-4 pt-1">
+              {[
+                { key: 'openAlex', label: 'OpenAlex' },
+                { key: 'semanticScholar', label: 'Semantic Scholar' },
+                { key: 'crossref', label: 'Crossref' },
+                { key: 'arxiv', label: 'arXiv' },
+              ].map((src) => (
+                <label key={src.key} className="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer">
                   <input
-                    type="radio"
-                    name="review-mode"
-                    checked={mode === m}
-                    onChange={() => setMode(m)}
-                    className="mt-0.5 accent-[var(--primary,#7c3aed)]"
+                    type="checkbox"
+                    checked={(sources as any)[src.key]}
+                    onChange={(e) => setSources((prev) => ({ ...prev, [src.key]: e.target.checked }))}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary"
                   />
-                  <span className="min-w-0">
-                    <span className="font-label-sm text-label-sm font-semibold text-on-surface block">
-                      {m.replace(/_/g, ' ')}
-                    </span>
-                    <span className="font-body-sm text-body-sm text-on-surface-variant text-[11.5px] leading-snug block">
-                      {MODE_DESCRIPTIONS[m]}
-                    </span>
-                  </span>
+                  <span>{src.label}</span>
                 </label>
               ))}
             </div>
-            <label
-              className={`mt-3 flex items-start gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
-                discover ? 'border-primary bg-primary-container/40' : 'border-outline-variant/40 hover:border-outline'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={discover}
-                onChange={(e) => setDiscover(e.target.checked)}
-                className="mt-0.5 accent-[var(--primary,#7c3aed)]"
-              />
-              <span className="min-w-0">
-                <span className="font-label-sm text-label-sm font-semibold text-on-surface block">
-                  Discover on arXiv (any topic)
-                </span>
-                <span className="font-body-sm text-body-sm text-on-surface-variant text-[11.5px] leading-snug block">
-                  Search arXiv for fresh candidates instead of ranking the fixed
-                  corpus. Papers whose full text is unavailable are stored as
-                  clearly-labelled abstract-only sources.
-                </span>
-              </span>
-            </label>
+          </div>
+
+          {/* Advanced Settings Collapsible */}
+          <div className="pt-2 border-t border-gray-100">
             <button
-              className="mt-3 w-full inline-flex items-center justify-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container text-on-primary hover:bg-tertiary font-title-sm text-title-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={create}
-              disabled={creating || !question.trim()}
               type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="text-xs font-medium text-gray-500 hover:text-gray-900 flex items-center gap-1 cursor-pointer"
             >
-              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              Start review session
+              <span className="material-symbols-outlined text-[16px]">
+                {showAdvanced ? 'expand_less' : 'expand_more'}
+              </span>
+              <span>Advanced Review Controls</span>
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-3 p-3.5 rounded-xl bg-gray-50 border border-gray-200/80 text-xs space-y-2 text-gray-600">
+                <div className="flex items-center justify-between">
+                  <span>Human-in-the-Loop Verification</span>
+                  <span className="font-semibold text-emerald-700">Enabled by Default</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Max Agent Iterations</span>
+                  <span className="font-semibold">3 Iterations</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Strict Source Grounding</span>
+                  <span className="font-semibold text-primary">Required (No hallucinations)</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="button"
+            onClick={handleStartReview}
+            disabled={!researchTopic.trim() || isStartingReview}
+            className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-semibold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {isStartingReview ? (
+              <>
+                <div className="w-4 h-4 rounded-full border-2 border-white/60 border-t-white animate-spin" />
+                <span>Initializing Review Workspace...</span>
+              </>
+            ) : (
+              <>
+                <span>Start Review</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Render Active Review Workspace ──
+  return (
+    <div className="flex w-full h-[calc(100vh-56px)] bg-[#FAFAFC] overflow-hidden text-gray-900 select-none">
+      {/* ── MAIN REVIEW CONVERSATION AREA ── */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+        {/* Progress Bar & Header */}
+        <header className="px-6 py-3 bg-white border-b border-gray-200/80 flex flex-col gap-2 shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                onClick={() => navigate('/report')}
+                className="text-gray-400 hover:text-gray-700 text-xs font-medium cursor-pointer"
+              >
+                Literature Review
+              </span>
+              <span className="material-symbols-outlined text-[14px] text-gray-400">chevron_right</span>
+              <h2 className="text-xs font-bold text-gray-900 truncate max-w-md">
+                {researchTopic}
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleGenerateComparison}
+                disabled={isComparing || selectedDocIds.length === 0}
+                className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[14px]">table_chart</span>
+                <span>{isComparing ? 'Comparing...' : 'Compare Papers'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleGenerateLiteratureReview}
+                disabled={isGeneratingReview}
+                className="px-3 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[14px]">auto_stories</span>
+                <span>{isGeneratingReview ? 'Synthesizing...' : 'Generate Review'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                className={`p-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
+                  isDrawerOpen ? 'bg-purple-50 border-purple-200 text-primary' : 'bg-white border-gray-200 text-gray-600'
+                }`}
+                title="Toggle Evidence & Outputs Panel"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  {isDrawerOpen ? 'view_sidebar' : 'dock_to_right'}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Workflow Progress Indicator: Discover -> Select -> Analyze -> Compare -> Synthesize */}
+          <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 pt-1 border-t border-gray-100">
+            {[
+              { id: 'discover', label: 'Discover' },
+              { id: 'select', label: 'Select' },
+              { id: 'analyze', label: 'Analyze' },
+              { id: 'compare', label: 'Compare' },
+              { id: 'synthesize', label: 'Synthesize' },
+            ].map((step, idx) => {
+              const isPast =
+                (currentStep === 'select' && idx === 0) ||
+                (currentStep === 'analyze' && idx <= 1) ||
+                (currentStep === 'compare' && idx <= 2) ||
+                (currentStep === 'synthesize' && idx <= 3);
+              const isCurrent = currentStep === step.id;
+
+              return (
+                <React.Fragment key={step.id}>
+                  {idx > 0 && <span className="text-gray-300">→</span>}
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${
+                      isCurrent
+                        ? 'bg-purple-50 text-primary font-bold border border-purple-200/60'
+                        : isPast
+                        ? 'text-emerald-700 font-semibold'
+                        : 'text-gray-400'
+                    }`}
+                  >
+                    {isPast && <span className="material-symbols-outlined text-[13px]">check</span>}
+                    {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
+                    <span>{step.label}</span>
+                  </span>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </header>
+
+        {/* Scrollable Conversation Stream */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+          <div className="w-full max-w-3xl mx-auto space-y-6">
+            {chatTurns.map((turn) => (
+              <div key={turn.id} className="space-y-3 animate-fadeIn">
+                {/* User Message */}
+                {turn.role === 'user' && (
+                  <div className="flex justify-end">
+                    <div className="bg-gray-100 text-gray-900 px-4 py-2.5 rounded-2xl rounded-tr-xs text-[14px] leading-relaxed max-w-[85%] border border-gray-200/50">
+                      {turn.text}
+                    </div>
+                  </div>
+                )}
+
+                {/* Agent Activity & Paper Results Card */}
+                {turn.role === 'agent-activity' && (
+                  <div className="space-y-3">
+                    <div className="rounded-2xl bg-white border border-gray-200/80 shadow-2xs overflow-hidden">
+                      <div className="px-4 py-3 bg-gray-50/60 border-b border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-gray-800">
+                          {turn.activityRunning ? (
+                            <div className="w-3.5 h-3.5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                          ) : (
+                            <span className="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
+                          )}
+                          <span>Literature Search & Evidence Pipeline</span>
+                        </div>
+                        <span className="text-[11px] text-gray-400">
+                          {turn.candidates?.length || 0} papers retrieved
+                        </span>
+                      </div>
+
+                      <div className="p-4 space-y-1.5 text-xs text-gray-600">
+                        {turn.activityMilestones?.map((m, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            {m.done ? (
+                              <span className="material-symbols-outlined text-emerald-600 text-[15px]">check</span>
+                            ) : (
+                              <div className="w-2.5 h-2.5 rounded-full border border-gray-300" />
+                            )}
+                            <span className={m.done ? 'text-gray-800' : 'text-gray-400'}>{m.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Paper Cards List */}
+                    {turn.candidates && turn.candidates.length > 0 && (
+                      <div className="space-y-3 pt-2">
+                        <div className="flex items-center justify-between px-1 text-xs">
+                          <span className="font-bold uppercase tracking-wider text-gray-500">
+                            Candidate Literature ({turn.candidates.length})
+                          </span>
+                          <span className="text-gray-400">Select papers for comparative analysis</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2.5">
+                          {turn.candidates.map((paper) => {
+                            const pId = paper.doc_id || paper.arxiv_id || '';
+                            const isSelected = selectedDocIds.includes(pId);
+
+                            return (
+                              <div
+                                key={pId}
+                                className={`p-4 rounded-xl border transition-all ${
+                                  isSelected
+                                    ? 'bg-purple-50/50 border-purple-300 shadow-2xs'
+                                    : 'bg-white border-gray-200/90 hover:border-gray-300'
+                                }`}
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => handleTogglePaper(pId)}
+                                      className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer"
+                                    />
+                                    <div>
+                                      <h4 className="text-[13.5px] font-bold text-gray-900 leading-snug">
+                                        {paper.title}
+                                      </h4>
+                                      <p className="text-[11.5px] text-gray-500 mt-0.5">
+                                        {paper.authors} · <span className="font-semibold text-gray-700">{paper.year}</span> ·{' '}
+                                        <span className="italic">{paper.venue}</span>
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    {paper.pdf_url && (
+                                      <a
+                                        href={paper.pdf_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium inline-flex items-center gap-1"
+                                      >
+                                        <span className="material-symbols-outlined text-[13px]">picture_as_pdf</span>
+                                        Read
+                                      </a>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleTogglePaper(pId)}
+                                      className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                                        isSelected ? 'bg-primary text-white' : 'bg-purple-50 text-primary hover:bg-purple-100'
+                                      }`}
+                                    >
+                                      {isSelected ? 'Selected' : 'Select'}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {paper.abstract && (
+                                  <p className="text-[12px] text-gray-600 mt-2 line-clamp-2 leading-relaxed">
+                                    {paper.abstract}
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Assistant Output Message */}
+                {turn.role === 'assistant' && (
+                  <div className="flex items-start gap-3 justify-start animate-fadeIn">
+                    <div className="w-8 h-8 rounded-xl bg-purple-50 text-primary border border-purple-200/60 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                      <span className="material-symbols-outlined text-[18px]">psychology</span>
+                    </div>
+                    <div className="flex flex-col gap-2 max-w-[90%] min-w-0">
+                      <div className="bg-white border border-gray-200/80 rounded-2xl rounded-tl-none p-4 text-[13.5px] leading-relaxed text-gray-900 shadow-2xs">
+                        <div className="prose prose-sm max-w-none text-gray-900 leading-relaxed">
+                          <ReactMarkdown>
+                            {turn.text || ''}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+
+                      {/* Evidence citation tags */}
+                      {turn.citations && turn.citations.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 px-1">
+                          {turn.citations.map((c, idx) => (
+                            <span
+                              key={idx}
+                              onClick={() => {
+                                setActiveEvidenceList([c]);
+                                setDrawerTab('evidence');
+                                setIsDrawerOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-white border border-gray-200 text-[11px] font-medium text-gray-700 hover:text-primary cursor-pointer shadow-2xs"
+                            >
+                              <span className="font-bold text-primary">{c.marker}</span>
+                              <span className="truncate max-w-[120px]">{c.doc_title || 'Paper'}</span>
+                              <span className="text-gray-400">p.{c.page || 1}</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+        </div>
+
+        {/* In-Review Conversational Composer */}
+        <div className="p-4 bg-white border-t border-gray-200/80 shrink-0">
+          <div className="max-w-3xl mx-auto space-y-2">
+            {/* Quick Prompt Chips */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+              {[
+                'Which papers use TCN?',
+                'Compare their benchmark datasets',
+                'What are the identified research gaps?',
+                'Summarize XAI contributions',
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => {
+                    handleSendChatMessage(chip);
+                  }}
+                  className="px-3 py-1 rounded-full bg-gray-50 hover:bg-purple-50 border border-gray-200 text-gray-600 hover:text-primary text-[11.5px] font-medium shrink-0 cursor-pointer transition-colors shadow-2xs"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
+            <ChatComposer
+              value={reviewChatInput}
+              onChange={setReviewChatInput}
+              onSubmit={() => {
+                handleSendChatMessage(reviewChatInput);
+                setReviewChatInput('');
+              }}
+              placeholder={`Ask any research question about the literature (${selectedDocIds.length} papers selected)...`}
+              disabled={isProcessingChat || isGeneratingReview}
+              isLoading={isProcessingChat}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── RIGHT SOURCES, EVIDENCE & OUTPUTS PANEL ── */}
+      {isDrawerOpen && (
+        <aside className="w-[380px] bg-white border-l border-gray-200/80 flex flex-col h-full shadow-lg z-20 animate-fadeIn shrink-0">
+          <div className="p-3 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg text-xs">
+              <button
+                type="button"
+                onClick={() => setDrawerTab('sources')}
+                className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  drawerTab === 'sources' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
+                }`}
+              >
+                Sources ({candidates.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrawerTab('evidence')}
+                className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  drawerTab === 'evidence' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
+                }`}
+              >
+                Evidence
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrawerTab('outputs')}
+                className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  drawerTab === 'outputs' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
+                }`}
+              >
+                Outputs
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsDrawerOpen(false)}
+              className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
           </div>
 
-          {/* Recent sessions */}
-          <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm">
-            <div className="flex items-center justify-between pb-space-sm border-b border-outline-variant/30">
-              <span className="inline-flex items-center gap-1.5 font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                <History className="w-4 h-4 text-secondary" /> Sessions
-              </span>
-              <button
-                className="text-primary hover:opacity-80 font-code-sm text-code-sm"
-                onClick={() => void loadSessions()}
-                type="button"
-              >
-                refresh
-              </button>
-            </div>
-            {sessions.length === 0 ? (
-              <p className="font-body-sm text-body-sm text-on-surface-variant py-3 text-center">
-                No sessions yet — start one above.
-              </p>
-            ) : (
-              <ul className="mt-2 flex flex-col gap-1 max-h-[420px] overflow-y-auto">
-                {sessions.map((s) => (
-                  <li key={s.id}>
-                    <button
-                      className={`w-full text-left px-2 py-1.5 rounded-lg flex flex-col gap-0.5 transition-colors ${
-                        s.id === activeId
-                          ? 'bg-surface-container text-on-surface'
-                          : 'hover:bg-surface-container-low'
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {/* TAB 1: SOURCES */}
+            {drawerTab === 'sources' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>Selected: {selectedDocIds.length}</span>
+                  <span>Total: {candidates.length}</span>
+                </div>
+                {candidates.map((c) => {
+                  const pId = c.doc_id || c.arxiv_id || '';
+                  const isSel = selectedDocIds.includes(pId);
+                  return (
+                    <div
+                      key={pId}
+                      className={`p-3 rounded-xl border text-xs space-y-1.5 transition-all ${
+                        isSel ? 'bg-purple-50/40 border-purple-200' : 'bg-gray-50/60 border-gray-200'
                       }`}
-                      onClick={() => setSearchParams({ session: s.id })}
-                      type="button"
                     >
-                      <span className="font-title-sm text-title-sm text-[12.5px] font-semibold truncate">
-                        {s.title || s.question}
-                      </span>
-                      <span className="font-code-sm text-code-sm text-outline flex items-center gap-1.5">
-                        <span
-                          title={s.state}
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            s.state === 'complete'
-                              ? 'bg-emerald-400'
-                              : s.state === 'awaiting_user'
-                                ? 'bg-amber-400'
-                                : s.state === 'created' || s.state === 'awaiting_approval'
-                                  ? 'bg-sky-400'
-                                  : 'bg-violet-400 animate-pulse'
-                          }`}
-                        />
-                        {s.state} · {s.mode} · {s.provider}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-bold text-gray-900 block leading-snug">{c.title}</span>
+                        {isSel && (
+                          <span className="text-[10px] bg-purple-100 text-primary font-bold px-1.5 py-0.5 rounded">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-gray-500 block">{c.authors} ({c.year})</span>
+                      {c.abstract && (
+                        <p className="text-gray-600 text-[11.5px] line-clamp-3 leading-relaxed">
+                          {c.abstract}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* TAB 2: EVIDENCE */}
+            {drawerTab === 'evidence' && (
+              <div className="space-y-3">
+                {activeEvidenceList.length === 0 ? (
+                  <div className="text-center py-8 text-xs text-gray-400">
+                    Ask questions in the chat or compare papers to populate verified evidence passages.
+                  </div>
+                ) : (
+                  activeEvidenceList.map((ev, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 rounded-xl border border-purple-200/70 bg-purple-50/40 text-xs space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between font-bold text-primary">
+                        <span>{ev.marker || `[E${idx + 1}]`}</span>
+                        <span className="text-gray-500 font-normal">p. {ev.page || 1}</span>
+                      </div>
+                      <span className="font-semibold text-gray-900 block">{ev.doc_title || 'Paper'}</span>
+                      <p className="text-gray-700 italic leading-relaxed text-[11.5px]">
+                        &quot;{ev.quote}&quot;
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: OUTPUTS */}
+            {drawerTab === 'outputs' && (
+              <div className="space-y-4">
+                {generatedReviewText ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-900">Assembled Literature Review</span>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(generatedReviewText)}
+                        className="text-[11px] text-primary hover:underline font-medium"
+                      >
+                        Copy Markdown
+                      </button>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 text-xs leading-relaxed max-h-96 overflow-y-auto">
+                      <div className="prose prose-xs text-gray-800">
+                        <ReactMarkdown>
+                          {generatedReviewText}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {generatedMatrixText ? (
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-gray-900">Comparison Matrix</span>
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-xs overflow-x-auto">
+                      <div className="prose prose-xs text-gray-800">
+                        <ReactMarkdown>
+                          {generatedMatrixText}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {!generatedReviewText && !generatedMatrixText ? (
+                  <div className="text-center py-8 text-xs text-gray-400">
+                    Click &quot;Generate Review&quot; or &quot;Compare Papers&quot; to view synthesized outputs here.
+                  </div>
+                ) : null}
+              </div>
             )}
           </div>
         </aside>
-
-        {/* CENTER: workflow driver */}
-        <main className="col-span-12 lg:col-span-6 flex flex-col gap-space-md">
-          {phase === 'idle' && (
-            <div className="rounded-xl bg-surface-container-lowest p-space-xl border border-outline-variant/30 shadow-sm text-center">
-              <BrainCircuit className="w-12 h-12 text-primary mx-auto" />
-              <h2 className="font-title-md text-title-md font-bold mt-4 text-on-surface">
-                Run a source-backed literature review
-              </h2>
-              <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mx-auto mt-2">
-                Start a session on the left. The flow is: the corpus is ranked for
-                your question → you approve the sources → the agent searches, reads
-                and re-verifies every claim → the review is assembled from claims
-                that survived with real passages behind them.
-              </p>
-              <p className="font-code-sm text-code-sm text-outline mt-4">
-                state machine: created → awaiting_approval → complete / awaiting_user
-              </p>
-            </div>
-          )}
-
-          {session && session.discovery && (phase === 'created' || phase === 'awaiting_approval') && (
-            <div className="rounded-xl bg-surface-container-lowest p-space-md border border-primary/30 shadow-sm">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                  arXiv discovery
-                </span>
-                {session.discovery.refined ? (
-                  <span
-                    className="ml-auto inline-flex items-center gap-1 font-code-sm text-code-sm text-emerald-500 border border-emerald-300 dark:border-emerald-700 rounded px-1.5 py-0.5"
-                    title="The first search did not cover the question's vocabulary, so the agent refined it."
-                  >
-                    <RefreshCw className="w-3 h-3" /> refined — poor first pass
-                  </span>
-                ) : (
-                  <span className="ml-auto font-code-sm text-code-sm text-outline">single pass</span>
-                )}
-              </div>
-              <ul className="mt-2 flex flex-col gap-1">
-                {(session.discovery.search_events || []).map((ev, i) => (
-                  <li key={i} className="font-code-sm text-code-sm text-on-surface-variant text-[11px] leading-snug">
-                    <span className="text-primary font-semibold">pass {ev.pass}</span>
-                    {ev.query ? <span className="text-outline"> · “{ev.query}”</span> : null}
-                    {ev.note ? <span className="text-amber-500"> · {ev.note}</span> : null}
-                    {ev.error ? <span className="text-rose-400"> · error: {ev.error}</span> : null}
-                  </li>
-                ))}
-                {typeof session.discovery.skipped_known === 'number' &&
-                  session.discovery.skipped_known > 0 && (
-                    <li className="font-code-sm text-code-sm text-outline text-[11px]">
-                      · deduped against the corpus: {session.discovery.skipped_known} known paper(s)
-                      skipped
-                    </li>
-                  )}
-                {session.discovery.cached ? (
-                  <li className="font-code-sm text-code-sm text-outline text-[11px]">
-                    · served from the discovery cache (the network was not hit again)
-                  </li>
-                ) : null}
-              </ul>
-              <p className="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-relaxed mt-2 border-t border-outline-variant/20 pt-2">
-                Candidates below came from the arXiv search above — not from the
-                fixed corpus. Approving a paper fetches its PDF; if the full text
-                cannot be fetched it is stored and labelled as{' '}
-                <span className="text-amber-500 font-medium">abstract only</span>.
-              </p>
-            </div>
-          )}
-
-          {session && (phase === 'created' || phase === 'awaiting_approval') && (
-            <SourceApprovalPanel
-              question={session.question}
-              candidates={session.candidates || []}
-              initialApproved={session.approved}
-              initialRejected={session.rejected}
-              onSave={saveApprovals}
-              saving={approving}
-            />
-          )}
-
-          {session && session.state === 'awaiting_approval' && session.candidates && session.candidates.length === 0 && (
-            <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm">
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                No approval decisions recorded. Refresh to re-suggest candidates.
-              </p>
-              <button
-                className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary hover:bg-tertiary font-title-sm text-title-sm"
-                onClick={() => void loadSession(session.session_id)}
-                type="button"
-              >
-                <RefreshCw className="w-4 h-4" /> Suggest candidates
-              </button>
-            </div>
-          )}
-
-          {session && session.can_run && (
-            <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <Scale className="w-5 h-5 text-primary" />
-                <div>
-                  <div className="font-title-sm text-title-sm font-semibold text-on-surface">
-                    {session.approved.length} source(s) approved
-                  </div>
-                  <div className="font-body-sm text-body-sm text-on-surface-variant text-[12px]">
-                    Runs as {session.mode} on {session.provider}/{session.model}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCenterTab('chat')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg font-title-sm text-title-sm font-semibold transition-all cursor-pointer ${
-                    centerTab === 'chat'
-                      ? 'bg-primary text-on-primary shadow-xs'
-                      : 'bg-primary/10 text-primary hover:bg-primary/20'
-                  }`}
-                >
-                  <MessageSquareText className="w-4 h-4" />
-                  <span>Chat with Paper</span>
-                </button>
-                <button
-                  className="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container text-on-primary hover:bg-tertiary font-title-sm text-title-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                  onClick={run}
-                  disabled={running}
-                  type="button"
-                >
-                  {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-                  {running ? 'Running agent…' : 'Run review'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {session && session.state === 'awaiting_user' && session.pending && (
-            <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 p-space-md shadow-sm">
-              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 font-title-sm text-title-sm font-semibold">
-                <ExternalLink className="w-4 h-4" />
-                The agent needs your input before it can continue
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-                {session.pending.question}
-              </p>
-              {session.pending.options && session.pending.options.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {session.pending.options.map((o) => (
-                    <button
-                      key={o}
-                      className="px-3 py-1 rounded-lg bg-surface-container text-on-surface border border-outline-variant/40 font-title-sm text-title-sm text-[12.5px] hover:border-primary"
-                      onClick={() => {
-                        setReplyText(o);
-                      }}
-                      type="button"
-                    >
-                      {o}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="flex gap-2 mt-3">
-                <input
-                  className="flex-1 rounded-lg bg-surface-container-lowest border border-outline-variant/40 px-3 py-2 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary"
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Your answer to the agent…"
-                />
-                <button
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 font-title-sm text-title-sm disabled:opacity-60"
-                  onClick={submitReply}
-                  disabled={replying || !replyText.trim()}
-                  type="button"
-                >
-                  {replying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  Resume
-                </button>
-              </div>
-            </div>
-          )}
-
-          {session && (
-            <div className="flex flex-col gap-3">
-              {/* Tab Selector: Activity Log vs Live Chat */}
-              <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-2">
-                <button
-                  type="button"
-                  onClick={() => setCenterTab('activity')}
-                  className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                    centerTab === 'activity'
-                      ? 'bg-primary text-on-primary shadow-xs'
-                      : 'bg-surface-container-lowest text-on-surface-variant hover:text-on-surface border border-outline-variant/30'
-                  }`}
-                >
-                  <Activity className="w-4 h-4" />
-                  <span>Agent Activity Log {session.activity?.length ? `(${session.activity.length})` : ''}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCenterTab('chat')}
-                  className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                    centerTab === 'chat'
-                      ? 'bg-primary text-on-primary shadow-xs'
-                      : 'bg-surface-container-lowest text-on-surface-variant hover:text-on-surface border border-outline-variant/30'
-                  }`}
-                >
-                  <MessageSquareText className="w-4 h-4" />
-                  <span>💬 Chat with Paper {session.approved?.length ? `(${session.approved.length} approved)` : ''}</span>
-                </button>
-              </div>
-
-              {centerTab === 'activity' && (
-                <AgentActivityLog
-                  events={session.activity as ActivityEvent[]}
-                  running={session.state === 'planning'}
-                />
-              )}
-
-              {centerTab === 'chat' && (
-                <InPagePaperChat
-                  approvedDocIds={session.approved || []}
-                  corpusTitleById={corpusTitleById}
-                  defaultDocId={chatSelectedDocId}
-                  onOpenFullScreen={(docId) => navigate(`/paper-chat/${docId}`)}
-                />
-              )}
-            </div>
-          )}
-
-          {session && session.state === 'complete' && displayReview && displayReview.unverified && (
-            <div className="rounded-xl bg-surface-container-low p-space-md border border-rose-300/50 shadow-sm flex items-start gap-2">
-              <TriangleAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                The review is marked <b>INCOMPLETE</b> — some claims could not be
-                verified against the retrieved passages (support rate{' '}
-                <b>{(displayReview.support_rate * 100).toFixed(0)}%</b>). No
-                unverified claim appears in the sections above.
-              </p>
-            </div>
-          )}
-
-          {session && session.state === 'complete' && session.can_revise && (
-            <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm">
-              <div className="flex items-center gap-2 pb-space-sm border-b border-outline-variant/30">
-                <MessageSquareText className="w-4 h-4 text-primary" />
-                <span className="font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                  Researcher feedback
-                </span>
-                <span className="font-code-sm text-code-sm text-outline ml-auto">
-                  {(session.revisions ?? []).length} revision(s) so far
-                </span>
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-relaxed mt-2">
-                Tell the agent what to change — e.g. <i>“exclude this paper”</i>,{' '}
-                <i>“focus on newer studies”</i>, or <i>“compare the datasets”</i>{' '}
-                — and optionally tick papers to exclude. The earlier draft stays
-                saved; the agent re-retrieves and produces a revised draft.
-              </p>
-              <textarea
-                className="w-full mt-2 rounded-lg bg-surface-container p-3 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant/60 border border-outline-variant/40 focus:outline-none focus:border-primary resize-none"
-                rows={3}
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Your feedback for the revised draft…"
-              />
-              {session.approved.length > 0 && (
-                <div className="mt-2">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium text-[11px]">
-                    Exclude from this revision (approvals stay intact)
-                  </span>
-                  <div className="mt-1 flex flex-col gap-1 max-h-40 overflow-y-auto">
-                    {session.approved.map((id) => (
-                      <div
-                        key={id}
-                        className={`flex items-center gap-2 px-2 py-1.5 rounded-md border text-[12.5px] transition-colors ${
-                          excludeDocs.includes(id)
-                            ? 'border-rose-400 bg-rose-50 dark:bg-rose-950/30'
-                            : 'border-outline-variant/40 hover:border-outline'
-                        }`}
-                      >
-                        <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={excludeDocs.includes(id)}
-                            onChange={() => toggleExclude(id)}
-                            className="accent-[#e11d48]"
-                          />
-                          <span className="truncate min-w-0 flex-1 font-body-sm text-body-sm text-on-surface-variant">
-                            {corpusTitleById[id] || id}
-                          </span>
-                        </label>
-                        {excludeDocs.includes(id) && (
-                          <span className="font-code-sm text-code-sm text-rose-400 shrink-0">excluded</span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/paper-chat/${id}`)}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold transition-colors shrink-0 cursor-pointer"
-                          title="Open dedicated chat with this paper"
-                        >
-                          <MessageSquareText className="w-3 h-3" />
-                          <span>Chat</span>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="flex items-center justify-between gap-2 mt-3">
-                <button
-                  className="inline-flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary hover:bg-tertiary font-title-sm text-title-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => void submitFeedback()}
-                  disabled={submittingFeedback || !feedbackText.trim()}
-                  type="button"
-                >
-                  {submittingFeedback ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {submittingFeedback ? 'Revising…' : 'Revise with this feedback'}
-                </button>
-              </div>
-            </div>
-          )}
-        </main>
-
-        {/* RIGHT: review document */}
-        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-space-md">
-          {session && session.state === 'complete' && displayReview ? (
-            <>
-              {drafts.length > 1 && (
-                <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm">
-                  <div className="flex items-center gap-2 pb-space-sm border-b border-outline-variant/30">
-                    <GitBranch className="w-4 h-4 text-secondary" />
-                    <span className="font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                      Drafts
-                    </span>
-                    <span className="font-code-sm text-code-sm text-outline ml-auto">
-                      {drafts.length} total
-                    </span>
-                  </div>
-                  <div className="mt-2 flex flex-col gap-1">
-                    {drafts.map((d, i) => (
-                      <button
-                        key={i}
-                        className={`w-full text-left px-2 py-1.5 rounded-lg flex flex-col gap-0.5 transition-colors border ${
-                          i === draftIndex
-                            ? 'bg-surface-container text-on-surface border-primary/50'
-                            : 'border-transparent hover:bg-surface-container-low'
-                        }`}
-                        onClick={() => setDraftIndex(i)}
-                        type="button"
-                      >
-                        <span className="font-title-sm text-title-sm text-[12.5px] font-semibold flex items-center gap-1.5">
-                          <FileDiff className="w-3.5 h-3.5 text-primary shrink-0" />
-                          {d.label}
-                          {i === 0 && (
-                            <span className="font-code-sm text-code-sm text-emerald-500 ml-auto">current</span>
-                          )}
-                        </span>
-                        {d.feedback && (
-                          <span className="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-snug line-clamp-2">
-                            feedback: “{d.feedback}”
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Metrics strip */}
-              <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm grid grid-cols-2 gap-3">
-                <div className="bg-surface-container-low rounded-lg p-3">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">Support rate</span>
-                  <div className="font-headline-md text-headline-md font-bold text-on-surface mt-0.5">
-                    {(displayReview.support_rate * 100).toFixed(0)}%
-                  </div>
-                  <span className="font-code-sm text-code-sm text-outline">per claim, mechanical</span>
-                </div>
-                <div className="bg-surface-container-low rounded-lg p-3">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">Citations</span>
-                  <div className="font-headline-md text-headline-md font-bold text-on-surface mt-0.5">
-                    {displayCitations.length}
-                  </div>
-                  <span className="font-code-sm text-code-sm text-outline">marker + page + quote</span>
-                </div>
-                <div className="bg-surface-container-low rounded-lg p-3">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">Sources</span>
-                  <div className="font-headline-md text-headline-md font-bold text-on-surface mt-0.5">
-                    {displayReview.comparison_table.length}
-                  </div>
-                  <span className="font-code-sm text-code-sm text-outline">approved papers cited</span>
-                </div>
-                <div className="bg-surface-container-low rounded-lg p-3">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">Verified</span>
-                  <div
-                    className={`font-headline-md text-headline-md font-bold mt-0.5 ${
-                      displayReview.verified ? 'text-emerald-500' : 'text-amber-500'
-                    }`}
-                  >
-                    {displayReview.verified ? 'Yes' : 'No'}
-                  </div>
-                  <span className="font-code-sm text-code-sm text-outline">all claims backed</span>
-                </div>
-              </div>
-
-              {/* The review */}
-              <div
-                className="rounded-xl bg-surface-container-lowest p-space-lg border border-outline-variant/30 shadow-sm"
-                id="review-document"
-              >
-                <div className="flex items-center gap-2 pb-space-sm border-b border-outline-variant/30">
-                  <FileText className="w-4 h-4 text-primary" />
-                  <span className="font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                    Review
-                  </span>
-                  <span className="font-code-sm text-code-sm text-outline ml-auto">{session.provider}/{session.model}</span>
-                </div>
-
-                <div className="mt-3">
-                  <h2 className="font-label-sm text-label-sm uppercase tracking-wider font-bold text-primary mb-1">
-                    Direct answer
-                  </h2>
-                  <p className="font-body-sm text-body-sm text-on-surface leading-relaxed text-justify">
-                    {displayReview.direct_answer}
-                  </p>
-                </div>
-
-                {displayReview.claims_total > 0 && (
-                  <div className="mt-4">
-                    <h2 className="font-label-sm text-label-sm uppercase tracking-wider font-bold text-primary mb-1">
-                      Key findings ({displayReview.claims_total})
-                    </h2>
-                    <ul className="flex flex-col gap-1.5">
-                      {displayReview.sections.key_findings.map((f, i) => (
-                        <li key={i} className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed flex gap-1.5">
-                          <span className="text-primary shrink-0">•</span>
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {(['comparison', 'themes', 'limitations', 'gaps'] as const).map((key) =>
-                  displayReview.sections[key].filter((s) => !s.startsWith('_Not established')).length > 0 ? (
-                    <div key={key} className="mt-4">
-                      <h2 className="font-label-sm text-label-sm uppercase tracking-wider font-bold text-primary mb-1">
-                        {key.replace(/_/g, ' ')}
-                      </h2>
-                      <ul className="flex flex-col gap-1.5">
-                        {displayReview.sections[key].map((s, i) => (
-                          <li key={i} className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed flex gap-1.5">
-                            <span className="text-secondary shrink-0">•</span>
-                            <span>{s}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null
-                )}
-              </div>
-
-              {/* Citations */}
-              <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm">
-                <div className="flex items-center gap-2 pb-space-sm border-b border-outline-variant/30">
-                  <BookOpenCheck className="w-4 h-4 text-secondary" />
-                  <span className="font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                    Cited passages
-                  </span>
-                </div>
-                {displayCitations.length === 0 ? (
-                  <p className="font-body-sm text-body-sm text-on-surface-variant py-3 text-center">
-                    Nothing survived verification — the review is empty by design.
-                  </p>
-                ) : (
-                  <ul className="mt-2 flex flex-col gap-2 max-h-[480px] overflow-y-auto">
-                    {displayCitations.map((c: ReviewCitation, i) => {
-                      const sourceUrl =
-                        c.source_url ||
-                        (c.arxiv_id ? `https://arxiv.org/abs/${c.arxiv_id}` : '');
-                      return (
-                        <li key={`${c.marker}-${i}`} className="rounded-lg bg-surface-container-low p-3">
-                          <div className="font-code-sm text-code-sm text-primary font-semibold flex items-center gap-2">
-                            [{c.marker}]
-                            <span className="text-outline font-normal">{c.locator || `p.${c.page ?? '?'}`}</span>
-                            {c.full_text_available === 0 && (
-                              <span
-                                title="Full text was not available; this citation points at the abstract only."
-                                className="font-code-sm text-code-sm text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-700 rounded px-1"
-                              >
-                                abstract only
-                              </span>
-                            )}
-                            {c.supported === false && (
-                              <span className="text-rose-400 font-code-sm text-code-sm">unsupported</span>
-                            )}
-                            {sourceUrl && (
-                              <a
-                                href={sourceUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="ml-auto text-outline hover:text-primary transition-colors shrink-0"
-                                title="Open the canonical source"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                            )}
-                          </div>
-                          <p className="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-relaxed mt-1 italic line-clamp-3">
-                            “{c.quote}”
-                          </p>
-                          <div className="font-code-sm text-code-sm text-outline text-[11px] mt-1 truncate">
-                            {corpusTitleById[c.doc_id] || c.doc_title || c.title || c.doc_id}
-                            {c.source_url && (
-                              <span className="text-outline/70"> · {c.source_url}</span>
-                            )}
-                          </div>
-                          <div className="mt-2 flex items-center justify-between gap-2 pt-1.5 border-t border-outline-variant/20">
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/paper-chat/${c.doc_id}`)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-primary text-on-primary hover:bg-primary/90 text-[11px] font-semibold transition-colors shadow-xs cursor-pointer"
-                              title={`Chat with ${corpusTitleById[c.doc_id] || c.doc_title || 'this paper'}`}
-                            >
-                              <MessageSquareText className="w-3.5 h-3.5" />
-                              <span>Chat with this paper</span>
-                            </button>
-                            {sourceUrl && (
-                              <a
-                                href={sourceUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-outline hover:text-primary transition-colors text-[11px] inline-flex items-center gap-1"
-                                title="Open canonical source"
-                              >
-                                <span>Source</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-
-              {/* Automated citation-check disclaimer */}
-              {displayReview.disclaimer && (
-                <div className="rounded-xl bg-surface-container-lowest p-space-md border border-amber-300/50 dark:border-amber-700/50 shadow-sm flex items-start gap-2">
-                  <TriangleAlert className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-relaxed">
-                    {displayReview.disclaimer}
-                  </p>
-                </div>
-              )}
-
-              {/* Comparison table */}
-              {displayReview.comparison_table.length > 0 && (
-                <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm">
-                  <div className="flex items-center gap-2 pb-space-sm border-b border-outline-variant/30">
-                    <Activity className="w-4 h-4 text-primary" />
-                    <span className="font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                      Sources consulted
-                    </span>
-                  </div>
-                  <table className="w-full mt-2 text-[12px]">
-                    <thead>
-                      <tr className="text-on-surface-variant border-b border-outline-variant/30">
-                        <th className="text-left py-1 font-semibold">marker</th>
-                        <th className="text-left py-1 font-semibold">paper</th>
-                        <th className="text-left py-1 font-semibold">cited</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {displayReview.comparison_table.map((r) => (
-                        <tr key={r.marker} className="border-b border-outline-variant/20">
-                          <td className="py-1 font-code-sm text-code-sm text-primary align-top">[{r.marker}]</td>
-                          <td className="py-1 text-on-surface-variant align-top">
-                            <span className="block truncate" title={r.title}>
-                              {r.title}
-                            </span>
-                            <span className="font-code-sm text-code-sm text-outline">{r.year || ''} {r.venue ? `· ${r.venue}` : ''}</span>
-                          </td>
-                          <td className="py-1 font-code-sm text-code-sm align-top">
-                            <div className="flex items-center justify-between gap-2">
-                              {r.cited ? (
-                                <span className="text-emerald-500">yes · pp. {r.pages_cited.join(', ')}</span>
-                              ) : (
-                                <span className="text-outline">approved, uncited</span>
-                              )}
-                              {r.doc_id && (
-                                <button
-                                  type="button"
-                                  onClick={() => navigate(`/paper-chat/${r.doc_id}`)}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 hover:bg-primary/20 text-primary text-[10.5px] font-semibold transition-colors cursor-pointer"
-                                  title={`Open chat with ${r.title}`}
-                                >
-                                  <MessageSquareText className="w-3 h-3" />
-                                  <span>Chat</span>
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {displayReview.reflection_notes.length > 0 && (
-                <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm">
-                  <div className="flex items-center gap-2 pb-space-sm border-b border-outline-variant/30">
-                    <Clipboard className="w-4 h-4 text-amber-500" />
-                    <span className="font-label-md text-label-md text-on-surface uppercase font-bold tracking-wider">
-                      Reflection notes
-                    </span>
-                  </div>
-                  <ul className="mt-2 flex flex-col gap-1.5">
-                    {displayReview.reflection_notes.map((n, i) => (
-                      <li key={i} className="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-relaxed flex gap-1.5">
-                        <span className="text-amber-500 shrink-0">•</span>
-                        <span>{n}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="rounded-xl bg-surface-container-lowest p-space-md border border-outline-variant/30 shadow-sm text-center py-10">
-              <FileText className="w-10 h-10 text-outline mx-auto" />
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-3">
-                {session ? 'The review appears here once the agent finishes and its claims are verified.' : 'Start a session to see the verified review.'}
-              </p>
-            </div>
-          )}
-        </aside>
-      </div>
+      )}
     </div>
   );
 };

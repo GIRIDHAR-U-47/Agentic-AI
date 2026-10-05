@@ -32,19 +32,23 @@ export const App: React.FC = () => {
             {/* Home */}
             <Route path="/" element={<ResearchHome />} />
 
-            {/* Existing research pages */}
+            {/* Persistent Conversation & Research pages */}
+            <Route path="/chat/:conversationId" element={<ResearchWorkspace />} />
             <Route path="/research" element={<ResearchWorkspace />} />
+            <Route path="/research/:conversationId" element={<ResearchWorkspace />} />
             <Route path="/research/session/:sessionId" element={<ResearchWorkspace />} />
             <Route path="/paper/:id" element={<PaperAnalysis />} />
             <Route path="/paper/:id/chat" element={<PaperChat />} />
             <Route path="/evidence" element={<EvidenceValidation />} />
             <Route path="/compare" element={<Comparison />} />
             <Route path="/report" element={<LiteratureReview />} />
+            <Route path="/report/:conversationId" element={<LiteratureReview />} />
 
-            {/* New SciSpace-style pages */}
+            {/* SciSpace-style pages */}
             <Route path="/agent-gallery" element={<AgentGallery />} />
             <Route path="/templates" element={<Templates />} />
             <Route path="/chat-with-pdf" element={<ChatWithPDF />} />
+            <Route path="/chat-with-pdf/:conversationId" element={<ChatWithPDF />} />
             <Route path="/ai-writer" element={<AIWriter />} />
             <Route path="/find-topics" element={<FindTopics />} />
             <Route path="/paraphraser" element={<Paraphraser />} />
@@ -54,6 +58,7 @@ export const App: React.FC = () => {
 
             {/* Dedicated chat screen for a single indexed paper */}
             <Route path="/paper-chat/:docId" element={<PaperChat />} />
+            <Route path="/paper-chat/:docId/:conversationId" element={<PaperChat />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

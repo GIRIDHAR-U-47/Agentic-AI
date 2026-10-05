@@ -17,28 +17,54 @@ from services.llm.offline import ExtractiveLLM
 
 
 def build_llm(
-    provider: Optional[str] = None, model: Optional[str] = None
+    provider: Optional[str] = None, model: Optional[str] = None, strict_key: bool = False
 ) -> BaseLLM:
-    """Instantiate a provider. Never raises for a missing key -- falls back."""
-    name = (provider or config.default_provider().name).strip().lower()
+    """Instantiate the active LLM provider.
+
+    When Gemini is the configured provider:
+    - If GEMINI_API_KEY is set → returns GeminiLLM
+    - If key is missing and strict_key=True → raises LLMError (used by workflow layer)
+    - If key is missing and strict_key=False → falls back to offline (safe for tests/demos)
+
+    OpenRouter: always falls back to offline when key is absent (never raises).
+    """
+    name = (
+        provider
+        or os.getenv("LLM_PROVIDER", "").strip().lower()
+        or os.getenv("RLENS_LLM_PROVIDER", "").strip().lower()
+        or config.default_provider().name
+    ).strip().lower()
     spec = config.get_provider(name)
 
-    if name == "offline" or spec is None or not spec.key_present():
-        if name not in ("offline",) and spec is not None and not spec.key_present():
-            # Explicitly requested but unavailable: report via health(), fall
-            # back so the caller still gets a working (grounded) system.
-            pass
+    if name == "offline":
         return ExtractiveLLM(model=model or "extractive-v1")
 
+    if name == "gemini":
+        key = (
+            os.getenv("GEMINI_API_KEY", "").strip()
+            or os.getenv("GOOGLE_API_KEY", "").strip()
+        )
+        if not key:
+            if strict_key:
+                raise LLMError("Gemini provider selected but GEMINI_API_KEY is not configured.")
+            # Silently fall back to offline so tests and keyless demos still work
+            return ExtractiveLLM(model=model or "extractive-v1")
+
+        from services.llm import gemini
+
+        return gemini.GeminiLLM(
+            model=model or (spec.model if spec else os.getenv("RLENS_GEMINI_MODEL", "gemini-3.8-flash"))
+        )
+
     if name in ("openrouter", "openrouter-strong"):
+        if spec is None or not spec.key_present():
+            return ExtractiveLLM(model=model or "extractive-v1")
         from services.llm import openrouter
 
         return openrouter.OpenRouterLLM(model=model or spec.model, base_url=spec.base_url)
 
-    if name == "gemini":
-        from services.llm import gemini
-
-        return gemini.GeminiLLM(model=model or (spec.model if spec else "gemini-2.0-flash"))
+    if spec is None or not spec.key_present():
+        return ExtractiveLLM(model=model or "extractive-v1")
 
     return ExtractiveLLM()
 

@@ -10,7 +10,7 @@ load_dotenv()
 import config
 import db
 
-from routers import papers, agents, evidence, pdf, corpus, sessions, discovery, collection, paper_chat
+from routers import papers, agents, evidence, pdf, corpus, sessions, discovery, collection, paper_chat, conversations
 
 config.ensure_dirs()
 db.init_db()
@@ -43,6 +43,7 @@ app.add_middleware(
 # Routers. `sessions` + `corpus` are the review workflow; `discovery` and
 # `collection` are the fresh-topic + vector-RAG additions; the older four are
 # retained so the existing frontend pages keep working.
+app.include_router(conversations.router)
 app.include_router(sessions.router)
 app.include_router(corpus.router)
 app.include_router(discovery.router)

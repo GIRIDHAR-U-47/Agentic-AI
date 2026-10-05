@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { api } from '../services/api';
 import { pdfService } from '../services/pdfService';
 import {
+  Conversation,
+  ConversationMessage,
   PDFDocumentModel,
   PaperChatMessage,
   PaperChatSourceChunk,
@@ -288,9 +291,8 @@ const PageViewer: React.FC<PageViewerProps> = ({ doc, activePage, onPageChange }
   );
 };
 
-// ─── Main PaperChat page ───────────────────────────────────────────────────────
 export const PaperChat: React.FC = () => {
-  const { docId } = useParams<{ docId: string }>();
+  const { docId, conversationId: paramConvId } = useParams<{ docId: string; conversationId?: string }>();
   const navigate = useNavigate();
 
   // State
@@ -304,11 +306,12 @@ export const PaperChat: React.FC = () => {
   const [activePage, setActivePage] = useState(1);
   const [showPageViewer, setShowPageViewer] = useState(true);
   const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
+  const [activeConvId, setActiveConvId] = useState<string | null>(paramConvId || null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load document on mount
+  // Load document and persistent conversation on mount
   useEffect(() => {
     if (!docId) {
       setError('No paper ID provided.');
@@ -318,13 +321,68 @@ export const PaperChat: React.FC = () => {
 
     (async () => {
       try {
-        // Try backend first, then fall back to local cache via getDocuments()
         const docs = await pdfService.getDocuments();
         const found = docs.find(d => d.id === docId);
         if (!found) {
           setError('Paper not found. Make sure it is saved and indexed.');
         } else {
           setDoc(found);
+
+          // Find or create persistent conversation
+          let convId = paramConvId;
+          if (convId) {
+            try {
+              const conv = await api.conversations.get(convId);
+              if (conv && conv.messages) {
+                const restored: PaperChatMessage[] = conv.messages.map((m: ConversationMessage) => ({
+                  id: m.id,
+                  role: m.role as any,
+                  content: m.content,
+                  timestamp: m.created_at ? new Date(m.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ts(),
+                  sources: m.metadata?.sources as any,
+                  verified: m.metadata?.verified as any,
+                  insufficient_evidence: m.metadata?.insufficient_evidence as any,
+                }));
+                setMessages(restored);
+              }
+            } catch {
+              // Create new
+            }
+          } else {
+            // Find existing conversation for this paper
+            try {
+              const res = await api.conversations.list('chat_with_paper', 20);
+              const existing = res.conversations.find((c: Conversation) => c.metadata?.doc_id === docId);
+              if (existing) {
+                convId = existing.id;
+                setActiveConvId(existing.id);
+                const fullConv = await api.conversations.get(existing.id);
+                if (fullConv.messages && fullConv.messages.length > 0) {
+                  const restored: PaperChatMessage[] = fullConv.messages.map((m: ConversationMessage) => ({
+                    id: m.id,
+                    role: m.role as any,
+                    content: m.content,
+                    timestamp: m.created_at ? new Date(m.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ts(),
+                    sources: m.metadata?.sources as any,
+                    verified: m.metadata?.verified as any,
+                    insufficient_evidence: m.metadata?.insufficient_evidence as any,
+                  }));
+                  setMessages(restored);
+                }
+              } else {
+                const created = await api.conversations.create({
+                  title: `Chat: ${found.title.slice(0, 45)}`,
+                  mode: 'chat_with_paper',
+                  selected_paper_ids: [docId],
+                  metadata: { doc_id: docId, doc_title: found.title },
+                });
+                convId = created.id;
+                setActiveConvId(created.id);
+              }
+            } catch {
+              // fallback
+            }
+          }
         }
       } catch (e) {
         setError('Could not load paper details. Check that the backend is running.');
@@ -332,7 +390,7 @@ export const PaperChat: React.FC = () => {
         setLoading(false);
       }
     })();
-  }, [docId]);
+  }, [docId, paramConvId]);
 
   // Auto-scroll
   useEffect(() => {
@@ -357,6 +415,14 @@ export const PaperChat: React.FC = () => {
     setMessages(prev => [...prev, userMsg]);
     if (!customQuery) setInput('');
     setIsAsking(true);
+
+    if (activeConvId) {
+      api.conversations.addMessage(activeConvId, {
+        id: userMsg.id,
+        role: 'user',
+        content: query,
+      }).catch(() => undefined);
+    }
 
     // Add a streaming placeholder for the assistant
     const assistantId = uid();
@@ -400,6 +466,19 @@ export const PaperChat: React.FC = () => {
         isStreaming: true, // trigger word-by-word animation
       };
       setMessages(prev => prev.map(m => (m.id === assistantId ? assistantMsg : m)));
+
+      if (activeConvId) {
+        api.conversations.addMessage(activeConvId, {
+          id: assistantId,
+          role: 'assistant',
+          content: result.answer,
+          metadata: {
+            sources: result.sources,
+            verified: result.verified,
+            insufficient_evidence: result.insufficient_evidence,
+          },
+        }).catch(() => undefined);
+      }
 
       // Navigate page viewer to first cited page
       if (result.sources.length > 0) {

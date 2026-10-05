@@ -22,6 +22,7 @@ Design notes
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import threading
 import time
@@ -133,6 +134,31 @@ CREATE TABLE IF NOT EXISTS eval_runs (
     note        TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_eval_qid ON eval_runs(question_id);
+
+CREATE TABLE IF NOT EXISTS conversations (
+    id                  TEXT PRIMARY KEY,
+    title               TEXT NOT NULL DEFAULT '',
+    mode                TEXT NOT NULL DEFAULT 'research', -- 'research' | 'chat_with_paper' | 'literature_review' | 'general_research'
+    status              TEXT NOT NULL DEFAULT 'active',
+    user_id             TEXT NOT NULL DEFAULT 'user',
+    research_topic      TEXT NOT NULL DEFAULT '',
+    selected_paper_ids  TEXT NOT NULL DEFAULT '[]',
+    metadata            TEXT NOT NULL DEFAULT '{}',
+    created_at          REAL NOT NULL,
+    updated_at          REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_conversations_updated ON conversations(updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id                  TEXT PRIMARY KEY,
+    conversation_id     TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    role                TEXT NOT NULL,                     -- 'user' | 'assistant' | 'agent-activity'
+    content             TEXT NOT NULL DEFAULT '',
+    sequence            INTEGER NOT NULL DEFAULT 0,
+    metadata            TEXT NOT NULL DEFAULT '{}',
+    created_at          REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id, sequence ASC);
 """
 
 
@@ -200,6 +226,8 @@ _MIGRATIONS = (
 
 
 def _migrate(conn: sqlite3.Connection) -> None:
+    # Ensure tables from newest schema exist
+    conn.executescript(SCHEMA)
     for table, column, decl in _MIGRATIONS:
         cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
         if column not in cols:
@@ -702,3 +730,249 @@ def get_discovery_cache(question: str) -> Optional[Dict[str, Any]]:
         "skipped_known": int(row["skipped_known"] or 0),
         "searched_at": row["searched_at"],
     }
+
+
+# --------------------------------------------------------------------------
+# Persistent Conversations & Messages (ChatGPT-Style Architecture)
+# --------------------------------------------------------------------------
+
+_JSON_CONV_COLUMNS = {"selected_paper_ids", "metadata"}
+_JSON_MSG_COLUMNS = {"metadata"}
+
+
+def generate_conversation_title(text: str) -> str:
+    """Generate a clean 40-60 character conversation title locally without LLM tokens."""
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return "New Research"
+    
+    # Strip common conversational question prefixes
+    patterns = [
+        r"^(can you\s+)?(please\s+)?(help me\s+)?(to\s+)?(find|search|explore|investigate|analyze|compare|review|summarize|explain)\s+(papers\s+on|about|the)?\s*",
+        r"^(what|how|why|which|where|when|is|are|does|do|can|could|would)\s+(is|are|the|a|an|to|can|could)?\s*",
+        r"^(literature review\s+(on|for|of)?\s*)",
+    ]
+    t = cleaned
+    for p in patterns:
+        t = re.sub(p, "", t, flags=re.IGNORECASE).strip()
+    
+    t = t.rstrip("?.! ")
+    if not t:
+        t = cleaned[:50]
+    
+    # Truncate neatly at word boundary around 45-55 chars
+    if len(t) > 55:
+        sub = t[:52]
+        last_space = sub.rfind(" ")
+        if last_space > 25:
+            t = sub[:last_space] + "..."
+        else:
+            t = sub + "..."
+            
+    # Capitalize appropriately
+    words = t.split()
+    if words:
+        capitalized = []
+        for i, w in enumerate(words):
+            if i == 0 or w.lower() not in {"a", "an", "the", "in", "on", "at", "for", "to", "of", "and", "or", "via", "with", "by", "vs"}:
+                capitalized.append(w.capitalize() if not w.isupper() and not any(c.isupper() for c in w[1:]) else w)
+            else:
+                capitalized.append(w.lower())
+        return " ".join(capitalized)
+    return "New Research"
+
+
+def create_conversation(
+    title: str = "",
+    mode: str = "research",
+    user_id: str = "user",
+    research_topic: str = "",
+    selected_paper_ids: Optional[List[str]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+    conv_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    init_db()
+    cid = conv_id or new_id("conv")
+    ts = now()
+    final_title = (title or "").strip() or (generate_conversation_title(research_topic) if research_topic else "New Research")
+    
+    selected_papers = selected_paper_ids or []
+    meta = metadata or {}
+    
+    with transaction() as conn:
+        conn.execute(
+            """
+            INSERT INTO conversations
+                (id, title, mode, status, user_id, research_topic, selected_paper_ids, metadata, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                cid,
+                final_title,
+                mode,
+                "active",
+                user_id,
+                research_topic,
+                _dumps(selected_papers),
+                _dumps(meta),
+                ts,
+                ts,
+            ),
+        )
+    return {
+        "id": cid,
+        "title": final_title,
+        "mode": mode,
+        "status": "active",
+        "user_id": user_id,
+        "research_topic": research_topic,
+        "selected_paper_ids": selected_papers,
+        "metadata": meta,
+        "created_at": ts,
+        "updated_at": ts,
+        "message_count": 0,
+    }
+
+
+def get_conversation(conv_id: str) -> Optional[Dict[str, Any]]:
+    init_db()
+    with cursor() as cur:
+        cur.execute("SELECT * FROM conversations WHERE id = ?", (conv_id,))
+        row = cur.fetchone()
+    if not row:
+        return None
+    d = dict(row)
+    d["selected_paper_ids"] = _loads(d.get("selected_paper_ids"), [])
+    d["metadata"] = _loads(d.get("metadata"), {})
+    # Get message count
+    with cursor() as cur:
+        count = cur.execute("SELECT COUNT(*) c FROM messages WHERE conversation_id = ?", (conv_id,)).fetchone()["c"]
+        d["message_count"] = count
+    return d
+
+
+def list_conversations(mode: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    init_db()
+    q = (
+        "SELECT c.*, (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count "
+        "FROM conversations c"
+    )
+    args: List[Any] = []
+    if mode:
+        q += " WHERE c.mode = ?"
+        args.append(mode)
+    q += " ORDER BY c.updated_at DESC LIMIT ?"
+    args.append(limit)
+    
+    with cursor() as cur:
+        cur.execute(q, args)
+        rows = cur.fetchall()
+        
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["selected_paper_ids"] = _loads(d.get("selected_paper_ids"), [])
+        d["metadata"] = _loads(d.get("metadata"), {})
+        out.append(d)
+    return out
+
+
+def update_conversation(conv_id: str, **fields: Any) -> Optional[Dict[str, Any]]:
+    if not fields:
+        return get_conversation(conv_id)
+    init_db()
+    cols, vals = [], []
+    for k, v in fields.items():
+        if k in ("id", "created_at"):
+            continue
+        cols.append(f"{k} = ?")
+        if k in _JSON_CONV_COLUMNS or isinstance(v, (dict, list)):
+            vals.append(_dumps(v))
+        else:
+            vals.append(v)
+    cols.append("updated_at = ?")
+    vals.append(now())
+    vals.append(conv_id)
+    
+    with transaction() as conn:
+        conn.execute(f"UPDATE conversations SET {', '.join(cols)} WHERE id = ?", vals)
+    return get_conversation(conv_id)
+
+
+def delete_conversation(conv_id: str) -> bool:
+    init_db()
+    with transaction() as conn:
+        conn.execute("DELETE FROM messages WHERE conversation_id = ?", (conv_id,))
+        cur = conn.execute("DELETE FROM conversations WHERE id = ?", (conv_id,))
+    return cur.rowcount > 0
+
+
+def add_message(
+    conv_id: str,
+    role: str,
+    content: str,
+    metadata: Optional[Dict[str, Any]] = None,
+    message_id: Optional[str] = None,
+    sequence: Optional[int] = None,
+) -> Dict[str, Any]:
+    init_db()
+    mid = message_id or new_id("msg")
+    ts = now()
+    meta = metadata or {}
+    
+    with transaction() as conn:
+        # Determine sequence if not explicitly provided
+        if sequence is None:
+            cur = conn.execute(
+                "SELECT COALESCE(MAX(sequence), -1) + 1 AS next_seq FROM messages WHERE conversation_id = ?",
+                (conv_id,),
+            )
+            seq = int(cur.fetchone()["next_seq"])
+        else:
+            seq = int(sequence)
+            
+        conn.execute(
+            """
+            INSERT INTO messages (id, conversation_id, role, content, sequence, metadata, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                content=excluded.content, metadata=excluded.metadata
+            """,
+            (mid, conv_id, role, content, seq, _dumps(meta), ts),
+        )
+        # Touch conversation updated_at
+        conn.execute("UPDATE conversations SET updated_at = ? WHERE id = ?", (ts, conv_id))
+        
+    return {
+        "id": mid,
+        "conversation_id": conv_id,
+        "role": role,
+        "content": content,
+        "sequence": seq,
+        "metadata": meta,
+        "created_at": ts,
+    }
+
+
+def get_messages(conv_id: str) -> List[Dict[str, Any]]:
+    init_db()
+    with cursor() as cur:
+        cur.execute(
+            "SELECT * FROM messages WHERE conversation_id = ? ORDER BY sequence ASC, created_at ASC",
+            (conv_id,),
+        )
+        rows = cur.fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["metadata"] = _loads(d.get("metadata"), {})
+        out.append(d)
+    return out
+
+
+def delete_message(message_id: str) -> bool:
+    init_db()
+    with transaction() as conn:
+        cur = conn.execute("DELETE FROM messages WHERE id = ?", (message_id,))
+    return cur.rowcount > 0
+

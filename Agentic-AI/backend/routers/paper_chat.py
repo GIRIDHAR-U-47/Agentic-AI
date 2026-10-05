@@ -29,11 +29,14 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+import config
 import db
 from services import retrieval as retrieval_svc
 from services.agent import reflection
 from services.agent.tools import _assign_markers  # type: ignore[attr-defined]
 from services.llm import build_llm
+from services.llm.base import LLMError
+from services.llm.context_builder import build_llm_context, compact_conversation_summary
 from services.pdf_rag_service import pdf_rag_service
 
 router = APIRouter(prefix="/pdf", tags=["Paper Chat"])
@@ -83,49 +86,8 @@ class PaperChatResponse(BaseModel):
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _build_history_context(history: List[ConversationTurn], max_turns: int = 6) -> str:
-    """Format the last N turns of conversation history for the prompt."""
-    if not history:
-        return ""
-    recent = history[-max_turns:]
-    lines = []
-    for turn in recent:
-        prefix = "Researcher" if turn.role == "user" else "R-Lens"
-        lines.append(f"{prefix}: {turn.content.strip()}")
-    return "\n".join(lines)
-
-
-def _build_paper_chat_prompt(
-    query: str,
-    hits: List[Dict[str, Any]],
-    history_ctx: str,
-) -> str:
-    """Assemble the grounded-answer prompt for a single or multi-paper chat turn."""
-    blocks = []
-    for c in hits:
-        title = c.get("doc_title") or c.get("doc_filename", "")
-        blocks.append(
-            f"[EVIDENCE {c['marker']}] Source Paper: {title} | "
-            f"Page {c.get('page')} | Section: {c.get('section')}\n"
-            f"{c.get('text', '')}"
-        )
-
-    evidence_section = "=== RETRIEVED EVIDENCE FROM SELECTED PAPERS ===\n\n" + "\n\n---\n\n".join(blocks)
-
-    history_section = ""
-    if history_ctx:
-        history_section = f"\n\n=== PREVIOUS CONVERSATION ===\n{history_ctx}\n"
-
-    return (
-        evidence_section
-        + history_section
-        + f"\n\n=== CURRENT USER QUESTION ===\n{query}\n\n"
-        "=== GROUNDED ANSWER (cite evidence markers like [S1] and page numbers) ==="
-    )
-
-
 def _rewrite_query_with_llm(llm, original_query: str, paper_title: str) -> str:
-    """Ask the LLM to rewrite a query into better keyword terms."""
+    """Ask the LLM to rewrite a query into concise keyword search terms."""
     if getattr(llm, "offline", False):
         import re
         stopwords = {"what", "which", "where", "when", "does", "they", "this", "that", "with", "from", "the", "did", "authors", "evaluate", "propose", "on"}
@@ -134,9 +96,8 @@ def _rewrite_query_with_llm(llm, original_query: str, paper_title: str) -> str:
 
     system = (
         "You rewrite natural-language questions into short, keyword-style search "
-        "terms optimised for BM25 retrieval over academic paper text.  "
-        "Output ONLY the rewritten query — no explanation, no punctuation, "
-        "no quotes."
+        "terms optimised for BM25 retrieval over academic paper text. "
+        "Output ONLY the rewritten query — no explanation, no punctuation, no quotes."
     )
     prompt = (
         f"Context Title: {paper_title}\n"
@@ -144,8 +105,8 @@ def _rewrite_query_with_llm(llm, original_query: str, paper_title: str) -> str:
         "Rewrite into keyword terms:"
     )
     try:
-        result = llm.generate(prompt, system=system)
-        text = result.text.strip().split("\n")[0][:200]
+        result = llm.generate(prompt, system=system, max_tokens=60)
+        text = result.text.strip().split("\n")[0][:150]
         if "insufficient" in text.lower() or "no supporting" in text.lower():
             return original_query
         return text
@@ -192,7 +153,7 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
     paper_titles = ", ".join([d.title or d.filename for d in docs])
     agent_status.append(f"Loaded {len(docs)} paper(s) from index...")
 
-    # -- 2. Retrieval strictly scoped to target documents ---------------------
+    # -- 2. Retrieval strictly scoped to target documents (top 4-6 chunks) ---
     agent_status.append("Retrieving evidence passages...")
     all_hits: List[Dict[str, Any]] = []
 
@@ -203,8 +164,8 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
         doc_hits = retrieval_svc.retrieve(
             req.query,
             doc_chunks,
-            top_k=6 if len(docs) > 1 else 8,
-            per_doc_cap=6 if len(docs) > 1 else 8,
+            top_k=config.RETRIEVAL_TOP_K,
+            per_doc_cap=config.RETRIEVAL_TOP_K if len(docs) == 1 else 4,
         )
         for h in doc_hits:
             h["doc_title"] = d.title or d.filename
@@ -217,21 +178,21 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
     if not hits:
         return PaperChatResponse(
             query=req.query,
-            answer="I couldn't find this information in the uploaded paper.",
+            answer="I couldn't find sufficient evidence for this in the selected paper.",
             insufficient_evidence=True,
             agent_status=agent_status + ["No indexed chunks found for the query."],
             latency_ms=int((time.perf_counter() - t0) * 1000),
         )
 
-    # -- 3. Query rewriting if coverage is weak -------------------------------
+    # -- 3. Query rewriting if coverage is weak (bounded to 1 attempt) --------
     query_rewritten = False
     rewritten_query = ""
     llm = build_llm()
 
     coverage_ok = retrieval_svc.coverage_passes(req.query, hits)
-    if not coverage_ok:
-        agent_status.append("Validating evidence coverage...")
-        agent_status.append("Rewriting query for deeper retrieval...")
+    if not coverage_ok and config.MAX_QUERY_REFINEMENTS >= 1:
+        agent_status.append("Checking source relevance...")
+        agent_status.append("Refining query for deeper retrieval...")
         rewritten_query = _rewrite_query_with_llm(llm, req.query, paper_titles)
         if rewritten_query and rewritten_query != req.query:
             query_rewritten = True
@@ -243,8 +204,8 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
                 d_hits = retrieval_svc.retrieve(
                     rewritten_query,
                     doc_chunks,
-                    top_k=6 if len(docs) > 1 else 8,
-                    per_doc_cap=6 if len(docs) > 1 else 8,
+                    top_k=config.RETRIEVAL_TOP_K,
+                    per_doc_cap=config.RETRIEVAL_TOP_K if len(docs) == 1 else 4,
                 )
                 for h in d_hits:
                     h["doc_title"] = d.title or d.filename
@@ -254,7 +215,7 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
             if len(retry_hits) >= len(hits):
                 hits = retry_hits
     else:
-        agent_status.append("Validating evidence coverage...")
+        agent_status.append("Checking source relevance...")
 
     # -- 4. Strict grounding check -------------------------------------------
     has_coverage = retrieval_svc.coverage_passes(req.query, hits)
@@ -264,7 +225,7 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
     if not hits or not has_coverage:
         return PaperChatResponse(
             query=req.query,
-            answer="I couldn't find this information in the uploaded paper.",
+            answer="I couldn't find sufficient evidence for this in the selected paper.",
             insufficient_evidence=True,
             query_rewritten=query_rewritten,
             rewritten_query=rewritten_query,
@@ -272,12 +233,28 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
             latency_ms=int((time.perf_counter() - t0) * 1000),
         )
 
-    # -- 5. Generate grounded answer via LLM ----------------------------------
-    agent_status.append("Generating grounded answer with Gemini...")
+    # -- 5. Generate grounded answer via Gemini & Context Builder ------------
+    agent_status.append("Generating grounded answer...")
     _assign_markers(hits)
 
-    history_ctx = _build_history_context(req.history)
-    prompt = _build_paper_chat_prompt(req.query, hits, history_ctx)
+    history_dicts = [{"role": t.role, "content": t.content} for t in req.history]
+    
+    summary = None
+    if len(history_dicts) > config.RECENT_MESSAGE_LIMIT:
+        summary = compact_conversation_summary(
+            history_dicts[:-config.RECENT_MESSAGE_LIMIT],
+            current_topic=paper_titles,
+        )
+
+    ctx_bundle = build_llm_context(
+        current_question=req.query,
+        recent_messages=history_dicts,
+        conversation_summary=summary,
+        retrieved_chunks=hits,
+        paper_context=f"Target Paper(s): {paper_titles}",
+        max_chunks=config.RETRIEVAL_TOP_K,
+        max_history_turns=config.RECENT_MESSAGE_LIMIT,
+    )
 
     paper_system = (
         "You are R-Lens, an academic research assistant.\n\n"
@@ -290,24 +267,33 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
         "- unsupported assumptions\n"
         "- invented facts\n\n"
         "If the requested information is not supported by the supplied evidence, say:\n"
-        "'I couldn't find this information in the uploaded paper.'\n\n"
+        "'I couldn't find sufficient evidence for this in the selected paper.'\n\n"
         "Every factual claim must be traceable to a source page. Cite sources inline using "
         "evidence markers and page numbers, e.g. [S1, p. 4] or [Paper.pdf, p. 4].\n"
         "Keep the answer clear, rigorous and well-formatted in markdown."
     )
 
-    result = llm.generate(prompt, system=paper_system)
-    answer_text = result.text or ""
+    try:
+        result = llm.generate(
+            ctx_bundle["prompt"],
+            system=paper_system,
+            max_tokens=config.RAG_ANSWER_MAX_OUTPUT_TOKENS,
+        )
+        answer_text = result.text or "I couldn't find sufficient evidence for this in the selected paper."
+    except LLMError as err:
+        raise HTTPException(status_code=400, detail=str(err))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"LLM generation failed: {exc}")
 
     # -- 6. Reflection / verification ----------------------------------------
     agent_status.append("Verifying citations & page anchors...")
     refl = reflection.verify(
-        answer_text, hits, approved_doc_ids=target_doc_ids, correct=False
+        answer_text, ctx_bundle["used_chunks"], approved_doc_ids=target_doc_ids, correct=False
     )
 
     sources: List[SourceChunk] = []
     seen_markers: set = set()
-    for h in hits:
+    for h in ctx_bundle["used_chunks"]:
         m = h.get("marker", "")
         if m in seen_markers:
             continue
@@ -320,7 +306,7 @@ def paper_chat(req: PaperChatRequest) -> PaperChatResponse:
                 filename=str(h.get("doc_filename", "")),
                 page=int(h.get("page", 1)),
                 section=str(h.get("section", "")),
-                quote=str(h.get("text", ""))[:600],
+                quote=str(h.get("text", ""))[:500],
                 marker=m,
                 score=float(h.get("_score", 0.0)),
             )

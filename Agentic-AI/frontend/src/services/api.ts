@@ -7,6 +7,9 @@
 import {
   ApprovalDecision,
   CandidatePaper,
+  Conversation,
+  ConversationMessage,
+  ConversationMode,
   CorpusDocument,
   CorpusStats,
   CreateSessionResponse,
@@ -208,10 +211,106 @@ export const api = {
     markdown: (id: string) =>
       request<{ markdown: string }>(`/api/sessions/${id}/markdown`),
   },
+
+  conversations: {
+    list: (mode?: string, limit = 50) =>
+      request<{ conversations: Conversation[] }>(
+        `/api/conversations?limit=${limit}${mode ? `&mode=${encodeURIComponent(mode)}` : ''}`
+      ),
+
+    create: (params: {
+      title?: string;
+      mode?: ConversationMode;
+      research_topic?: string;
+      selected_paper_ids?: string[];
+      metadata?: Record<string, any>;
+      initial_message?: string;
+    }) =>
+      request<Conversation>('/api/conversations', {
+        method: 'POST',
+        body: JSON.stringify(params),
+      }),
+
+    get: (id: string) => request<Conversation>(`/api/conversations/${id}`),
+
+    update: (id: string, fields: Partial<Conversation>) =>
+      request<Conversation>(`/api/conversations/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(fields),
+      }),
+
+    delete: (id: string) =>
+      request<{ status: string; id: string }>(`/api/conversations/${id}`, {
+        method: 'DELETE',
+      }),
+
+    getMessages: (id: string) =>
+      request<{ messages: ConversationMessage[] }>(`/api/conversations/${id}/messages`),
+
+    addMessage: (
+      id: string,
+      message: {
+        role: 'user' | 'assistant' | 'agent-activity';
+        content: string;
+        metadata?: Record<string, any>;
+        id?: string;
+        sequence?: number;
+      }
+    ) =>
+      request<ConversationMessage>(`/api/conversations/${id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify(message),
+      }),
+
+    chat: (
+      id: string,
+      params: {
+        query: string;
+        selected_paper_ids?: string[];
+        doc_id?: string;
+        mode?: string;
+        message_id?: string;
+      }
+    ) =>
+      request<{
+        id: string;
+        role: 'assistant';
+        content: string;
+        sources: any[];
+        verified: boolean;
+        support_rate: number;
+        milestones: { label: string; done: boolean; active?: boolean }[];
+        latency_ms: number;
+      }>(`/api/conversations/${id}/chat`, {
+        method: 'POST',
+        body: JSON.stringify(params),
+      }),
+
+    generateReview: (id: string, params?: { focus_topic?: string; mode?: string }) =>
+      request<{
+        id: string;
+        content: string;
+        sources: any[];
+        topic: string;
+        latency_ms: number;
+      }>(`/api/conversations/${id}/literature-review/generate`, {
+        method: 'POST',
+        body: JSON.stringify(params || {}),
+      }),
+
+    compare: (id: string) =>
+      request<{
+        id: string;
+        matrix_markdown: string;
+        papers_count: number;
+      }>(`/api/conversations/${id}/compare`, {
+        method: 'POST',
+      }),
+  },
 };
 
 export const MODE_DESCRIPTIONS: Record<ReviewMode, string> = {
   no_rag: 'No retrieval. The agent answers from the prompt only — expected to be weakest; kept as the baseline.',
   basic_rag: 'Single-shot retrieval: top passages are pulled once and quoted. Fast, but cannot iterate or refuse.',
   agentic_rag: 'Agent loop with search / read / verify tools, bounded budgets, and a source-backing check on every claim.',
-};
+};

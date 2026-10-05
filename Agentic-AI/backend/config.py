@@ -26,13 +26,22 @@ EVAL_RESULTS_DIR = Path(
     os.getenv("RLENS_EVAL_RESULTS_DIR", BACKEND_DIR / "eval" / "results")
 ).resolve()
 
-# --- Hard limits ---------------------------------------------------------
-# These bound the agent's reasoning loop so a demo can never run away.
-MAX_AGENT_ITERATIONS = int(os.getenv("RLENS_MAX_AGENT_ITERATIONS", "8"))
-MAX_TOOL_CALLS = int(os.getenv("RLENS_MAX_TOOL_CALLS", "12"))
-MAX_QUERY_REFINEMENTS = int(os.getenv("RLENS_MAX_QUERY_REFINEMENTS", "3"))
-MAX_REFLECTION_PASSES = int(os.getenv("RLENS_MAX_REFLECTION_PASSES", "2"))
-RETRIEVAL_TOP_K = int(os.getenv("RLENS_RETRIEVAL_TOP_K", "8"))
+# --- Hard limits & Token Optimization Defaults -----------------------------
+# These bound the agent's reasoning loop and token usage for efficiency.
+MAX_AGENT_ITERATIONS = int(os.getenv("RLENS_MAX_AGENT_ITERATIONS", "3"))
+MAX_TOOL_CALLS = int(os.getenv("RLENS_MAX_TOOL_CALLS", "6"))
+MAX_QUERY_REFINEMENTS = int(os.getenv("RLENS_MAX_QUERY_REFINEMENTS", "1"))
+MAX_RETRIEVAL_RETRIES = int(os.getenv("RLENS_MAX_RETRIEVAL_RETRIES", "1"))
+MAX_REFLECTION_PASSES = int(os.getenv("RLENS_MAX_REFLECTION_PASSES", "1"))
+RETRIEVAL_TOP_K = int(os.getenv("RLENS_RETRIEVAL_TOP_K", "5"))
+
+# Output token budgets per task
+GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "1024"))
+NORMAL_CHAT_MAX_OUTPUT_TOKENS = int(os.getenv("NORMAL_CHAT_MAX_OUTPUT_TOKENS", "1024"))
+RAG_ANSWER_MAX_OUTPUT_TOKENS = int(os.getenv("RAG_ANSWER_MAX_OUTPUT_TOKENS", "1024"))
+LITERATURE_SYNTHESIS_MAX_OUTPUT_TOKENS = int(os.getenv("LITERATURE_SYNTHESIS_MAX_OUTPUT_TOKENS", "1536"))
+RECENT_MESSAGE_LIMIT = int(os.getenv("RECENT_MESSAGE_LIMIT", "6"))
+
 ARXIV_API_BASE = os.getenv("RLENS_ARXIV_API_BASE", "http://export.arxiv.org/api/query")
 ARXIV_TIMEOUT_S = float(os.getenv("RLENS_ARXIV_TIMEOUT_S", "30"))
 USER_AGENT = os.getenv(
@@ -41,15 +50,9 @@ USER_AGENT = os.getenv(
 )
 
 # --- arXiv discovery -------------------------------------------------------
-# How many candidate papers a fresh-topic search should try to return, and the
-# lexical floor used to decide whether the first pass "covered" the question.
-DISCOVERY_MAX_RESULTS = int(os.getenv("RLENS_DISCOVERY_MAX_RESULTS", "8"))
+DISCOVERY_MAX_RESULTS = int(os.getenv("RLENS_DISCOVERY_MAX_RESULTS", "6"))
 
 # --- Vector RAG (Chroma DB) ------------------------------------------------
-# The retrieval backend for the agentic loop. "off" keeps the exact BM25
-# behaviour the pilot shipped with (the basic_rag baseline is *always* BM25);
-# "chroma" uses a local persistent Chroma DB with OpenRouter embeddings.
-# See backend/.env.example for the full recipe.
 VECTOR_BACKEND = os.getenv("RLENS_VECTOR_BACKEND", "off").strip().lower()
 
 # Chroma persistence directory (created on first use).
@@ -62,21 +65,12 @@ CHROMA_COLLECTION_REAL = os.getenv("RLENS_CHROMA_COLLECTION_REAL", "rlens_passag
 CHROMA_COLLECTION_FAKE = os.getenv("RLENS_CHROMA_COLLECTION_FAKE", "rlens_passages_fake")
 
 # --- OpenRouter Embeddings -------------------------------------------------
-# One documented model via OpenRouter (single OPENROUTER_API_KEY for both LLM
-# and embeddings). Without the key the system uses a locally-computed
-# deterministic embedder, clearly labelled "fake" everywhere -- fake vectors
-# are stored in a separate Chroma collection so they can never mix with real.
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 OPENROUTER_EMBEDDING_MODEL = os.getenv("OPENROUTER_EMBEDDING_MODEL", "nvidia/nemotron-3-embed-1b:free").strip()
-# Embedding dimension: set explicitly to avoid relying on model card claims.
-# Will be verified on first real call; default 4096 for Nemotron 3 Embed 1B.
 OPENROUTER_EMBEDDING_DIM = int(os.getenv("OPENROUTER_EMBEDDING_DIM", "4096"))
 OPENROUTER_EMBEDDING_TIMEOUT_S = float(os.getenv("OPENROUTER_EMBEDDING_TIMEOUT_S", "30"))
 
 # --- LLM Provider Registry -------------------------------------------------
-# Two OpenRouter model slots so the eval harness can compare at least two
-# OpenRouter models side by side when OPENROUTER_API_KEY is present.
-# The offline provider is always available and never requires a key.
 
 @dataclass
 class ProviderSpec:
@@ -86,13 +80,16 @@ class ProviderSpec:
     model: str
     api_key_env: Optional[str] = None
     base_url: Optional[str] = None
-    # `offline` needs no key and always succeeds, which guarantees the demo,
-    # the test-suite and the evaluation harness can always produce real output.
     requires_key: bool = True
 
     def key_present(self) -> bool:
         if not self.requires_key:
             return True
+        if self.name == "gemini":
+            return bool(
+                os.getenv("GEMINI_API_KEY", "").strip()
+                or os.getenv("GOOGLE_API_KEY", "").strip()
+            )
         if not self.api_key_env:
             return False
         return bool(os.getenv(self.api_key_env, "").strip())
@@ -105,16 +102,13 @@ def _specs() -> List[ProviderSpec]:
             model="extractive-v1",
             requires_key=False,
         ),
-        # Google Gemini: primary direct LLM provider
+        # Google Gemini: primary active LLM provider
         ProviderSpec(
             name="gemini",
-            model=os.getenv("RLENS_GEMINI_MODEL", "gemini-2.0-flash"),
+            model=os.getenv("RLENS_GEMINI_MODEL", os.getenv("GEMINI_MODEL", "gemini-3.8-flash")),
             api_key_env="GEMINI_API_KEY",
         ),
-        # OpenRouter: one key, many model families. Two model slots are exposed
-        # so the evaluation harness can compare at least two OpenRouter models
-        # side by side whenever OPENROUTER_API_KEY is present. They are always
-        # reported as `openrouter`/`openrouter-strong` and never as `offline`.
+        # OpenRouter preserved as alternative provider
         ProviderSpec(
             name="openrouter",
             model=os.getenv("RLENS_OPENROUTER_MODEL", "openai/gpt-4o-mini"),
@@ -145,27 +139,53 @@ def available_providers() -> List[ProviderSpec]:
 
 
 def default_provider() -> ProviderSpec:
-    """Pick the best provider that actually has credentials.
+    """Pick the active provider.
 
-    Preference order honours RLENS_LLM_PROVIDER when it is usable, then Gemini,
-    then any configured OpenRouter provider, then the deterministic offline provider.
+    Explicit preference order:
+    1. LLM_PROVIDER or RLENS_LLM_PROVIDER environment setting
+    2. Gemini (primary default provider)
+    3. OpenRouter (if credentials exist)
+    4. Offline extractive provider
     """
-    requested = os.getenv("RLENS_LLM_PROVIDER", "").strip()
+    requested = (
+        os.getenv("LLM_PROVIDER", "").strip().lower()
+        or os.getenv("RLENS_LLM_PROVIDER", "").strip().lower()
+    )
     if requested:
         spec = get_provider(requested)
-        if spec and spec.key_present():
+        if spec:
             return spec
-    for name in ("gemini", "openrouter", "openrouter-strong"):
+
+    # Default provider is Gemini
+    gemini_spec = get_provider("gemini")
+    if gemini_spec and gemini_spec.key_present():
+        return gemini_spec
+
+    # Fallback to other configured providers
+    for name in ("openrouter", "openrouter-strong"):
         spec = get_provider(name)
         if spec and spec.key_present():
             return spec
-    return get_provider("offline")  # type: ignore[return-value]
+
+    return gemini_spec or get_provider("offline")  # type: ignore[return-value]
 
 
 def llm_status() -> dict:
     """Machine-readable provider status, surfaced at /api/health."""
+    active = default_provider()
     return {
-        "default": default_provider().name,
+        "default": active.name,
+        "active_model": active.model,
+        "token_limits": {
+            "gemini_max_output_tokens": GEMINI_MAX_OUTPUT_TOKENS,
+            "normal_chat_max_output_tokens": NORMAL_CHAT_MAX_OUTPUT_TOKENS,
+            "rag_answer_max_output_tokens": RAG_ANSWER_MAX_OUTPUT_TOKENS,
+            "literature_synthesis_max_output_tokens": LITERATURE_SYNTHESIS_MAX_OUTPUT_TOKENS,
+            "recent_message_limit": RECENT_MESSAGE_LIMIT,
+            "max_agent_iterations": MAX_AGENT_ITERATIONS,
+            "max_query_refinements": MAX_QUERY_REFINEMENTS,
+            "retrieval_top_k": RETRIEVAL_TOP_K,
+        },
         "providers": [
             {
                 "name": p.name,

@@ -137,29 +137,29 @@ class PDFRAGService:
                 latency_ms=int((time.perf_counter() - t0) * 1000),
             )
 
-        # Reuse the shared marker assignment so citations are stable.
         from services.agent.tools import _assign_markers
+        from services.llm.context_builder import build_llm_context
 
         _assign_markers(hits)
         llm = build_llm()
-        blocks = []
-        for c in hits:
-            title = c.get("doc_title") or c.get("doc_filename")
-            blocks.append(
-                f"[EVIDENCE {c['marker']}] Source: {title} | Page {c.get('page')} | "
-                f"Section: {c.get('section')}\n{c.get('text', '')}"
-            )
-        prompt = (
-            "=== RETRIEVED EVIDENCE ===\n\n" + "\n\n---\n\n".join(blocks)
-            + f"\n\n=== USER QUESTION ===\n{query}\n\n=== GROUNDED ANSWER ==="
-        )
-        result = llm.generate(prompt, system=SYNTHESIS_SYSTEM)
 
-        refl = reflection.verify(result.text, hits, approved_doc_ids=scope, correct=False)
+        ctx_bundle = build_llm_context(
+            current_question=query,
+            retrieved_chunks=hits,
+            max_chunks=config.RETRIEVAL_TOP_K,
+        )
+
+        result = llm.generate(
+            ctx_bundle["prompt"],
+            system=SYNTHESIS_SYSTEM,
+            max_tokens=config.RAG_ANSWER_MAX_OUTPUT_TOKENS,
+        )
+
+        refl = reflection.verify(result.text, ctx_bundle["used_chunks"], approved_doc_ids=scope, correct=False)
         activity.append({
             "seq": len(activity) + 1, "kind": "tool", "name": "search_papers",
-            "detail": f"Retrieved {len(hits)} passage(s)", "status": "done",
-            "data": {"hits": len(hits)},
+            "detail": f"Retrieved {len(ctx_bundle['used_chunks'])} passage(s)", "status": "done",
+            "data": {"hits": len(ctx_bundle["used_chunks"])},
             "latency_ms": int((time.perf_counter() - t0) * 1000),
         })
         activity.append({

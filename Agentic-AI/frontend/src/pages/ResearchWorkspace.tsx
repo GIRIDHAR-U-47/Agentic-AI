@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { useResearch } from '../context/ResearchContext';
 import { api } from '../services/api';
-import { CandidatePaper } from '../types';
+import { CandidatePaper, Conversation } from '../types';
 import { ChatComposer } from '../components/ChatComposer';
 
 interface InChatTurn {
@@ -28,8 +28,10 @@ interface InChatTurn {
 }
 
 export const ResearchWorkspace: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const sessionIdParam = searchParams.get('session');
+  const { conversationId: paramConvId } = useParams<{ conversationId?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryConvId = searchParams.get('conversationId') || searchParams.get('session');
+  const activeConversationId = paramConvId || queryConvId || null;
 
   const {
     query,
@@ -52,6 +54,8 @@ export const ResearchWorkspace: React.FC = () => {
   const [conversation, setConversation] = useState<InChatTurn[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoadingConv, setIsLoadingConv] = useState(false);
 
   // Discovery & Candidate state
   const [candidates, setCandidates] = useState<CandidatePaper[]>([]);
@@ -73,12 +77,12 @@ export const ResearchWorkspace: React.FC = () => {
   // Abstract expansions
   const [expandedAbstracts, setExpandedAbstracts] = useState<Record<string, boolean>>({});
 
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const loadedConvIdRef = useRef<string | null>(null);
+
   const activeTopic = useMemo(() => {
     return query.trim() || currentSessionTitle.trim() || 'Explainable Deep Learning for Short-Term Electricity Load Forecasting';
   }, [query, currentSessionTitle]);
-
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const searchedRef = useRef<string>('');
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -87,6 +91,78 @@ export const ResearchWorkspace: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [conversation, isProcessing]);
+
+  // Load persistent conversation when conversationId changes
+  const loadPersistentConversation = useCallback(async (convId: string) => {
+    try {
+      setIsLoadingConv(true);
+      setLoadError(null);
+      const conv = await api.conversations.get(convId);
+      
+      if (conv) {
+        loadedConvIdRef.current = convId;
+        if (conv.title) setCurrentSessionTitle(conv.title);
+        if (conv.research_topic) setQuery(conv.research_topic);
+        if (conv.selected_paper_ids && conv.selected_paper_ids.length > 0) {
+          selectAllPapers(true, conv.selected_paper_ids);
+        }
+
+        // Restore candidates from metadata if available
+        if (conv.metadata?.candidates) {
+          setCandidates(conv.metadata.candidates);
+        }
+
+        // Map messages
+        if (conv.messages && conv.messages.length > 0) {
+          const mapped: InChatTurn[] = conv.messages.map((m) => {
+            const isActivity = m.role === 'agent-activity' || m.metadata?.type === 'activity';
+            return {
+              id: m.id,
+              role: isActivity ? 'agent-activity' : (m.role as any),
+              text: m.content,
+              timestamp: m.created_at
+                ? new Date(m.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'Just now',
+              citations: m.metadata?.sources,
+              activityMilestones: m.metadata?.milestones,
+              activityDone: true,
+              candidates: (m.metadata?.candidates as any) || (isActivity && conv.metadata?.candidates ? conv.metadata.candidates : undefined),
+            };
+          });
+          setConversation(mapped);
+        } else {
+          // If no messages yet, run discovery
+          setConversation([]);
+        }
+      }
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Could not load conversation');
+    } finally {
+      setIsLoadingConv(false);
+    }
+  }, [selectAllPapers, setCurrentSessionTitle, setQuery]);
+
+  useEffect(() => {
+    if (activeConversationId) {
+      if (loadedConvIdRef.current !== activeConversationId) {
+        loadPersistentConversation(activeConversationId);
+      }
+    } else {
+      // Create a persistent conversation automatically for new queries
+      (async () => {
+        try {
+          const newConv = await api.conversations.create({
+            mode: 'research',
+            research_topic: activeTopic,
+          });
+          loadedConvIdRef.current = newConv.id;
+          navigate(`/chat/${newConv.id}`, { replace: true });
+        } catch {
+          // Fallback
+        }
+      })();
+    }
+  }, [activeConversationId, activeTopic, loadPersistentConversation, navigate]);
 
   // Execute Search Planning & Multi-Source Academic Discovery
   const runAcademicResearchWorkflow = useCallback(
@@ -126,6 +202,15 @@ export const ResearchWorkspace: React.FC = () => {
       ]);
 
       try {
+        // Save user message in persistent conversation if active
+        if (activeConversationId) {
+          api.conversations.addMessage(activeConversationId, {
+            id: userMsgId,
+            role: 'user',
+            content: q,
+          }).catch(() => undefined);
+        }
+
         // Step A: Search Plan
         let planRes: any = null;
         try {
@@ -171,7 +256,32 @@ export const ResearchWorkspace: React.FC = () => {
           selectAllPapers(true, topIds.filter(Boolean));
         }
 
-        // Finalize activity message with real candidate papers
+        // Save candidates in persistent conversation metadata
+        if (activeConversationId) {
+          api.conversations.update(activeConversationId, {
+            metadata: { candidates: candidatesFound },
+            selected_paper_ids: candidatesFound.slice(0, 3).map((c) => c.doc_id || c.arxiv_id || '').filter(Boolean),
+          }).catch(() => undefined);
+
+          // Save activity message
+          api.conversations.addMessage(activeConversationId, {
+            id: turnId,
+            role: 'agent-activity',
+            content: `Searched OpenAlex, Semantic Scholar, Crossref & arXiv. Found ${candidatesFound.length} relevant candidate papers.`,
+            metadata: {
+              type: 'activity',
+              candidates: candidatesFound,
+              milestones: [
+                { label: 'Understood research question & parameters', done: true },
+                { label: planRes?.summary || 'Formulated targeted search strategy', done: true },
+                { label: 'Queried OpenAlex, Semantic Scholar, Crossref & arXiv', done: true },
+                { label: `Deduplicated and filtered into ${candidatesFound.length} relevant candidate papers`, done: true },
+              ],
+            },
+          }).catch(() => undefined);
+        }
+
+        // Finalize activity message with real candidate papers in UI
         setConversation((prev) =>
           prev.map((t) =>
             t.id === turnId
@@ -230,16 +340,15 @@ export const ResearchWorkspace: React.FC = () => {
         setIsProcessing(false);
       }
     },
-    [selectAllPapers, setGeneratedSubQueries, showToast]
+    [activeConversationId, selectAllPapers, setGeneratedSubQueries, showToast]
   );
 
-  // Trigger discovery on initial mount or topic change
+  // Trigger initial discovery if conversation has no messages
   useEffect(() => {
-    if (activeTopic && searchedRef.current !== activeTopic) {
-      searchedRef.current = activeTopic;
+    if (activeTopic && conversation.length === 0 && !isLoadingConv && !isProcessing) {
       void runAcademicResearchWorkflow(activeTopic);
     }
-  }, [activeTopic, runAcademicResearchWorkflow]);
+  }, [activeTopic, conversation.length, isLoadingConv, isProcessing, runAcademicResearchWorkflow]);
 
   // Handle saving and indexing single paper
   const handleSaveAndIndexPaper = async (paper: CandidatePaper) => {
@@ -329,17 +438,32 @@ export const ResearchWorkspace: React.FC = () => {
       );
       const targetDocIds = selected.map((c) => c.doc_id || c.arxiv_id || '').filter(Boolean);
 
-      const res = await api.paperChat.send({
-        docIds: targetDocIds.length > 0 ? targetDocIds : undefined,
-        query: txt,
-        history: conversation
-          .filter((m) => m.role === 'user' || m.role === 'assistant')
-          .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.text || '' })),
-      });
+      let answer = '';
+      let sources: any[] = [];
+
+      if (activeConversationId) {
+        const res = await api.conversations.chat(activeConversationId, {
+          query: txt,
+          selected_paper_ids: targetDocIds,
+          message_id: userMsgId,
+        });
+        answer = res.content;
+        sources = res.sources || [];
+      } else {
+        const res = await api.paperChat.send({
+          docIds: targetDocIds.length > 0 ? targetDocIds : undefined,
+          query: txt,
+          history: conversation
+            .filter((m) => m.role === 'user' || m.role === 'assistant')
+            .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.text || '' })),
+        });
+        answer = res.answer;
+        sources = res.sources || [];
+      }
 
       // Update right drawer with retrieved evidence passages
-      if (res.sources && res.sources.length > 0) {
-        setActiveEvidencePassages(res.sources);
+      if (sources && sources.length > 0) {
+        setActiveEvidencePassages(sources);
         setDrawerTab('evidence');
       }
 
@@ -348,14 +472,15 @@ export const ResearchWorkspace: React.FC = () => {
           m.id === assistantMsgId
             ? {
                 ...m,
-                text: res.answer,
-                citations: res.sources,
+                text: answer,
+                citations: sources,
                 isStreaming: false,
               }
             : m
         )
       );
     } catch (err) {
+      showToast('Your message could not be saved. Please retry.');
       setConversation((prev) =>
         prev.map((m) =>
           m.id === assistantMsgId
@@ -413,6 +538,26 @@ export const ResearchWorkspace: React.FC = () => {
     });
     return Array.from(set).sort().reverse();
   }, [candidates]);
+
+  // Error boundary state
+  if (loadError) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#FAFAFC] min-h-[calc(100vh-56px)]">
+        <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mb-4">
+          <span className="material-symbols-outlined text-[26px]">error_outline</span>
+        </div>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Couldn't load this conversation.</h2>
+        <p className="text-xs text-gray-500 mb-5 max-w-sm">{loadError}</p>
+        <button
+          type="button"
+          onClick={() => activeConversationId && loadPersistentConversation(activeConversationId)}
+          className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-hover transition-colors cursor-pointer shadow-sm"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full h-[calc(100vh-56px)] bg-[#FAFAFC] overflow-hidden text-gray-900">
@@ -598,110 +743,88 @@ export const ResearchWorkspace: React.FC = () => {
                                       {/* Tags */}
                                       <div className="flex flex-col items-end gap-1 shrink-0">
                                         {paper.sources_found && paper.sources_found.length > 1 && (
-                                          <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                            {paper.sources_found.length} sources
+                                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                                            {paper.sources_found.join(' + ')}
                                           </span>
                                         )}
                                         {paper.is_open_access && (
-                                          <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
-                                            Open Access
+                                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                            Open Access PDF
                                           </span>
                                         )}
-                                        {paper.citations_count ? (
-                                          <span className="text-[11px] text-gray-400">
-                                            {paper.citations_count} citations
-                                          </span>
-                                        ) : null}
                                       </div>
                                     </div>
 
                                     {/* Abstract snippet */}
                                     {paper.abstract && (
-                                      <div className="mt-2 text-[12.5px] text-gray-600 leading-relaxed pl-7">
-                                        <p className={expandedAbstracts[pId] ? '' : 'line-clamp-2'}>
-                                          {paper.abstract}
-                                        </p>
-                                        {paper.abstract.length > 150 && (
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              setExpandedAbstracts((prev) => ({
-                                                ...prev,
-                                                [pId]: !prev[pId],
-                                              }))
-                                            }
-                                            className="text-primary hover:underline text-[11px] font-medium mt-0.5 cursor-pointer"
-                                          >
-                                            {expandedAbstracts[pId] ? 'Show less' : 'Read abstract'}
-                                          </button>
-                                        )}
-                                      </div>
+                                      <p className="text-[12.5px] text-gray-600 mt-2.5 leading-relaxed line-clamp-2">
+                                        {paper.abstract}
+                                      </p>
                                     )}
 
                                     {/* Actions */}
-                                    <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap text-xs pl-7">
+                                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100 text-xs">
                                       <div className="flex items-center gap-2">
-                                        {paper.doi && (
+                                        {paper.pdf_url && (
                                           <a
-                                            href={`https://doi.org/${paper.doi}`}
+                                            href={paper.pdf_url}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="text-gray-400 hover:text-primary flex items-center gap-1 font-mono text-[11px]"
+                                            className="text-primary hover:underline font-medium inline-flex items-center gap-1"
                                           >
-                                            <span className="material-symbols-outlined text-[13px]">link</span>
-                                            DOI
+                                            <span className="material-symbols-outlined text-[14px]">
+                                              picture_as_pdf
+                                            </span>
+                                            View PDF
+                                          </a>
+                                        )}
+                                        {paper.abs_url && (
+                                          <a
+                                            href={paper.abs_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-gray-500 hover:text-gray-800 font-medium inline-flex items-center gap-1"
+                                          >
+                                            <span className="material-symbols-outlined text-[14px]">
+                                              open_in_new
+                                            </span>
+                                            arXiv
                                           </a>
                                         )}
                                       </div>
 
                                       <div className="flex items-center gap-2">
-                                        {paper.pdf_url && (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setActivePdfViewer({
-                                                url: paper.pdf_url || '',
-                                                title: paper.title,
-                                              });
-                                              setDrawerTab('pdf');
-                                              setIsDrawerOpen(true);
-                                            }}
-                                            className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200/80 text-gray-700 text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                                          >
-                                            <span className="material-symbols-outlined text-[14px]">visibility</span>
-                                            <span>Open Paper</span>
-                                          </button>
-                                        )}
-
                                         <button
                                           type="button"
                                           onClick={() => handleSaveAndIndexPaper(paper)}
-                                          disabled={status === 'DOWNLOADING' || status === 'EXTRACTING'}
-                                          className={`px-3 py-1 rounded-lg font-medium text-xs flex items-center gap-1 cursor-pointer transition-colors ${
+                                          disabled={status === 'DOWNLOADING' || status === 'EXTRACTING' || status === 'CHAT_READY'}
+                                          className={`px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer text-xs ${
                                             status === 'CHAT_READY'
                                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                              : 'bg-primary text-white hover:bg-primary-hover'
+                                              : status === 'DOWNLOADING' || status === 'EXTRACTING'
+                                              ? 'bg-gray-100 text-gray-500'
+                                              : 'bg-purple-50 hover:bg-purple-100 text-primary border border-purple-200/60'
                                           }`}
                                         >
-                                          <span className="material-symbols-outlined text-[14px]">
-                                            {status === 'CHAT_READY' ? 'check' : 'save'}
-                                          </span>
-                                          <span>
-                                            {status === 'CHAT_READY'
-                                              ? 'Indexed'
-                                              : status === 'DOWNLOADING' || status === 'EXTRACTING'
-                                              ? 'Indexing...'
-                                              : 'Save & Index'}
-                                          </span>
+                                          {status === 'DOWNLOADING'
+                                            ? 'Downloading...'
+                                            : status === 'EXTRACTING'
+                                            ? 'Extracting...'
+                                            : status === 'CHAT_READY'
+                                            ? '✓ Indexed'
+                                            : 'Save & Index'}
                                         </button>
 
                                         <button
                                           type="button"
-                                          onClick={() => navigate(`/paper-chat/${pId}`)}
-                                          className="px-2.5 py-1 rounded-lg border border-gray-200 hover:border-primary hover:text-primary text-gray-700 text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                                          onClick={() => {
+                                            if (pId) {
+                                              navigate(`/paper-chat/${encodeURIComponent(pId)}`);
+                                            }
+                                          }}
+                                          className="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium cursor-pointer transition-colors"
                                         >
-                                          <span className="material-symbols-outlined text-[14px]">forum</span>
-                                          <span>Chat</span>
+                                          Chat
                                         </button>
                                       </div>
                                     </div>
@@ -716,42 +839,38 @@ export const ResearchWorkspace: React.FC = () => {
 
                     {/* Assistant Response Turn */}
                     {turn.role === 'assistant' && (
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-purple-50 text-primary flex items-center justify-center shrink-0 border border-purple-200/60 mt-0.5">
-                          <span className="material-symbols-outlined text-[18px]">psychology</span>
+                      <div className="flex items-start gap-3 justify-start animate-fadeIn">
+                        <div className="w-8 h-8 rounded-xl bg-purple-50 text-primary border border-purple-200/60 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                          <span className="material-symbols-outlined text-[17px]">psychology</span>
                         </div>
-                        <div className="flex-1 bg-white border border-gray-200/80 rounded-2xl p-5 shadow-2xs space-y-3">
-                          <div className="prose prose-sm max-w-none text-gray-900 leading-relaxed">
-                            <ReactMarkdown>{turn.text || ''}</ReactMarkdown>
+                        <div className="flex flex-col gap-2 max-w-[85%] min-w-0">
+                          <div className="bg-white border border-gray-200/80 rounded-2xl rounded-tl-none p-4 text-[13.5px] leading-relaxed text-gray-900 shadow-2xs">
+                            <div className="prose prose-sm max-w-none text-gray-900 leading-relaxed">
+                              <ReactMarkdown>
+                                {turn.text || ''}
+                              </ReactMarkdown>
+                            </div>
                           </div>
 
-                          {/* Grounded Citation Buttons */}
+                          {/* Citations Footer */}
                           {turn.citations && turn.citations.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
-                              <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[14px] text-primary">verified</span>
-                                Cited Sources &amp; Evidence:
-                              </span>
-                              <div className="flex flex-wrap gap-1.5">
-                                {turn.citations.map((c, i) => (
-                                  <button
-                                    key={i}
-                                    type="button"
-                                    onClick={() => {
-                                      setActiveEvidencePassages([c]);
-                                      setDrawerTab('evidence');
-                                      setIsDrawerOpen(true);
-                                    }}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-primary text-[11.5px] font-medium border border-purple-200/60 cursor-pointer transition-colors"
-                                  >
-                                    <span className="font-semibold">{c.marker}</span>
-                                    <span className="truncate max-w-[140px]">
-                                      {c.doc_title ? c.doc_title : 'Paper'}
-                                    </span>
-                                    {c.page && <span className="text-gray-500 font-normal">p. {c.page}</span>}
-                                  </button>
-                                ))}
-                              </div>
+                            <div className="flex flex-wrap gap-1.5 px-1">
+                              {turn.citations.map((c, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveEvidencePassages([c]);
+                                    setDrawerTab('evidence');
+                                    setIsDrawerOpen(true);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white hover:bg-purple-50 border border-gray-200 text-gray-700 hover:text-primary text-[11px] font-medium transition-colors cursor-pointer shadow-2xs"
+                                >
+                                  <span className="font-bold text-primary">{c.marker}</span>
+                                  <span className="truncate max-w-[140px]">{c.doc_title || 'Paper'}</span>
+                                  <span className="text-gray-400">p.{c.page || 1}</span>
+                                </button>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -763,204 +882,105 @@ export const ResearchWorkspace: React.FC = () => {
               </div>
             </div>
 
-            {/* Sticky Selection Bar (if papers selected) */}
-            {selectedPaperIds.length > 0 && (
-              <div className="px-4 sm:px-6 py-2 bg-white/95 backdrop-blur-sm border-t border-gray-200/80 flex items-center justify-between gap-3 shrink-0 shadow-xs">
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="font-semibold text-gray-800">
-                    {selectedPaperIds.length} paper{selectedPaperIds.length === 1 ? '' : 's'} selected
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSaveSelectedPapers}
-                    className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium cursor-pointer"
-                  >
-                    Index Selected
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleSendMessage('Compare the architectures and methodology of the selected papers.');
-                    }}
-                    className="px-2.5 py-1 rounded-lg border border-gray-200 hover:border-primary text-gray-700 text-xs font-medium cursor-pointer"
-                  >
-                    Compare
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/report?topic=${encodeURIComponent(activeTopic)}`)}
-                    className="px-3 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium cursor-pointer shadow-2xs"
-                  >
-                    Generate Review
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Quick Starters Row */}
-            <div className="px-4 sm:px-6 py-1.5 bg-white border-t border-gray-100 flex items-center gap-1.5 overflow-x-auto shrink-0 no-scrollbar">
-              <span className="text-[11px] font-semibold text-gray-400 uppercase shrink-0">Prompts:</span>
-              {[
-                'Find papers from 2024 onward',
-                'Which ones use TCN?',
-                'Compare their forecasting horizons',
-                'What benchmark datasets were used?',
-                'Summarize methodology and empirical results',
-              ].map((promptText, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleSendMessage(promptText)}
-                  className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 hover:bg-purple-50 text-gray-600 hover:text-primary border border-gray-200/80 shrink-0 cursor-pointer transition-colors"
-                >
-                  {promptText}
-                </button>
-              ))}
-            </div>
-
-            {/* Sticky Bottom Chat Composer */}
-            <div className="p-3 sm:p-4 bg-white border-t border-gray-200/80 shrink-0">
+            {/* In-Chat Fixed Bottom Composer */}
+            <div className="p-4 bg-white border-t border-gray-200/80 shrink-0">
               <div className="max-w-3xl mx-auto">
                 <ChatComposer
                   value={chatInput}
                   onChange={setChatInput}
                   onSubmit={() => handleSendMessage()}
+                  placeholder={`Ask a follow-up question about the selected ${selectedPaperIds.length} paper(s)...`}
+                  disabled={isProcessing}
                   isLoading={isProcessing}
-                  placeholder="Ask a question about the papers, compare methods, or request evidence..."
-                  minRows={1}
                 />
               </div>
             </div>
           </div>
         ) : (
-          /* ── VIEW B: STRUCTURED PAPER MATRIX VIEW ── */
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-            <div className="bg-white p-3.5 rounded-xl border border-gray-200/80 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
-              <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                <span className="material-symbols-outlined text-gray-400">search</span>
+          /* ── VIEW B: STRUCTURED PAPER MATRIX TABLE ── */
+          <div className="flex-1 flex flex-col h-full overflow-hidden p-6">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
                 <input
                   type="text"
+                  placeholder="Filter papers by keyword..."
                   value={filterQuery}
                   onChange={(e) => setFilterQuery(e.target.value)}
-                  placeholder="Filter by title, author, venue..."
-                  className="w-full bg-transparent text-xs focus:outline-none"
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs w-64 focus:outline-none focus:border-primary"
                 />
-              </div>
-
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <select
                   value={filterYear}
                   onChange={(e) => setFilterYear(e.target.value)}
-                  className="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none"
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700"
                 >
                   <option value="All">All Years</option>
                   {uniqueYears.map((y) => (
-                    <option key={y} value={y}>{y}</option>
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
                   ))}
                 </select>
-
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none"
-                >
-                  <option value="relevance">Relevance</option>
-                  <option value="year">Year</option>
-                  <option value="citations">Citations</option>
-                </select>
-
-                <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={filterOpenAccessOnly}
-                    onChange={(e) => setFilterOpenAccessOnly(e.target.checked)}
-                    className="rounded text-primary"
-                  />
-                  <span>Open Access</span>
-                </label>
               </div>
+
+              <button
+                type="button"
+                onClick={handleSaveSelectedPapers}
+                className="px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
+              >
+                Save & Index Selected ({selectedPaperIds.length})
+              </button>
             </div>
 
-            {/* Matrix Table */}
-            <div className="bg-white rounded-xl border border-gray-200/80 overflow-hidden shadow-2xs">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-gray-50/80 text-gray-600 font-semibold border-b border-gray-200/80">
+            <div className="flex-1 overflow-auto bg-white border border-gray-200 rounded-xl shadow-2xs">
+              <table className="w-full text-left text-xs text-gray-700 border-collapse">
+                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 font-semibold text-gray-900 uppercase text-[10.5px]">
                   <tr>
-                    <th className="p-3 w-10 text-center">
+                    <th className="p-3 w-8">
                       <input
                         type="checkbox"
-                        checked={
-                          displayedCandidates.length > 0 &&
-                          displayedCandidates.every((p) =>
-                            selectedPaperIds.includes(p.doc_id || p.arxiv_id || '')
-                          )
-                        }
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            selectAllPapers(
-                              true,
-                              displayedCandidates.map((p) => p.doc_id || p.arxiv_id || '')
-                            );
-                          } else {
-                            selectAllPapers(false);
-                          }
-                        }}
-                        className="rounded text-primary"
+                        checked={selectedPaperIds.length === candidates.length && candidates.length > 0}
+                        onChange={(e) => selectAllPapers(e.target.checked, candidates.map((c) => c.doc_id || c.arxiv_id || ''))}
                       />
                     </th>
-                    <th className="p-3">Paper Title &amp; Authors</th>
-                    <th className="p-3 w-20">Year</th>
-                    <th className="p-3 w-36">Venue</th>
-                    <th className="p-3 w-28">Source</th>
-                    <th className="p-3 w-28 text-right">Actions</th>
+                    <th className="p-3">Title & Authors</th>
+                    <th className="p-3">Year</th>
+                    <th className="p-3">Venue</th>
+                    <th className="p-3">Source</th>
+                    <th className="p-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {displayedCandidates.map((paper) => {
-                    const pId = paper.doc_id || paper.arxiv_id || '';
-                    const isSel = selectedPaperIds.includes(pId);
+                  {displayedCandidates.map((p) => {
+                    const pId = p.doc_id || p.arxiv_id || '';
+                    const isSelected = selectedPaperIds.includes(pId);
                     return (
-                      <tr key={pId} className={`hover:bg-gray-50/70 transition-colors ${isSel ? 'bg-purple-50/30' : ''}`}>
-                        <td className="p-3 text-center">
+                      <tr key={pId} className="hover:bg-gray-50/80 transition-colors">
+                        <td className="p-3">
                           <input
                             type="checkbox"
-                            checked={isSel}
+                            checked={isSelected}
                             onChange={() => togglePaperSelection(pId)}
-                            className="rounded text-primary"
                           />
                         </td>
-                        <td className="p-3">
-                          <div className="font-semibold text-gray-900">{paper.title}</div>
-                          <div className="text-[11px] text-gray-500 mt-0.5">{paper.authors}</div>
+                        <td className="p-3 max-w-md">
+                          <span className="font-bold text-gray-900 block">{p.title}</span>
+                          <span className="text-gray-500 text-[11px] block mt-0.5">{p.authors}</span>
                         </td>
-                        <td className="p-3 font-medium text-gray-700">{paper.year}</td>
-                        <td className="p-3 italic text-gray-600">{paper.venue}</td>
+                        <td className="p-3">{p.year}</td>
+                        <td className="p-3 italic text-gray-600">{p.venue}</td>
                         <td className="p-3">
                           <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-gray-100 text-gray-700">
-                            {paper.source || 'OpenAlex'}
+                            {p.sources_found?.join(', ') || 'Academic Source'}
                           </span>
                         </td>
                         <td className="p-3 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleSaveAndIndexPaper(paper)}
-                              className="px-2 py-1 rounded bg-primary text-white font-medium text-[11px] hover:bg-primary-hover"
-                            >
-                              Index
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/paper-chat/${pId}`)}
-                              className="px-2 py-1 rounded border border-gray-200 text-gray-700 font-medium text-[11px] hover:bg-gray-50"
-                            >
-                              Chat
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveAndIndexPaper(p)}
+                            className="px-2.5 py-1 rounded bg-purple-50 text-primary hover:bg-purple-100 font-medium text-[11px] cursor-pointer"
+                          >
+                            Index
+                          </button>
                         </td>
                       </tr>
                     );
@@ -972,160 +992,76 @@ export const ResearchWorkspace: React.FC = () => {
         )}
       </div>
 
-      {/* ── OPTIONAL CONTEXT PANEL (COLLAPSIBLE, PER REQUIREMENT 10) ── */}
+      {/* ── RIGHT CONTEXT DRAWER (SOURCES / EVIDENCE / PDF) ── */}
       {isDrawerOpen && (
-        <aside className="w-80 sm:w-96 bg-white border-l border-gray-200/80 flex flex-col h-full shrink-0 shadow-sm animate-fadeIn">
-          {/* Panel Header & Tabs */}
-          <div className="flex items-center justify-between border-b border-gray-200/80 bg-gray-50/60 px-3 pt-2">
-            <div className="flex items-center gap-1">
-              {[
-                { id: 'sources', label: 'Sources', count: candidates.length },
-                { id: 'evidence', label: 'Evidence', count: activeEvidencePassages.length },
-                ...(activePdfViewer ? [{ id: 'pdf', label: 'PDF View', count: undefined }] : []),
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setDrawerTab(tab.id as any)}
-                  className={`flex items-center gap-1 px-3 py-2 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-                    drawerTab === tab.id
-                      ? 'border-primary text-primary bg-white rounded-t-lg'
-                      : 'border-transparent text-gray-500 hover:text-gray-800'
-                  }`}
-                >
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && (
-                    <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.2 rounded-full">
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
+        <aside className="w-[360px] bg-white border-l border-gray-200/80 flex flex-col h-full shadow-lg z-20 animate-fadeIn shrink-0">
+          <div className="p-3 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg text-xs">
+              <button
+                type="button"
+                onClick={() => setDrawerTab('sources')}
+                className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  drawerTab === 'sources' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
+                }`}
+              >
+                Sources ({candidates.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrawerTab('evidence')}
+                className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  drawerTab === 'evidence' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
+                }`}
+              >
+                Evidence ({activeEvidencePassages.length})
+              </button>
             </div>
-
             <button
               type="button"
               onClick={() => setIsDrawerOpen(false)}
-              className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
-              title="Close Panel"
+              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[17px]">close</span>
+              <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
           </div>
 
-          {/* Panel Body */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* TAB: SOURCES */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {drawerTab === 'sources' && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    Saved &amp; Active Papers
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={handleSaveSelectedPapers}
-                    className="text-[11.5px] text-primary font-medium hover:underline"
+                {candidates.map((c) => (
+                  <div
+                    key={c.doc_id || c.arxiv_id}
+                    className="p-3 rounded-xl border border-gray-200/80 bg-gray-50/50 text-xs space-y-1.5"
                   >
-                    Index Selected
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {candidates.map((paper) => {
-                    const pId = paper.doc_id || paper.arxiv_id || '';
-                    const st = indexingStatus[pId] || 'DISCOVERED';
-
-                    return (
-                      <div
-                        key={pId}
-                        className="p-3 bg-gray-50/70 border border-gray-200/70 rounded-xl text-xs space-y-1.5"
-                      >
-                        <div className="font-semibold text-gray-900 line-clamp-2">{paper.title}</div>
-                        <div className="flex items-center justify-between text-[11px] text-gray-500">
-                          <span>{paper.year}</span>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                              st === 'CHAT_READY'
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {st === 'CHAT_READY' ? 'Ready' : st}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-end gap-1 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/paper-chat/${pId}`)}
-                            className="px-2 py-0.5 rounded text-[11px] font-medium bg-primary text-white hover:bg-primary-hover"
-                          >
-                            Chat with Paper
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                    <span className="font-bold text-gray-900 block leading-snug">{c.title}</span>
+                    <span className="text-gray-500 block">{c.authors} ({c.year})</span>
+                    {c.abstract && (
+                      <p className="text-gray-600 leading-relaxed text-[11.5px] line-clamp-3">
+                        {c.abstract}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* TAB: EVIDENCE */}
             {drawerTab === 'evidence' && (
               <div className="space-y-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Retrieved Passages ({activeEvidencePassages.length})
-                </h4>
-                {activeEvidencePassages.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic py-4 text-center">
-                    Ask a question in chat to retrieve grounded evidence from the papers.
-                  </p>
-                ) : (
-                  activeEvidencePassages.map((ev, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3.5 bg-gray-50/70 border border-gray-200/70 rounded-xl text-xs space-y-1.5"
-                    >
-                      <div className="flex items-center justify-between font-semibold text-primary">
-                        <span>{ev.marker || `[E${idx + 1}]`} {ev.section || 'Passage'}</span>
-                        {ev.page && <span className="text-gray-500">p. {ev.page}</span>}
-                      </div>
-                      <p className="text-gray-700 italic leading-relaxed">
-                        &quot;{ev.quote || ev.text}&quot;
-                      </p>
-                      {ev.doc_title && (
-                        <div className="text-[10.5px] text-gray-400 pt-1 border-t border-gray-200/50">
-                          {ev.doc_title}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {/* TAB: PDF VIEWER */}
-            {drawerTab === 'pdf' && activePdfViewer && (
-              <div className="flex flex-col h-full space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-gray-900 truncate">
-                    {activePdfViewer.title}
-                  </span>
-                  <a
-                    href={activePdfViewer.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] text-primary hover:underline flex items-center gap-0.5 font-medium"
+                {activeEvidencePassages.map((ev, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 rounded-xl border border-purple-200/60 bg-purple-50/30 text-xs space-y-1.5"
                   >
-                    <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-                    External
-                  </a>
-                </div>
-                <iframe
-                  src={activePdfViewer.url}
-                  className="w-full flex-1 min-h-[500px] border border-gray-200 rounded-xl"
-                  title="PDF Viewer"
-                />
+                    <div className="flex items-center justify-between font-bold text-primary">
+                      <span>{ev.marker || `[E${idx + 1}]`}</span>
+                      <span className="text-gray-500 font-normal">p. {ev.page || 1}</span>
+                    </div>
+                    <span className="font-semibold text-gray-900 block">{ev.doc_title || 'Paper Source'}</span>
+                    <p className="text-gray-700 italic leading-relaxed text-[11.5px]">
+                      &quot;{ev.quote}&quot;
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
